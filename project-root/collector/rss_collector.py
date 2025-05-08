@@ -3,11 +3,7 @@
 import feedparser
 from database.connection import db  # MongoDB 연결
 from datetime import datetime
-
-rss_urls = [
-    "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml",
-    "https://rss.donga.com/total.xml"
-]
+from collector.rss_list import rss_urls  # RSS URL 목록 불러오기기
 
 async def fetch_and_store_titles():
     all_titles = []
