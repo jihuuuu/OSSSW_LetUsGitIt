@@ -10,7 +10,6 @@
 ```plaintext
 project/
 ├─ api/
-│   ├─ __init__.py 
 │   ├─ create_app.py      # FastAPI 앱 팩토리(환경 로드, 라우터 등록) 생성
 │   ├─ routes/
 │   │   ├─ news.py       
@@ -31,7 +30,7 @@ project/
 │   ├─ mongo_models.py    # 선택 (필요시 확장)
 │   └─ sql_models.py
 ├─ frontend/              # React / Streamlit
-├─ data/                  # 선택 RSS로 받은 기사 JSON
+├─ data/                  # 선택
 │   └─ raw/               # 선택 (RSS로 받은 기사 JSON)
 ├─ app.py                 # FastAPI 실행 진입점
 ├─ .env
