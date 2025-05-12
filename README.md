@@ -9,7 +9,7 @@
 
 ```plaintext
 project/
-├─ api/
+├─ api/                   # api 목록 (필요시 확장)
 │   ├─ create_app.py      # FastAPI 앱 팩토리(환경 로드, 라우터 등록) 생성
 │   ├─ routes/
 │   │   ├─ news.py       
@@ -18,10 +18,10 @@ project/
 │   └─ schemas/
 │       ├─ news.py
 │       └─ user.py
-├─ collector/
+├─ collector/             # rss 기사 크롤링
 │   ├─ rss_list.py
 │   └─ rss_collector.py
-├─ clustering/
+├─ clustering/            # 기사 클러스터링 (AI)
 │   ├─ embedder.py
 │   ├─ cluster.py
 │   └─ pipeline.py
@@ -35,7 +35,7 @@ project/
 ├─ app.py                 # FastAPI 실행 진입점
 ├─ .env
 ├─ db_init.py             # DB 초기 생성
-├─ requirements.txt
+├─ requirements.txt       # 패키지 설치 및 의존성 주입
 └─ Dockerfile             # 선택 (필요시 확장)
 </details>
 ```
