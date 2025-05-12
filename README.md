@@ -36,7 +36,8 @@ project/
 ├─ db_init.py             # DB 초기 생성
 ├─ requirements.txt
 └─ Dockerfile             # 선택 (필요시 확장)
-</details> ```
+</details>
+```
 
 데이터베이스 연동 순서 및 RSS 기사 크롤링 결과 확인은 노션에 정리했습니다.
 
