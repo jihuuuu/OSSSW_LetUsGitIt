@@ -1,7 +1,7 @@
 #일단은 rss에서 뉴스 크롤링하여 제목만 추출하고 저장하는 코드로 구현
 # 나중에 뉴스 본문도 크롤링하여 저장하는 코드로 수정할 예정
 import feedparser
-from database.connection import db  # MongoDB 연결
+from mongodb.connection import db  # MongoDB 연결
 from datetime import datetime
 from collector.rss_list import rss_urls  # RSS URL 목록 불러오기기
 

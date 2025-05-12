@@ -1,7 +1,7 @@
 # api/routes/news.py
-
+# 기사 관련 API를 구현하는 FastAPI 라우터입니다.
 from fastapi import APIRouter
-from database.connection import db
+from mongodb.connection import db
 from collector.rss_collector import fetch_and_store_titles
 
 router = APIRouter()
