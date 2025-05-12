@@ -1,4 +1,5 @@
 # collector/rss_list.py
+# 역할: “어떤 RSS 피드를 구독할지” 리스트를 관리
 
 rss_urls = [
     # 조선일보
