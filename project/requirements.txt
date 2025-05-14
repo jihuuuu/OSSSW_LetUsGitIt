@@ -7,3 +7,7 @@ feedparser
 requests
 sentence-transformers
 scikit-learn
+numpy
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic[email]
