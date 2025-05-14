@@ -3,20 +3,12 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database.connection import SessionLocal
+from database.deps import get_db
 from collector.rss_collector import parse_and_store
 from database.sql_models import Article
 from api.schemas.news import NewsOut
 
 router = APIRouter()
-
-# 의존성: 요청마다 DB 세션을 열고 닫아 줍니다.
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # 1. MySQL에 저장된 기사 목록 조회 (제목만)
 @router.get("/titles", response_model=list[NewsOut], summary="DB에 저장된 기사 제목만 조회")

@@ -1,6 +1,6 @@
+# database/sql_models.py
 # 역할: 관계형 데이터베이스(RDBMS)에 대응하는 테이블 스키마를 SQLAlchemy ORM 혹은 Django 모델로 정의
 
-# database/sql_models.py
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from datetime import datetime

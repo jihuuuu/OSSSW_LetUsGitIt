@@ -1,13 +1,12 @@
 # database/connection.py
 # 역할: 각 데이터 저장소(몽고DB, RDBMS)에 연결할 수 있는 “세션·클라이언트”를 한 곳에서 생성·내보냅니다.
 
-# database/connection.py
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from api.config import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
 
 # ────────────────────────────────────────────────────────────────────
 # 1) .env 파일 로드
@@ -22,11 +21,7 @@ print("MYSQL_USER env:", os.getenv("MYSQL_USER"))
 print("MYSQL_DB   env:", os.getenv("MYSQL_DB"))
 
 # 2) 환경변수에서 접속 정보 읽기
-DB_USER = os.getenv("MYSQL_USER")
-DB_PASS = os.getenv("MYSQL_PASSWORD")
-DB_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")
-DB_PORT = os.getenv("MYSQL_PORT", "3306")
-DB_NAME = os.getenv("MYSQL_DB")
+# api/config.py에서 설정한 DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME을 가져옴
 
 if not all([DB_USER, DB_PASS, DB_NAME]):
     raise RuntimeError("🚨 .env에서 MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB가 설정되어 있는지 확인하세요.")

@@ -1,11 +1,11 @@
+# collector/rss_collector.py
 # 역할: rss_list.py에 정의된 모든 피드를 순회하며 RSS 항목을 파싱하고, 중복 없이 MongoDB(또는 파일)에 저장
 
 #일단은 rss에서 뉴스 크롤링하여 제목만 추출하고 저장하는 코드로 구현
 # 나중에 뉴스 본문도 크롤링하여 저장하는 코드로 수정할 예정
 
-# collector/rss_collector.py
 import feedparser
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from database.connection import SessionLocal
 from database.sql_models import Article
@@ -30,7 +30,7 @@ def parse_and_store():
                     link=link,
                     summary=summary,
                     published=published,
-                    fetched_at=datetime.utcnow()
+                    fetched_at=datetime.now(timezone.utc)
                 )
 
                 # 3) 중복(Unique) 처리: IntegrityError 발생 시 무시
