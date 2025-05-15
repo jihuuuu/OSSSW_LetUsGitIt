@@ -3,7 +3,7 @@
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
-from datetime import datetime
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -14,7 +14,7 @@ class Article(Base):
     link        = Column(String(500), unique=True, nullable=False, index=True)
     summary     = Column(Text)
     published   = Column(DateTime)
-    fetched_at  = Column(DateTime, default=datetime.utcnow)
+    fetched_at  = Column(DateTime, default=datetime.now(timezone.utc))
     cluster     = Column(Integer, nullable=True, index=True)
 
 class User(Base):
@@ -23,14 +23,14 @@ class User(Base):
     username      = Column(String(50), nullable=False, unique=True)
     email         = Column(String(100), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
-    created_at    = Column(DateTime, default=datetime.utcnow)
+    created_at    = Column(DateTime, default=datetime.now(timezone.utc))
 
 class UserScrap(Base):
     __tablename__ = "user_scraps"
     id         = Column(Integer, primary_key=True, index=True)
     user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
-    scraped_at = Column(DateTime, default=datetime.utcnow)
+    scraped_at = Column(DateTime, default=datetime.now(timezone.utc))
     # 유니크 제약은 모델 레벨 대신 migration/DDL에 선언
 
 class UserNote(Base):
@@ -39,4 +39,4 @@ class UserNote(Base):
     user_id    = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     article_id = Column(Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False)
     note_text  = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))

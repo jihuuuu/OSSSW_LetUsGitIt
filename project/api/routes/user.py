@@ -10,7 +10,6 @@ from database.deps import get_db
 from database.sql_models import User
 from api.config import SECRET_KEY, ALGORITHM
 from api.utils.token import create_access_token, create_refresh_token
-from datetime import timezone
 
 router = APIRouter()
 
