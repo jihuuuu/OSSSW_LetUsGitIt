@@ -7,6 +7,6 @@ from .routes import news, cluster, user
 def create_app():
     app = FastAPI(title="뉴스 클러스터링 API")
     app.include_router(news.router,    prefix="/api/news",    tags=["news"])
-    # app.include_router(cluster.router, prefix="/api/cluster", tags=["cluster"])
+    app.include_router(cluster.router, prefix="/api/cluster", tags=["cluster"])
     app.include_router(user.router,    prefix="/api/user",    tags=["user"])
     return app
