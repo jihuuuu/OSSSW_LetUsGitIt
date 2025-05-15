@@ -4,9 +4,8 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from datetime import datetime, timezone
-
+from sqlalchemy.orm import relationship
 Base = declarative_base()
-
 class Article(Base):
     __tablename__ = "articles"
     id          = Column(Integer, primary_key=True, index=True)
@@ -15,7 +14,7 @@ class Article(Base):
     summary     = Column(Text)
     published   = Column(DateTime)
     fetched_at  = Column(DateTime, default=datetime.now(timezone.utc))
-    cluster     = Column(Integer, nullable=True, index=True)
+    cluster  = Column(Integer, nullable=True, index=True)
 
 class User(Base):
     __tablename__ = "users"
