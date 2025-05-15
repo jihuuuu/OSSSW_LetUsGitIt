@@ -107,12 +107,10 @@ def main():
 
     args = parser.parse_args()
 
-    '''
     # 1) 임베딩 단계 수행 (항상 실행)
     embs = run_embedding_stage(limit=args.limit, batch_size=32)
     if embs is None:
         return
-    '''
     
     # 2) 클러스터링 단계 수행
     run_clustering_stage(
