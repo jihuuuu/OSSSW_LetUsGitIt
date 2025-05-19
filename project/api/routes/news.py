@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database.deps import get_db
 from collector.rss_collector import parse_and_store
-from database.sql_models import Article
+from models.article import Article
 from api.schemas.news import NewsOut
 
 router = APIRouter()

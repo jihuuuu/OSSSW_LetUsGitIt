@@ -4,7 +4,8 @@ from collections import defaultdict
 from typing import Dict, List
 
 from database.connection import SessionLocal
-from database.sql_models import Article
+from models.article import Article
+from clustering.pipeline import run_embedding_stage, run_clustering_stage
 
 router = APIRouter()
 

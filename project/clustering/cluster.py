@@ -5,8 +5,7 @@ import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
 from collections import Counter
 from database.connection import SessionLocal
-from database.sql_models import Article
-from database.sql_models import Article  # Article.title+summary
+from models.article import Article  # Article.title+summary
 
 def load_embeddings(path: str) -> np.ndarray:
     """

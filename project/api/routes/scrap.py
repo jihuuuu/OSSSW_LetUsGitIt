@@ -5,7 +5,7 @@
 # 기사 스크랩 목록 조회 get
 # 기사 스크랩 상세 조회...? get
 
-from database.sql_models import *
+from models import *
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database.deps import get_db

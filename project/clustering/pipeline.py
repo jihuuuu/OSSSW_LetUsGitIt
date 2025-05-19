@@ -2,7 +2,7 @@
 from typing import List
 from clustering.embedder import make_embeddings
 from database.connection import SessionLocal
-from database.sql_models import Article
+from models.article import Article
 import numpy as np
 import argparse
 from collections import Counter
