@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database.connection import SessionLocal
-from database.sql_models import Article
+from models.article import Article
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
 
 router = APIRouter()

@@ -8,7 +8,7 @@ import feedparser
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 from database.connection import SessionLocal
-from database.sql_models import Article
+from models.article import Article
 from collector.rss_list import rss_urls
 
 def parse_and_store():

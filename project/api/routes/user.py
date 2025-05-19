@@ -7,7 +7,7 @@ from passlib.hash import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from api.schemas.user import UserCreate, UserOut, UserLogin
 from database.deps import get_db
-from database.sql_models import User
+from models.user import User
 from api.config import SECRET_KEY, ALGORITHM
 from api.utils.token import create_access_token, create_refresh_token
 
