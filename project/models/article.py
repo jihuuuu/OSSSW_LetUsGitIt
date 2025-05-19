@@ -15,6 +15,7 @@ class Article(Base):
     link = Column(String(255), nullable=False)
     summary = Column(Text, nullable=True)
     published = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    fetched_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 
     # 관계
     scrap = relationship("Scrap", back_populates="article")
