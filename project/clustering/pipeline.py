@@ -80,7 +80,10 @@ def run_clustering_stage(
         print(f"  - Cluster {lbl}: {cnt} articles")
 
     # 4) 대표 키워드 추출
-    texts = fetch_all_texts(limit=limit)
+    raw_texts = fetch_all_texts(limit=limit)
+    from clustering.embedder import preprocess_text
+    texts = [preprocess_text(t) for t in raw_texts]
+    
     keywords = extract_keywords_per_cluster(texts, labels, top_n=3)
     print("\n대표 키워드 (클러스터별):")
     for lbl, kws in keywords.items():
@@ -107,10 +110,12 @@ def main():
 
     args = parser.parse_args()
 
+    
     # 1) 임베딩 단계 수행 (항상 실행)
     embs = run_embedding_stage(limit=args.limit, batch_size=32)
     if embs is None:
         return
+    
     
     # 2) 클러스터링 단계 수행
     run_clustering_stage(
