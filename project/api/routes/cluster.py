@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from collections import defaultdict
+from typing import Dict, List
 
 from database.connection import SessionLocal
 from models.article import Article
@@ -15,40 +16,42 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/run")
-async def run_full_pipeline(
-    method: str = "kmeans",
-    n_clusters: int = 10,
-    eps: float = 0.5,
-    min_samples: int = 5,
-    limit: int = 100,
-    save_db: bool = True,
-):
+@router.get("/", response_model=Dict[int, List[dict]])
+async def list_clusters(db: Session = Depends(get_db)):
     """
-    임베딩 생성부터 클러스터링, DB 저장까지 전체 파이프라인을 실행합니다.
+    cluster가 지정된 기사만 가져와
+    클러스터별로 최신순 2개씩 묶어서 반환합니다.
     """
-    # 1) 임베딩
-    embeddings = run_embedding_stage(limit=limit)
-    if embeddings is None:
-        raise HTTPException(status_code=400, detail="No articles available for embedding")
-
-    # 2) 클러스터링
-    run_clustering_stage(
-        emb_path="data/article_embeddings.npy",
-        method=method,
-        n_clusters=n_clusters,
-        eps=eps,
-        min_samples=min_samples,
-        limit=limit,
-        save_db=save_db,
+    # 1) cluster가 NULL인 건 제외하고, cluster → fetched_at(desc) 순서로 가져오기
+    articles = (
+        db.query(Article)
+          .filter(Article.cluster != None)
+          .order_by(Article.cluster, Article.fetched_at.desc())
+          .all()
     )
 
-    return {"message": "Pipeline executed successfully"}
+    if not articles:
+        raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
+
+    # 2) 클러스터별로 2개까지만 보여주기
+    grouped: Dict[int, List[dict]] = defaultdict(list)
+    for a in articles:
+        key = a.cluster
+        if len(grouped[key]) < 2:
+            grouped[key].append({
+                "id": a.id,
+                "title": a.title,
+                "summary": a.summary,
+                "url": getattr(a, "url", None),
+                "fetched_at": a.fetched_at.isoformat(),
+            })
+
+    return grouped
 
 @router.get("/{cluster_id}", response_model=List[dict])
 async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
     """
-    주어진 cluster_id에 속한 기사 목록을 반환합니다.
+    주어진 cluster_label에 속한 기사 목록을 반환합니다.
     """
     articles = (
         db.query(Article)
