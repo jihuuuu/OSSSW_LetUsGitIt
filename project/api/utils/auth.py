@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 from api.config import SECRET_KEY, ALGORITHM
 from database.deps import get_db
-from models.user import User
+from models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/login")
 

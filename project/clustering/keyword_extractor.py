@@ -2,6 +2,7 @@
 
 from typing import List, Dict
 from sklearn.feature_extraction.text import TfidfVectorizer
+from clustering.embedder import STOPWORDS_KO
 
 def extract_top_keywords(
     documents: List[str],
@@ -14,8 +15,8 @@ def extract_top_keywords(
     """
     # 1) TF-IDF 행렬 생성
     vectorizer = TfidfVectorizer(
-        max_features=max_features,
-        stop_words='english'   # 필요에 따라 한국어 불용어 처리
+        stop_words=list(STOPWORDS_KO),
+        max_features=1000
     )
     tfidf_matrix = vectorizer.fit_transform(documents)
     feature_names = vectorizer.get_feature_names_out()
