@@ -2,7 +2,7 @@
 # 역할: 스크랩 관련 모델 정의
 # scrap, pcluster, pcluster_article, pcluster_keyword
 
-from sqlalchemy import Column, BigInteger, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, DateTime, Boolean, ForeignKey
 from datetime import datetime, timezone
 from models.base import Base
 from sqlalchemy.orm import relationship
@@ -13,7 +13,7 @@ class Scrap(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-    state = Column(bool, nullable=False, default=True)
+    state = Column(Boolean, nullable=False, default=True)
     article_id = Column(BigInteger, ForeignKey("article.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
 
@@ -27,7 +27,7 @@ class PCluster(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     label = Column(Integer, nullable=False)
-    knowledge_map_id = Column(BigInteger, ForeignKey("knowledgemap.id", ondelete="CASCADE"), nullable=False)
+    knowledge_map_id = Column(BigInteger, ForeignKey("knowledge_map.id", ondelete="CASCADE"), nullable=False)
 
     # 관계
     knowledge_map = relationship("KnowledgeMap", back_populates="pcluster")

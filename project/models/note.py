@@ -2,7 +2,7 @@
 # 역할: 노트 관련 모델 정의
 # note, note_article
 
-from sqlalchemy import Column, BigInteger, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, BigInteger, String, DateTime, Text, Boolean, ForeignKey
 from datetime import datetime, timezone
 from models.base import Base
 from sqlalchemy.orm import relationship
@@ -15,7 +15,7 @@ class Note(Base):
     text = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-    state = Column(bool, nullable=False, default=True)
+    state = Column(Boolean, nullable=False, default=True)
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     
     # 관계
@@ -28,7 +28,7 @@ class NoteArticle(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-    state = Column(bool, nullable=False, default=True)
+    state = Column(Boolean, nullable=False, default=True)
     note_id = Column(BigInteger, ForeignKey("note.id", ondelete="CASCADE"), nullable=False)
     article_id = Column(BigInteger, ForeignKey("article.id", ondelete="CASCADE"), nullable=False)
 
