@@ -14,7 +14,7 @@ def create_app():
     
     app.include_router(news.router,    prefix="/api/news",    tags=["news"])
     app.include_router(cluster.router, prefix="/api/cluster", tags=["cluster"])
-    app.include_router(user.router,    prefix="/user",    tags=["user"])
+    app.include_router(user.router,    prefix="/users",    tags=["users"])
     app.include_router(user_notes.router, tags=["user-notes"])
     app.include_router(article_notes.router, tags=["article-notes"])
     return app

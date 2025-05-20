@@ -7,14 +7,23 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 from api.config import SECRET_KEY, ALGORITHM
 from database.deps import get_db
-from models import User
+from models.user import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/login")
+
+def decode_token(token: str, token_type: str = "access") -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != token_type:
+            raise JWTError("잘못된 토큰 타입입니다.")
+        return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail="토큰 유효성 실패")
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode_token(token, token_type="access")
         user_id: str = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="토큰 payload 오류")

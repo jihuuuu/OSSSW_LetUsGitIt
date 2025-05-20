@@ -18,13 +18,13 @@ router = APIRouter()
 def signup(user: UserCreate, db: Session = Depends(get_db)):
     # 사용자 이름, 이메일 중복 검사
     # 중복 시 400 에러
-    if db.query(User).filter((User.username == user.username) | (User.email == user.email)).first():
+    if db.query(User).filter((User.user_name == user.user_name) | (User.email == user.email)).first():
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다.")
     
     # 사용자 객체 생성
     # 요청 본문에 사용자 이름, 이메일, 비밀번호
     new_user = User(
-        username=user.username,
+        user_name=user.user_name,
         email=user.email,
         password_hash=bcrypt.hash(user.password) # 비밀번호 해싱
     )

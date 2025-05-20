@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 
 # 회원가입 요청 시 사용할 모델
 class UserCreate(BaseModel):
-    username: str
+    user_name: str
     email: EmailStr # 유효한 이메일 형식 검증
     password: str # 평문으로 받아 해싱
 
