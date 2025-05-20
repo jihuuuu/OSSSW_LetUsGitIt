@@ -21,6 +21,7 @@ class User(Base):
     # 관계: KnowledgeMap과 1:N
     knowledge_maps = relationship("KnowledgeMap", back_populates="user")
     note = relationship("Note", back_populates="user")
+    scrap = relationship("Scrap", back_populates="user")
 
 
 class KnowledgeMap(Base):
@@ -31,4 +32,5 @@ class KnowledgeMap(Base):
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False) 
     
     # 관계
-    user = relationship("User", back_populates="knowledge_maps")
+    user = relationship("User", back_populates="knowledge_map")
+    pcluster = relationship("PCluster", back_populates="knowledge_map")
