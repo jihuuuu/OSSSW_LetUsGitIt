@@ -14,6 +14,8 @@ STOPWORDS_KO = {
     "늘다", "오다", "보다"
 }
 
+EMBEDDING_DIM = 384
+
 # 1) 전역에서 한 번만 모델 로딩
 _MODEL_NAME = "all-MiniLM-L6-v2"  # 가벼우면서 성능 좋은 SBERT 모델
 _model: SentenceTransformer | None = None
