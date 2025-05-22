@@ -8,6 +8,6 @@ export type Cluster = {
 
 export type PCluster = {
   id: number;
-  label: string;
+  label: number;
   keywords: Keyword[];
 };
