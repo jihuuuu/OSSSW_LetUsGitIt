@@ -17,6 +17,7 @@ export default function ScrapbookPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  
 
   const userId = 1; // ✅ 로그인 유저 아이디 (임시)
 

@@ -48,7 +48,7 @@ export function NoteAccordionList({
           </AccordionTrigger>
           <AccordionContent className="px-[var(--size-padding-lg)] pb-[var(--size-padding-lg)]">
             <p className="whitespace-pre-line text-[length:var(--body-base-font-size)] font-[number:var(--body-base-font-weight)] text-color-text-default-default">
-              {note.content?.slice(0, 100) || "내용 없음"}
+              {note.text?.slice(0, 100) || "내용 없음"}
             </p>
           </AccordionContent>
         </AccordionItem>
