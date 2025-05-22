@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.11",
+    "d3": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3"
+  }
+}

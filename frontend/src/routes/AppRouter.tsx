@@ -6,6 +6,8 @@ import SignupPage from "@/pages/SignupPage";
 import TodayIssuePage from "@/pages/TodayIssuePage";
 import ClusterDetailPage from "@/pages/ClusterDetailPage";
 
+import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
+import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
 export default function AppRouter() {
   return (
     <Router>
@@ -17,6 +19,8 @@ export default function AppRouter() {
         <Route path="/signup/complete" element={<SignupCompletePage />} />
         <Route path="/today/issue" element={<TodayIssuePage />} />
         <Route path="/cluster/:clusterId" element={<ClusterDetailPage />} />
+        <Route path="/users/scraps" element={<ScrapbookPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
   );

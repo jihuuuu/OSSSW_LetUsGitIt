@@ -26,7 +26,7 @@ export function SheetContent({
   showCloseButton?: boolean;
 }) {
   return (
-    <div className={`bg-white h-full shadow-lg ${className}`}>
+    <div className={`w-[400px] max-w-full h-full bg-[var(--card)] text-[var(--card-foreground)] shadow-xl p-6 ${className}`}>
       {children}
     </div>
   );
@@ -39,7 +39,7 @@ export function SheetHeader({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={className}>{children}</div>;
+  return <div className={`mb-4 ${className}`}>{children}</div>;
 }
 
 export function SheetFooter({
@@ -49,7 +49,7 @@ export function SheetFooter({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={className}>{children}</div>;
+  return <div className={`mt-4 flex justify-end ${className}`}>{children}</div>;
 }
 
 export function SheetTitle({
