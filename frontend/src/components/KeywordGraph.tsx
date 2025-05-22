@@ -1,9 +1,10 @@
+// 📄 src/components/KeywordGraph.tsx
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import * as d3 from "d3";
 import type { Keyword } from "@/types/keyword";
 import type { PCluster } from "@/types/cluster";
 import type { D3DragEvent } from "d3";
-
 
 type Node = {
   id: number;
@@ -28,6 +29,7 @@ type Props = {
 
 export function KeywordGraph({ clusters }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -77,31 +79,35 @@ export function KeywordGraph({ clusters }: Props) {
       .join("line")
       .attr("stroke-width", 1.5);
 
-const node = (svg
-  .append("g")
-  .selectAll<SVGCircleElement, Node>("circle")
-  .data(nodes)
-  .join("circle")
-  .attr("r", 12)
-  .attr("fill", (d) => d3.schemeCategory10[d.clusterId % 10]) as d3.Selection<SVGCircleElement, Node, SVGGElement, unknown>
-).call(
-  d3
-    .drag<SVGCircleElement, Node>()
-    .on("start", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
-    })
-    .on("drag", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
-      d.fx = event.x;
-      d.fy = event.y;
-    })
-    .on("end", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
-    })
-);
+    const node = svg
+      .append("g")
+      .selectAll<SVGCircleElement, Node>("circle")
+      .data(nodes)
+      .join("circle")
+      .attr("r", 12)
+      .attr("fill", (d) => d3.schemeCategory10[d.clusterId % 10])
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        navigate(`/keywords/${d.id}`);
+      })
+      .call(
+        d3
+          .drag<SVGCircleElement, Node>()
+          .on("start", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on("drag", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on("end", (event: D3DragEvent<SVGCircleElement, Node, Node>, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+      );
 
     const labels = svg
       .append("g")
@@ -127,7 +133,7 @@ const node = (svg
     return () => {
       simulation.stop();
     };
-  }, [clusters]);
+  }, [clusters, navigate]);
 
   return <svg ref={svgRef} width={600} height={400} className="mx-auto my-4" />;
 }
