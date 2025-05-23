@@ -22,15 +22,11 @@ export default function ScrapbookPage() {
 
   const fetchScrapArticles = async () => {
     const res = await fetch(
-      `http://localhost:8000/users/scraps?` +
-      `title=${encodeURIComponent(keyword)}` +
-      `&page=${page}&size=10`
+      `http://localhost:8000/users/scraps?userId=${userId}&title=${encodeURIComponent(
+        keyword
+      )}&page=${page}&size=10&_=${Date.now()}`
     );
-    if (!res.ok) {
-      console.error("스크랩 조회 실패", res.statusText);
-      return;
-    }
-    const data: { articles: Article[]; totalPages: number } = await res.json();
+    const data = await res.json();
     setArticles(data.articles);
     setTotalPages(data.totalPages);
   };
@@ -52,7 +48,7 @@ export default function ScrapbookPage() {
           <Logo />
         </div>
         <h1 className="text-white text-xl font-bold mx-auto">SCRAPBOOK</h1>
-        <div className="px-2 py -1">
+        <div className="px-2 py-1">
           <Header />
         </div>
       </header>
