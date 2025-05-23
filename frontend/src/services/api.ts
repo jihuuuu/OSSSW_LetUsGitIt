@@ -5,4 +5,13 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// 요청 시 access token을 Authorization 헤더에 자동 포함
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default api;
