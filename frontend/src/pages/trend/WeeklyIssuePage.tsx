@@ -18,26 +18,79 @@ export default function WeeklyIssuePage() {
   const [keywords, setKeywords] = useState<{ keyword: string; count: number }[]>([]);
   const [trendData, setTrendData] = useState<Record<string, any>[]>([]);
 
+  // useEffect(() => {
+  //   fetch('/api/trends/weekly')
+  //     .then(res => res.json())
+  //     .then((data: ApiResponse) => {
+  //       setKeywords(data.trend_data.map((d: TrendItem) => ({
+  //         keyword: d.keyword,
+  //         count: d.total_counts
+  //       })));
+
+  //       const chartData = data.trend_data[0]?.daily_counts.map((_: any, i: number) => {
+  //         const point: Record<string, any> = { date: data.trend_data[0].daily_counts[i].date };
+  //         data.trend_data.forEach((kw: TrendItem) => {
+  //           point[kw.keyword] = kw.daily_counts[i].count;
+  //         });
+  //         return point;
+  //       }) || [];
+
+  //       setTrendData(chartData);
+  //     });
+  // }, []);
+
   useEffect(() => {
-    fetch('/api/trends/weekly')
-      .then(res => res.json())
-      .then((data: ApiResponse) => {
-        setKeywords(data.trend_data.map((d: TrendItem) => ({
-          keyword: d.keyword,
-          count: d.total_counts
-        })));
-
-        const chartData = data.trend_data[0]?.daily_counts.map((_: any, i: number) => {
-          const point: Record<string, any> = { date: data.trend_data[0].daily_counts[i].date };
-          data.trend_data.forEach((kw: TrendItem) => {
-            point[kw.keyword] = kw.daily_counts[i].count;
-          });
-          return point;
-        }) || [];
-
-        setTrendData(chartData);
+    const dummyData = {
+      start_date: '2025-05-10',
+      end_date: '2025-05-16',
+      top_keywords: ['이재명', '총선'],
+      trend_data: [
+        {
+          keyword: '이재명',
+          total_counts: 123,
+          daily_counts: [
+            { date: '2025-05-10', count: 12 },
+            { date: '2025-05-11', count: 18 },
+            { date: '2025-05-12', count: 10 },
+            { date: '2025-05-13', count: 21 },
+            { date: '2025-05-14', count: 26 },
+            { date: '2025-05-15', count: 17 },
+            { date: '2025-05-16', count: 19 }
+          ]
+        },
+        {
+          keyword: '총선',
+          total_counts: 99,
+          daily_counts: [
+            { date: '2025-05-10', count: 10 },
+            { date: '2025-05-11', count: 14 },
+            { date: '2025-05-12', count: 13 },
+            { date: '2025-05-13', count: 15 },
+            { date: '2025-05-14', count: 12 },
+            { date: '2025-05-15', count: 16 },
+            { date: '2025-05-16', count: 19 }
+          ]
+        }
+      ]
+    };
+  
+    // 상태 업데이트
+    setKeywords(dummyData.trend_data.map((d) => ({
+      keyword: d.keyword,
+      count: d.total_counts
+    })));
+  
+    const chartData = dummyData.trend_data[0].daily_counts.map((_, i) => {
+      const point: Record<string, any> = { date: dummyData.trend_data[0].daily_counts[i].date };
+      dummyData.trend_data.forEach((kw) => {
+        point[kw.keyword] = kw.daily_counts[i].count;
       });
+      return point;
+    });
+  
+    setTrendData(chartData);
   }, []);
+  
 
   return (
     <div className="grid grid-cols-3 gap-6">
