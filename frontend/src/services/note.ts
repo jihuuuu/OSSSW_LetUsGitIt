@@ -4,12 +4,16 @@ import type { Note } from "@/types/note";
 import type { Article } from "@/types/article";
 export async function getNotesByPage(page: number, size: number): Promise<{
   notes: Note[];
-  totalPages: number;
 }> {
   const res = await api.get("/users/notes", {
     params: { page, size },
   });
-  return res.data;
+
+  const result = res.data.result;
+
+  return {
+    notes: result.notes,
+  };
 }
 
 export async function createNote(data: { title: string; content: string }) {
@@ -22,11 +26,19 @@ export async function updateNote(id: number, data: { title: string; content: str
   return res.data;
 }
 
-export async function getNotesByKeyword(keyword: string, page: number, size: number) {
+export async function getNotesByKeyword(keyword: string, page: number, size: number): Promise<{
+  notes: Note[];
+}> {
   const res = await api.get("/users/notes", {
     params: { keyword, page, size },
   });
-  return res.data; // { notes, totalPages }
+
+  const result = res.data.result;
+
+  return {
+    notes: result.notes,
+    // totalPages: 1, // ← 더 이상 사용 안 하므로 생략 가능
+  };
 }
 
 export async function getArticlesByNoteId(noteId: number): Promise<Article[]> {
