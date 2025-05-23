@@ -18,12 +18,20 @@ export default function Header() {
   return (
     <div className="w-full flex justify-end px-6 py-4">
       {token ? (
-        <button
-          onClick={handleLogout}
-          className="text-sm px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md"
-        >
-          로그아웃
-        </button>
+        <>
+          <button
+            onClick={handleLogout}
+            className="text-sm px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md"
+          >
+            로그아웃
+          </button>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="text-sm px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md"
+          >
+            myPage
+          </button>
+        </>
       ) : (
         <button
           onClick={handleLogin}
