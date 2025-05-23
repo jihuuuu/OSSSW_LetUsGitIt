@@ -1,13 +1,13 @@
+// vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from "path";
+import * as path from 'path';   // ← 이렇게 바꿔 보세요
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // alias 설정
+      '@': path.resolve(__dirname, 'src'),
     },
   },
-})
+});

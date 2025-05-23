@@ -1,11 +1,13 @@
 # clustering/pipeline.py
-from typing import List
+from typing import List, Dict
 from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 from database.connection import SessionLocal
 from models.article import Article
 import numpy as np
 import argparse
 from collections import Counter
+from clustering.keyword_extractor import extract_keywords_per_cluster
 from clustering.cache import load_embedding_cache, save_embedding_cache
 from clustering.embedder import make_embeddings
 from clustering.cluster import (
@@ -134,16 +136,6 @@ def run_clustering_stage(
     for lbl, cnt in counts.items():
         print(f"  - Cluster {lbl}: {cnt} articles")
 
-    # 4) 대표 키워드 추출
-    raw_texts = fetch_all_texts(limit=limit)
-    from clustering.embedder import preprocess_text
-    texts = [preprocess_text(t) for t in raw_texts]
-    
-    keywords = extract_keywords_per_cluster(texts, labels, top_n=3)
-    print("\n대표 키워드 (클러스터별):")
-    for lbl, kws in keywords.items():
-        print(f"  - Cluster {lbl}: {', '.join(kws)}")
-
     # 5) DB에 저장
     if save_db:
         article_ids = fetch_article_ids(limit=limit)
@@ -151,6 +143,27 @@ def run_clustering_stage(
         #     print("⚠️ 오류: Article ID 수와 임베딩 수가 일치하지 않습니다.")
         #     return
         save_clusters_to_db(article_ids, labels)
+
+    # 4) 대표 키워드 추출
+    raw_texts = fetch_all_texts(limit=limit)
+    from clustering.embedder import preprocess_text
+    texts = [preprocess_text(t) for t in raw_texts]
+    
+    db: Session = SessionLocal()
+    try:
+        keywords: Dict[int, List[str]] = extract_keywords_per_cluster(
+            texts=texts,      
+            labels=labels,    
+            db=db,            
+            top_n=3,
+            max_features=1000
+        )
+    finally:
+        db.close()
+
+    print("\n대표 키워드 (클러스터별):")
+    for lbl, kws in keywords.items():
+        print(f"  - Cluster {lbl}: {', '.join(kws)}")
 
 
 def main():

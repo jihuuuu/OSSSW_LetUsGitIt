@@ -22,11 +22,15 @@ export default function ScrapbookPage() {
 
   const fetchScrapArticles = async () => {
     const res = await fetch(
-      `/api/scrap?userId=${userId}&keyword=${encodeURIComponent(
-        keyword
-      )}&page=${page}&size=10`
+      `http://localhost:8000/users/scraps?` +
+      `title=${encodeURIComponent(keyword)}` +
+      `&page=${page}&size=10`
     );
-    const data = await res.json();
+    if (!res.ok) {
+      console.error("스크랩 조회 실패", res.statusText);
+      return;
+    }
+    const data: { articles: Article[]; totalPages: number } = await res.json();
     setArticles(data.articles);
     setTotalPages(data.totalPages);
   };

@@ -22,7 +22,7 @@ export default function AppRouter() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signup/complete" element={<SignupCompletePage />} />
         <Route path="/today/issue" element={<TodayIssuePage />} />
-        <Route path="/cluster/:clusterId" element={<ClusterDetailPage />} />
+        <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
         <Route path="/users/scraps" element={<ScrapbookPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/users/notes/:noteId" element={<NoteEditSheetPreview />} />

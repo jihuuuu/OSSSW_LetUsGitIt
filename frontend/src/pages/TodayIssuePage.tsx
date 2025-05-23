@@ -72,9 +72,40 @@ const dummyClusters = [
 ];
 
 export default function TodayIssuePage() {
-    const [clusters, setClusters] = useState(dummyClusters); // 더미데이터
+    const [clusters, setClusters] = useState<Cluster[]>([]); // 더미데이터
     const navigate = useNavigate();
   
+    useEffect(() => {
+      async function fetchClusters() {
+        try {
+          const res = await axios.get<Record<string, any[]>>("/clusters/today");
+          const dict = res.data;
+    
+          const mapped = Object.entries(dict).map(
+            ([label, arr]) => ({
+              cluster_id:  Number(label),
+              label:       Number(label),
+              created_at:  "",               // 필요 시 별도 채우기
+              keywords:    [],               // 필요 시 별도 채우기
+              num_articles: arr.length,
+              articles:    arr.map(a => ({
+                article_id: a.id,
+                title:      a.title,
+                summary:    a.summary,
+                link:       a.url,
+                published:  a.fetched_at,
+              })),
+            })
+          );
+    
+          setClusters(mapped);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      fetchClusters();
+    }, []);    
+
     return (
       <div className="min-h-screen bg-white">
         {/* 헤더 */}
