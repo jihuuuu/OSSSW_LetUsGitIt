@@ -70,7 +70,7 @@ def create_app():
     # CORS 설정
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5174"],  # 프론트 개발 서버 주소
+        allow_origins=["http://localhost:5173"],  # 프론트 개발 서버 주소
         allow_credentials=True,
         allow_methods=["*"],                      # GET, POST, PUT, OPTIONS 모두 허용
         allow_headers=["*"],                      # 모든 헤더 허용
@@ -84,7 +84,7 @@ def create_app():
     app.include_router(user.router,    prefix="/users",    tags=["user"])
     app.include_router(scrap.router,    prefix="/users",    tags=["scrap"])
     app.include_router(trend.router,    prefix="/trends",    tags=["trend"])
-    app.include_router(user_notes.router, tags=["user-notes"])
+    app.include_router(user_notes.router, prefix="/users", tags=["user-notes"])
     app.include_router(article_notes.router, tags=["article-notes"])
     app.include_router(knowledge_map.router, prefix="/api/knowledge-map", tags=["knowledge-map"])
 

@@ -13,101 +13,34 @@ from api.schemas.notes import NoteUpdateRequest, NoteCreateResponse, NoteCreateR
 
 router = APIRouter()
 
-
-# 노트 생성
-@router.post("/users/notes", response_model=NoteCreateResponse)
-def create_note(
-    note_data: NoteCreateRequest,
+# ✅ 1. 노트에 연결된 기사 조회 → 구체적인 경로 먼저!
+@router.get("/notes/{note_id}/articles")
+def get_articles_by_note_id(
+    note_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    new_note = Note(
-        user_id=current_user.id,
-        title=note_data.title,
-        text=note_data.text,
-        state=True
-    )
-    db.add(new_note)
-    db.commit()
-    db.refresh(new_note)
+    note = db.query(Note).filter(Note.id == note_id, Note.user_id == current_user.id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
 
-    articles = db.query(Article).filter(Article.id.in_(note_data.article_ids)).all()
-    if len(articles) != len(note_data.article_ids):
-        raise HTTPException(status_code=404, detail="Some articles not found")
+    note_article_ids = db.query(NoteArticle.article_id).filter(NoteArticle.note_id == note_id).all()
+    article_ids = [id for (id,) in note_article_ids]
+    articles = db.query(Article).filter(Article.id.in_(article_ids)).all()
 
-    for article in articles:
-        db.add(NoteArticle(note_id=new_note.id, article_id=article.id))
-
-    db.commit()
-
-    return {
-        "isSuccess": True,
-        "code": 200,
-        "message": "노트가 성공적으로 생성되었습니다.",
-        "result": {
-            "userId": current_user.id,
-            "noteId": new_note.id,
-            "title": new_note.title,
-            "text": new_note.text,
-            "state": new_note.state,
-            "created_at": new_note.created_at,
-            "updated_at": new_note.updated_at,
-            "articles": [
-                {
-                    "id": a.id,
-                    "title": a.title,
-                    "link": a.link
-                } for a in articles
-            ]
-        }
-    }
-
-
-# 노트 최신순 전체 조회 & 제목 검색 통합
-@router.get("/users/notes")
-def get_user_notes(
-    keyword: str = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    offset = (page - 1) * size
-    query = db.query(Note).filter(Note.user_id == current_user.id, Note.state == True)
-
-    if keyword:
-        query = query.filter(
-            or_(
-                Note.title.ilike(f"%{keyword}%"),
-                Note.text.ilike(f"%{keyword}%")
-            )
-        )
-
-    notes = query.order_by(Note.created_at.desc()).offset(offset).limit(size).all()
-
-    note_list = [
+    return [
         {
-            "note_id": note.id,
-            "title": note.title,
-            "created_at": note.created_at,
+            "id": a.id,
+            "title": a.title,
+            "link": a.link,
+            "summary": a.summary,
         }
-        for note in notes
+        for a in articles
     ]
 
-    return {
-        "isSuccess": True,
-        "code": "NOTE_LIST_FETCHED",
-        "message": "노트 목록을 성공적으로 불러왔습니다.",
-        "result": {
-            "page": page,
-            "size": size,
-            "notes": note_list
-        }
-    }
 
-
-# 노트 상세 조회
-@router.get("/users/notes/{note_id}")
+# ✅ 2. 노트 상세 조회
+@router.get("/notes/{note_id}")
 def get_note_detail(
     note_id: int,
     db: Session = Depends(get_db),
@@ -143,8 +76,100 @@ def get_note_detail(
     }
 
 
-# 노트 수정
-@router.put("/users/notes/{note_id}")
+# ✅ 3. 노트 생성
+@router.post("/notes", response_model=NoteCreateResponse)
+def create_note(
+    note_data: NoteCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_note = Note(
+        user_id=current_user.id,
+        title=note_data.title,
+        text=note_data.text,
+        state=True
+    )
+    db.add(new_note)
+    db.commit()
+    db.refresh(new_note)
+
+    articles = db.query(Article).filter(Article.id.in_(note_data.article_ids)).all()
+    if len(articles) != len(note_data.article_ids):
+        raise HTTPException(status_code=404, detail="Some articles not found")
+
+    for article in articles:
+        db.add(NoteArticle(note_id=new_note.id, article_id=article.id))
+    db.commit()
+
+    return {
+        "isSuccess": True,
+        "code": 200,
+        "message": "노트가 성공적으로 생성되었습니다.",
+        "result": {
+            "userId": current_user.id,
+            "noteId": new_note.id,
+            "title": new_note.title,
+            "text": new_note.text,
+            "state": new_note.state,
+            "created_at": new_note.created_at,
+            "updated_at": new_note.updated_at,
+            "articles": [
+                {
+                    "id": a.id,
+                    "title": a.title,
+                    "link": a.link
+                } for a in articles
+            ]
+        }
+    }
+
+
+# ✅ 4. 노트 목록 조회 (검색 포함)
+@router.get("/notes")
+def get_user_notes(
+    keyword: str = Query(None),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    offset = (page - 1) * size
+    query = db.query(Note).filter(Note.user_id == current_user.id, Note.state == True)
+
+    if keyword:
+        query = query.filter(
+            or_(
+                Note.title.ilike(f"%{keyword}%"),
+                Note.text.ilike(f"%{keyword}%")
+            )
+        )
+
+    notes = query.order_by(Note.created_at.desc()).offset(offset).limit(size).all()
+
+    note_list = [
+        {
+            "note_id": note.id,
+            "title": note.title,
+            "text": note.text,
+            "created_at": note.created_at,
+        }
+        for note in notes
+    ]
+
+    return {
+        "isSuccess": True,
+        "code": "NOTE_LIST_FETCHED",
+        "message": "노트 목록을 성공적으로 불러왔습니다.",
+        "result": {
+            "page": page,
+            "size": size,
+            "notes": note_list
+        }
+    }
+
+
+# ✅ 5. 노트 수정
+@router.put("/notes/{note_id}")
 def update_note(
     note_id: int,
     update_data: NoteUpdateRequest,
@@ -187,8 +212,8 @@ def update_note(
     }
 
 
-# 노트 삭제 (PUT으로 soft delete)
-@router.put("/users/notes/{note_id}/delete")
+# ✅ 6. 노트 삭제 (소프트 삭제)
+@router.put("/notes/{note_id}/delete")
 def delete_note(
     note_id: int,
     db: Session = Depends(get_db),
