@@ -30,16 +30,24 @@ async def list_clusters(db: Session = Depends(get_db)):
     # 2) 클러스터별로 2개까지만 보여주기
     grouped: Dict[int, List[dict]] = defaultdict(list)
     for cl in clusters:
+        seen_ids = set()
+        cnt = 0
         # 클러스터 레이블별로 최대 2개만
         for ca in cl.cluster_article[:2]:
-            a = ca.article
+            art = ca.article
+            if art.id in seen_ids:  # db 단계에서 유니크 조합 제약을 걸 수도 있따
+                continue
+            seen_ids.add(art.id)
             grouped[cl.label].append({
-                "id":           a.id,
-                "title":        a.title,
-                "summary":      a.summary,
-                "url":          a.link,                     # Article.link 컬럼:contentReference[oaicite:2]{index=2}
-                "fetched_at":   a.fetched_at.isoformat(),
+                "id":           art.id,
+                "title":        art.title,
+                "summary":      art.summary,
+                "url":          art.link,                     # Article.link 컬럼:contentReference[oaicite:2]{index=2}
+                "fetched_at":   art.fetched_at.isoformat(),
             })
+            cnt += 1
+            if cnt >= 2:
+                break
 
     return grouped
 
