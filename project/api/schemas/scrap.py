@@ -41,6 +41,13 @@ class ArticleOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PagedScraps(BaseModel):
+    articles: List[ArticleOut]
+    totalPages: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ScrapWithArticle(BaseModel):
     scrap_id: int
     article: ArticleOut
