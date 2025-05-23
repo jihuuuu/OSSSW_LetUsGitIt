@@ -13,7 +13,7 @@ from api.schemas.knowledge_map import KnowledgeMapCreateRequest
 
 router = APIRouter()
 
-@router.post("/users/knowledge-maps")
+@router.post("/knowledge-maps")
 def create_knowledge_maps(
     request_data: KnowledgeMapCreateRequest,
     db: Session = Depends(get_db),
@@ -61,7 +61,7 @@ def create_knowledge_maps(
     }
 
 
-@router.get("/users/knowledge_maps/graph")
+@router.get("/knowledge_maps/graph")
 def get_latest_knowledge_map(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

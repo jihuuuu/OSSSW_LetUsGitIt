@@ -10,8 +10,8 @@ import PaginationComponent from "@/components/PaginationComponent";
 
 export default function KeywordDetailPagePreview() {
   const [notes, setNotes] = useState<Note[]>([
-    { id: "1", title: "AI 요약 노트", text: "ChatGPT가 정리한 내용입니다.", createdAt: "2024-06-01" },
-    { id: "2", title: "AI 시대", text: "AI의 영향과 기술 발전.", createdAt: "2024-06-02" },
+    { id: 1, title: "AI 요약 노트", text: "ChatGPT가 정리한 내용입니다.", createdAt: "2024-06-01" },
+    { id: 2, title: "AI 시대", text: "AI의 영향과 기술 발전.", createdAt: "2024-06-02" },
   ]);
   const [articles, setArticles] = useState<Article[]>([
     {

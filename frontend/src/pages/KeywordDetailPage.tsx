@@ -1,7 +1,7 @@
 // 📄 src/pages/KeywordDetailPage.tsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchNotesByKeywordCluster, fetchArticlesByKeywordCluster, fetchKeywordName } from "@/services/knowledgeMap";
+import { fetchArticlesByKeywordCluster, fetchKeywordName } from "@/services/knowledgeMap";
 import type { Note } from "@/types/note";
 import type { Article } from "@/types/article";
 import { Button } from "@/components/ui/button";
@@ -23,16 +23,12 @@ export default function KeywordDetailPage() {
   useEffect(() => {
     if (!keywordId) return;
 
-    fetchKeywordName(Number(keywordId)).then((res) => setKeywordName(res.name));
+    fetchKeywordName(Number(keywordId)).then((res: { name: string }) => setKeywordName(res.name));
 
-    fetchNotesByKeywordCluster(Number(keywordId)).then((res) => {
-      setNotes(res);
-      // If you have totalPages info, update this accordingly; otherwise, remove or set to 1
-      setNoteTotalPages(1);
-    });
-
-    fetchArticlesByKeywordCluster(Number(keywordId)).then((res) => {
+    fetchArticlesByKeywordCluster(keywordId).then((res) => {
       setArticles(res);
+      setNoteTotalPages(1);
+      setNotes([]);
       // If you have totalPages info, update this accordingly; otherwise, remove or set to 1
       setArticleTotalPages(1);
     });

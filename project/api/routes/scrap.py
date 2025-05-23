@@ -142,38 +142,3 @@ def unscrap_article(
             updated_at = scrap.updated_at,
         )
     )
-
-
-# --- 4) 스크랩된 기사에 달린 노트 조회 ---
-@router.get(
-    "/scraps/{scrap_id}/notes",
-    response_model=List[NoteOut],
-    summary="스크랩 기사별 관련 노트 조회"
-)
-def get_notes_for_scrap(
-    scrap_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 1) 스크랩 존재 및 소유권 확인
-    scrap = (
-        db.query(Scrap)
-          .filter_by(id=scrap_id, user_id=current_user.id)
-          .first()
-    )
-    if not scrap:
-        raise HTTPException(404, "Scrap not found")
-
-    # 2) 해당 기사(article_id)에 연결된 NoteArticle 조회
-    note_articles = (
-        db.query(NoteArticle)
-          .join(Note)
-          .filter(
-              NoteArticle.article_id == scrap.article_id,
-              Note.user_id == current_user.id,
-              Note.state == True
-          )
-          .all()
-    )
-    return [na.note for na in note_articles]
-

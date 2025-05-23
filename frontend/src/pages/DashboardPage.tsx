@@ -33,7 +33,7 @@ export default function DashboardPage() {
               {
                 id: 0,
                 label: 1,
-                keywords: res.keywords.map((k: { id: number; name: string }) => ({
+                keywords: (res.keywords as Array<{ id: number; name: string }>).map((k) => ({
                   ...k,
                   count: 1,
                   clusterId: 0,
