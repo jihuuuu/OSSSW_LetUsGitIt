@@ -8,6 +8,7 @@ from .routes import news, cluster, user, scrap, article_notes, user_notes, knowl
 from starlette.concurrency import run_in_threadpool
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
 from models.user import User
+from fastapi.middleware.cors import CORSMiddleware
 from api.routes.scrap import router as scrap_router
 from api.utils.auth import get_current_user
 
