@@ -1,11 +1,12 @@
 # api/routes/scrap.py
 # 역할: 기사 스크랩랩 관련 엔드포인트 모음
 
+from math import ceil
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from database.deps import get_db
 from api.schemas.scrap import *
 
@@ -73,31 +74,34 @@ def scrap_article(
 # --- 2) 스크랩 기사 전체 조회 / 제목 검색 ---
 @router.get(
     "/scraps",
-    response_model=List[ScrapWithArticle],
-    summary="스크랩 기사 목록 조회 (최신순 & 제목 검색 가능)"
+    response_model=PagedScraps,
+    summary="스크랩 기사 목록 조회 (페이징&검색)"
 )
 def list_scraps(
-    title: Optional[str] = Query(None, description="검색할 기사 제목 키워드"),
+    title: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = (
-        db.query(Scrap)
-          .join(Article)
-          .filter(Scrap.user_id == current_user.id, Scrap.state == True)
+    q = db.query(Scrap).join(Article).filter(
+        Scrap.user_id==current_user.id, Scrap.state==True
     )
     if title:
-        query = query.filter(Article.title.contains(title))
-    scraps = query.order_by(Scrap.created_at.desc()).all()
+        q = q.filter(Article.title.contains(title))
 
-    return [
-        ScrapWithArticle(
-            scrap_id   = s.id,
-            article    = ArticleOut.from_orm(s.article),
-            created_at = s.created_at
-        )
-        for s in scraps
-    ]
+    total = q.count()
+    scraps = (
+        q.order_by(Scrap.created_at.desc())
+         .offset((page-1)*size)
+         .limit(size)
+         .all()
+    )
+    articles = [ArticleOut.from_orm(s.article) for s in scraps]
+    return PagedScraps(
+        articles   = articles,
+        totalPages = ceil(total/size),
+    )
 
 
 # --- 3) 스크랩 취소 ---

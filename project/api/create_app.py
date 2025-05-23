@@ -75,6 +75,10 @@ def create_app():
         allow_methods=["*"],                      # GET, POST, PUT, OPTIONS 모두 허용
         allow_headers=["*"],                      # 모든 헤더 허용
     )
+
+    # 2) 원래 인증 의존성을 가짜 함수로 교체
+    app.dependency_overrides[get_current_user] = fake_current_user
+
     app.include_router(news.router,    prefix="/news",    tags=["news"])
     app.include_router(cluster.router, prefix="/clusters", tags=["cluster"])
     app.include_router(user.router,    prefix="/users",    tags=["user"])
@@ -82,14 +86,7 @@ def create_app():
     app.include_router(trend.router,    prefix="/trends",    tags=["trend"])
     app.include_router(user_notes.router, tags=["user-notes"])
     app.include_router(article_notes.router, tags=["article-notes"])
-    app.include_router(scrap.router,   prefix="/api/scrap",   tags=["scrap"])
     app.include_router(knowledge_map.router, prefix="/api/knowledge-map", tags=["knowledge-map"])
-
-    # 2) 원래 인증 의존성을 가짜 함수로 교체
-    app.dependency_overrides[get_current_user] = fake_current_user
-
-    # 3) 라우터 등록
-    app.include_router(scrap_router)
 
 
     return app
