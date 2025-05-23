@@ -31,7 +31,7 @@ export default function TodayIssuePage() {
   useEffect(() => {
     const fetchClusters = async () => {
       try {
-        const res = await axios.get<Cluster[]>("http://127.0.0.1:8000/clusters/today")
+        const res = await axios.get<Cluster[]>("http://localhost:8000/clusters/today")
         console.log("▶️ /clusters/today response:", res.data);
         setClusters(res.data);
       } catch (err: any) {
@@ -81,7 +81,7 @@ export default function TodayIssuePage() {
                 {index + 1}. {cluster.keywords.join(" ")}
               </h2>
               <button
-                onClick={() => navigate(`/cluster/${cluster.cluster_id}`)}
+                onClick={() => navigate(`/clusters/${cluster.cluster_id}`)}
                 className="text-blue-500 hover:underline text-sm"
               >
                 더보기

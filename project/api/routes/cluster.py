@@ -8,6 +8,7 @@ from datetime import datetime
 from database.deps import get_db
 from models.article import Cluster, ClusterArticle, Article, ClusterKeyword, Keyword
 from pydantic import BaseModel, HttpUrl
+from operator import attrgetter
 
 router = APIRouter()
 
@@ -45,9 +46,11 @@ async def list_clusters(db: Session = Depends(get_db)):
               joinedload(Cluster.cluster_keyword)
                 .joinedload(ClusterKeyword.keyword)
           )
-          .order_by(Cluster.label)
+          .order_by(Cluster.created_at.desc())
+          .limit(10)
           .all()
     )
+    clusters.sort(key=attrgetter("num_articles"), reverse=True)
     if not clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
@@ -87,36 +90,45 @@ async def list_clusters(db: Session = Depends(get_db)):
     return result
 
 
-@router.get("/today/{cluster_id}/articles", response_model=List[dict])
+@router.get("/today/{cluster_id}/articles", response_model=dict)
 async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
-    """
-    특정 클러스터 ID의 모든 기사 목록을 최신순으로 반환
-    """
-    # 1) Cluster가 존재하는지 확인
     cl = db.get(Cluster, cluster_id)
     if not cl:
         raise HTTPException(404, f"No cluster with id {cluster_id}")
 
-    # 2) ClusterArticle → Article 로 매핑된 기사들 꺼내기
+    # 관련 기사
     articles = (
         db.query(Article)
-          .join(ClusterArticle, ClusterArticle.article_id == Article.id)
-          .filter(ClusterArticle.cluster_id == cluster_id)
-          .order_by(Article.fetched_at.desc())
-          .all()
+        .join(ClusterArticle, ClusterArticle.article_id == Article.id)
+        .filter(ClusterArticle.cluster_id == cluster_id)
+        .order_by(Article.fetched_at.desc())
+        .all()
     )
     if not articles:
         raise HTTPException(404, f"No articles found for cluster {cluster_id}")
 
-    # 직렬화
-    result = []
+    article_dicts = []
     for a in articles:
-        result.append({
-            "id":            a.id,
-            "title":         a.title,
-            "summary":       a.summary,
-            "url":           a.link,
-            "cluster_id":    cluster_id,
-            "fetched_at":    a.fetched_at.isoformat(),
+        article_dicts.append({
+            "id": a.id,
+            "title": a.title,
+            "summary": a.summary,
+            "url": a.link,
+            "cluster_id": cluster_id,
+            "fetched_at": a.fetched_at.isoformat(),
         })
-    return result
+
+    # 관련 키워드
+    keywords = (
+        db.query(Keyword.name)
+        .join(ClusterKeyword, ClusterKeyword.keyword_id == Keyword.id)
+        .filter(ClusterKeyword.cluster_id == cluster_id)
+        .all()
+    )
+    keyword_list = [k[0] for k in keywords]
+
+    return {
+        "cluster_id": cluster_id,
+        "keywords": keyword_list,
+        "articles": article_dicts,
+    }
