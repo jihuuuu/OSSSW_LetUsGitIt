@@ -32,5 +32,5 @@ class KnowledgeMap(Base):
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False) 
     
     # 관계
-    user = relationship("User", back_populates="knowledge_map")
+    user = relationship("User", back_populates="knowledge_maps")
     pcluster = relationship("PCluster", back_populates="knowledge_map")
