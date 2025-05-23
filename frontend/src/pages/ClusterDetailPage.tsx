@@ -77,7 +77,7 @@ export default function ClusterDetailPage() {
 
     try {
       const res = await axios.post(
-        `/api/users/articles/${articleId}/scrap`,
+        `http://localhost:8000/users/articles/${articleId}/scrap`,
         {},
         {
           headers: {
