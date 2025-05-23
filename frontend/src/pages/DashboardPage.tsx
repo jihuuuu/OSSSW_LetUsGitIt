@@ -70,7 +70,7 @@ export default function DashboardPage() {
           </div>
           <div className="bg-gray-50 border rounded px-4 py-3">
             {map?.clusters?.length && map.clusters.length > 0 ? (
-              <KeywordGraph clusters={map.clusters.map((c) => ({ ...c, label: String(c.label) }))} />
+              <KeywordGraph clusters={map.clusters} />
             ) : (
               <p className="text-sm text-gray-500">지식맵이 없습니다.</p>
             )}

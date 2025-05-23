@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/ui/logo";
-import { login } from "@/services/auth"; // 👈 로그인 API 함수만 사용
+import { login } from "../services/auth"; // 👈 로그인 API 함수만 사용
 
 export default function Login() {
   const navigate = useNavigate();

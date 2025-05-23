@@ -1,3 +1,4 @@
+from operator import attrgetter
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from collections import defaultdict
@@ -21,9 +22,11 @@ async def list_clusters(db: Session = Depends(get_db)):
               joinedload(Cluster.cluster_article)           # ClusterArticle 객체
               .joinedload(ClusterArticle.article)                        # 그 안의 Article 객체
           )
-          .order_by(Cluster.label)
+          .order_by(Cluster.created_at.desc())  # 최신 클러스터부터
+          .limit(10) # 최근 10개 클러스터만
           .all()
     )
+    clusters.sort(key=attrgetter("num_articles"), reverse=True)  # 기사 수 기준으로 정렬
     if not clusters:
         raise HTTPException(404, "클러스터된 기사가 없습니다")
 
