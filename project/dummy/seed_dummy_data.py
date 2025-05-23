@@ -38,6 +38,7 @@ for _ in range(100):
         link=fake.url(),
         summary=fake.text(),
         published=datetime.now()  # 👈 중요
+
     )
     db.add(a)
     articles.append(a)
@@ -70,5 +71,5 @@ for article in articles:
     db.add(Scrap(user_id=user.id, article_id=article.id, created_at=datetime.utcnow()))
 db.commit()
 
-
 print("✅ 더미 데이터 삽입 완료")
+

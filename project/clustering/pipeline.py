@@ -3,7 +3,7 @@ from typing import List, Dict
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from database.connection import SessionLocal
-from models.article import Article
+from models.article import Article, Cluster, ClusterKeyword, Keyword
 import numpy as np
 import argparse
 from collections import Counter
@@ -164,6 +164,38 @@ def run_clustering_stage(
     print("\n대표 키워드 (클러스터별):")
     for lbl, kws in keywords.items():
         print(f"  - Cluster {lbl}: {', '.join(kws)}")
+
+    # --- 여기에 DB 저장 로직 추가 ---
+    for lbl, kws in keywords.items():
+        # 방금 저장된 Cluster 객체를 label별로 최신(created_at 기준)으로 조회
+        cluster = db.query(Cluster) \
+                    .filter_by(label=lbl) \
+                    .order_by(Cluster.created_at.desc()) \
+                    .first()
+        if not cluster:
+            print(f"⚠️ Cluster {lbl}를 찾지 못해 스킵합니다.")
+            continue
+
+        for name in kws:
+            # Keyword 테이블에서 이름으로 조회, 없으면 새로 생성
+            kw = db.query(Keyword).filter_by(name=name).first()
+            if not kw:
+                kw = Keyword(name=name)
+                db.add(kw)
+                db.flush()   # kw.id가 채워지도록
+
+            # 중복 삽입 방지
+            exists = db.query(ClusterKeyword) \
+                       .filter_by(cluster_id=cluster.id, keyword_id=kw.id) \
+                       .first()
+            if not exists:
+                db.add(ClusterKeyword(
+                    cluster_id=cluster.id,
+                    keyword_id=kw.id
+                ))
+
+    db.commit()
+    print("✅ ClusterKeyword 관계에 키워드를 저장했습니다.")
 
 
 def main():
