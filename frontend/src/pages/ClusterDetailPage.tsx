@@ -30,7 +30,7 @@ export default function ClusterDetailPage() {
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    // 더미 데이터로 초기화 (서버 연결 전)
+    /*// 더미 데이터로 초기화 (서버 연결 전)
     const dummyCluster: ClusterDetail = {
       cluster_id: 1,
       keywords: ["OOO", "전 대통령", "공판 출석"],
@@ -49,24 +49,29 @@ export default function ClusterDetailPage() {
     };
     const dummyScrapIds = [12];
     setCluster(dummyCluster);
-    setFavorites(new Set(dummyScrapIds));
+    setFavorites(new Set(dummyScrapIds));*/
 
     // 서버 연결 시 주석 해제
-    /*
-    axios.get(`/api/clusters/${clusterId}`).then((res) => {
+    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
       setCluster(res.data);
     });
     axios
-      .get("/api/users/scraps", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((res) => {
+    .get("http://localhost:8000/users/scraps", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+    .then((res) => {
+      if (res.data.isSuccess) {
         const ids = res.data.result.scraps.map((s: any) => s.articleId);
         setFavorites(new Set(ids));
-      });
-    */
+      } else {
+        console.error("스크랩 기사 불러오기 실패:", res.data.message);
+      }
+    })
+    .catch((err) => {
+      console.error("스크랩 기사 API 요청 실패:", err);
+    });
 
   }, [clusterId]);
 
@@ -85,7 +90,7 @@ export default function ClusterDetailPage() {
           },
         }
       );
-
+      
       if (res.data?.isSuccess) {
         setFavorites((prev) => new Set(prev).add(articleId));
       } else {
@@ -104,7 +109,7 @@ export default function ClusterDetailPage() {
 
   const submitNote = async () => {
     const res = await axios.post(
-      "/api/users/notes",
+      "http://localhost:8000/users/notes",
       {
         articleIds: Array.from(selectedArticles),
         text: noteContent,
@@ -115,7 +120,8 @@ export default function ClusterDetailPage() {
         },
       }
     );
-
+    console.log("노트 응답:", res.data); // 👈 이거 추가!
+    
     if (res.data?.isSuccess) {
       alert("노트가 저장되었습니다.");
       setIsNoteModalOpen(false);
@@ -123,8 +129,9 @@ export default function ClusterDetailPage() {
       setNoteContent("");
       setNoteMode(false);
     } else {
-      alert("노트 저장에 실패했습니다.");
+      alert("노트 저장 실패: " + (res.data?.message || "알 수 없는 오류"));
     }
+    
   };
 
   return (
@@ -199,7 +206,7 @@ export default function ClusterDetailPage() {
       </main>
 
       {/* 우측 하단 고정 버튼 */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-6 right-6 z-[9999]">
         {noteMode ? (
           <button
             onClick={() => setIsNoteModalOpen(true)}
