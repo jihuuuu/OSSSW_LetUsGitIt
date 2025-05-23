@@ -27,7 +27,7 @@ class PCluster(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     label = Column(Integer, nullable=False)
-    knowledge_map_id = Column(BigInteger, ForeignKey("knowledge_map.id", ondelete="CASCADE"), nullable=False)
+    knowledge_map_id = Column(BigInteger, ForeignKey("knowledge_map.id"), nullable=False)
 
     # 관계
     knowledge_map = relationship("KnowledgeMap", back_populates="pcluster")

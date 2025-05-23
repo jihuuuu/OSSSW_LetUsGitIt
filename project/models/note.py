@@ -19,7 +19,7 @@ class Note(Base):
     user_id = Column(BigInteger, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     
     # 관계
-    user = relationship("User", back_populates="notes")
+    user = relationship("User", back_populates="note")
     note_article = relationship("NoteArticle", back_populates="note")
 
 class NoteArticle(Base):
