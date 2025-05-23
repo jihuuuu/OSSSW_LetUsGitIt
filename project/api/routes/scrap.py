@@ -53,7 +53,7 @@ def scrap_article(
 
     db.commit()
     db.refresh(scrap)
-    
+
     # 2) wrapper 객체로 리턴
     return ScrapCreateResponse(
         isSuccess=True,
