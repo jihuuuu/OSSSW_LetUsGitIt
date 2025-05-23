@@ -5,7 +5,7 @@ import Logo from "@/components/ui/logo";
 import { Star } from "lucide-react";
 
 interface Article {
-  article_id: number;
+  id: number;
   title: string;
   link: string;
 }
@@ -52,60 +52,62 @@ export default function ClusterDetailPage() {
     setFavorites(new Set(dummyScrapIds));*/
 
     // 서버 연결 시 주석 해제
-    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
-      setCluster(res.data);
-    });
-    axios
+     axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
+    setCluster(res.data);
+  });
+
+  axios
     .get("http://localhost:8000/users/scraps", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     })
     .then((res) => {
-      if (res.data.isSuccess) {
-        const ids = res.data.result.scraps.map((s: any) => s.articleId);
-        setFavorites(new Set(ids));
-      } else {
-        console.error("스크랩 기사 불러오기 실패:", res.data.message);
-      }
+      const ids = res.data.articles.map((a: any) => Number(a.article_id || a.id)); // ✅ ID로만 추출
+      setFavorites(new Set(ids)); // ✅ 상태에 저장
     })
     .catch((err) => {
-      console.error("스크랩 기사 API 요청 실패:", err);
+      console.error("스크랩 기사 로딩 실패:", err);
     });
-
-  }, [clusterId]);
+}, [clusterId]);
 
   const handleScrap = async (articleId: number) => {
-    if (loadingIds.has(articleId)) return;
+  if (loadingIds.has(articleId)) return;
 
-    setLoadingIds((prev) => new Set(prev).add(articleId));
+  setLoadingIds((prev) => new Set(prev).add(articleId));
+  const isScrapped = favorites.has(articleId);
 
-    try {
-      const res = await axios.post(
-        `http://localhost:8000/users/articles/${articleId}/scrap`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      
-      if (res.data?.isSuccess) {
-        setFavorites((prev) => new Set(prev).add(articleId));
-      } else {
-        console.error("스크랩 실패:", res.data?.message);
-      }
-    } catch (err) {
-      console.error("스크랩 요청 에러:", err);
-    } finally {
-      setLoadingIds((prev) => {
+  try {
+    const url = `http://localhost:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
+    const method = isScrapped ? "put" : "post";
+
+    const res = await axios({
+      method,
+      url,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (res.data?.isSuccess) {
+      setFavorites((prev) => {
         const updated = new Set(prev);
-        updated.delete(articleId);
+        isScrapped ? updated.delete(articleId) : updated.add(articleId);
         return updated;
       });
+    } else {
+      console.error("스크랩 응답 실패:", res.data?.message);
     }
-  };
+  } catch (err) {
+    console.error("스크랩 요청 실패:", err);
+  } finally {
+    setLoadingIds((prev) => {
+      const updated = new Set(prev);
+      updated.delete(articleId);
+      return updated;
+    });
+  }
+};
 
   const submitNote = async () => {
     const res = await axios.post(
@@ -155,20 +157,20 @@ export default function ClusterDetailPage() {
               <ul className="divide-y divide-gray-200">
                 {cluster.articles.map((article) => (
                   <li
-                    key={article.article_id}
+                    key={article.id}
                     className="py-4 flex justify-between items-start gap-4"
                   >
                     <div className="flex flex-col text-left flex-1">
                       {noteMode && (
                         <input
                           type="checkbox"
-                          checked={selectedArticles.has(article.article_id)}
+                          checked={selectedArticles.has(article.id)}
                           onChange={(e) => {
                             setSelectedArticles((prev) => {
                               const updated = new Set(prev);
                               e.target.checked
-                                ? updated.add(article.article_id)
-                                : updated.delete(article.article_id);
+                                ? updated.add(article.id)
+                                : updated.delete(article.id);
                               return updated;
                             });
                           }}
@@ -186,10 +188,10 @@ export default function ClusterDetailPage() {
                       </a>
                     </div>
 
-                    <button onClick={() => handleScrap(article.article_id)}>
+                    <button onClick={() => handleScrap(article.id)}>
                       <Star
                         className={`w-5 h-5 mt-1 ${
-                          favorites.has(article.article_id)
+                          favorites.has(article.id)
                             ? "text-yellow-400 fill-current"
                             : "text-gray-300"
                         }`}

@@ -4,7 +4,8 @@
 from fastapi import FastAPI
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from .routes import news, cluster, user, scrap, article_notes, user_notes, knowledge_map,trend
+from .routes import news, cluster, user, scrap, article_notes, user_notes, knowledge_map, trend
+
 from starlette.concurrency import run_in_threadpool
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
 from models.user import User
