@@ -22,5 +22,5 @@ class UserOut(BaseModel):
 
 # 로그인 요청 시 사용할 모델델
 class UserLogin(BaseModel):
-    user_name: str
+    email: str
     password: str

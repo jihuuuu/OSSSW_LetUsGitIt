@@ -32,7 +32,7 @@ db.refresh(user)
 
 # 2. 기사 생성
 articles = []
-for _ in range(5):
+for _ in range(100):
     a = Article(
         title=fake.sentence(),
         link=fake.url(),

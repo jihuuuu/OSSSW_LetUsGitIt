@@ -7,7 +7,7 @@ export default function SignupPage() {
 
   const [form, setForm] = useState({
     email: "",
-    username: "",
+    user_name: "",
     password: "",
     confirmPassword: "",
   });
@@ -26,13 +26,13 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("/api/users/signup", {
+      const response = await fetch("http://localhost:8000/users/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_name: form.username,
+          user_name: form.user_name,
           email: form.email,
           password: form.password,
           password_chk: form.confirmPassword,
@@ -43,7 +43,7 @@ export default function SignupPage() {
 
       if (response.ok) {
         alert(data.message); // ex: "회원가입이 완료되었습니다."
-        navigate("/SignupCompletePage"); // ✅ 이동
+        navigate("/signup/complete"); // ✅ 이동
       } else {
         switch (data.errorCode) {
           case "PASSWORD_MISMATCH":
@@ -98,8 +98,8 @@ export default function SignupPage() {
             아이디
             <input
               type="text"
-              name="username"
-              value={form.username}
+              name="user_name"
+              value={form.user_name}
               onChange={handleChange}
               required
               className="w-full mt-1 p-2 border rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-300"

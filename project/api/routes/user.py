@@ -79,7 +79,7 @@ def create_refresh_token(user_id: int):
 @router.post("/login")
 def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     # username 기준으로 사용자 조회
-    db_user = db.query(User).filter(User.user_name == user.user_name).first()
+    db_user = db.query(User).filter(User.email == user.email).first()
 
     # 로그인 실패
     if not db_user or not verify_password(user.password, db_user.password):
@@ -87,7 +87,7 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={
                 "errorCode": "INVALID_CREDENTIALS",
-                "message": "아이디 또는 비밀번호가 올바르지 않습니다."
+                "message": "이메일 또는 비밀번호가 올바르지 않습니다."
             }
         )
 
