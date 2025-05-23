@@ -39,22 +39,16 @@ def create_note(
         link = article.link  # 예시 응답을 위해 필요
         db.add(NoteArticle(note_id=new_note.id, article_id=article_id))
     db.commit()
+    db.refresh(note)
+    return note
 
-    # 3. 연결된 기사 리스트 조회
-    articles = db.query(Article).filter(Article.id.in_(note.article_ids)).all()
+# 특정 기사에 대해 작성한 노트 삭제
+@router.delete("/articles/{article_id}/note")
+def delete_note_for_article(article_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    note = db.query(Note).filter_by(article_id=article_id, user_id=user.id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="노트를 찾을 수 없습니다.")
 
-    return {
-        "isSuccess": True,
-        "code": 200,
-        "message": "노트가 성공적으로 생성되었습니다.",
-        "result": {
-            "userId": current_user.id,
-            "noteId": new_note.id,
-            "title": new_note.title,
-            "text": new_note.text,
-            "state": True,
-            "created_at": new_note.created_at,
-            "updated_at": new_note.updated_at,
-            "articles": [{"id": a.id, "title": a.title, "link": a.link} for a in articles]
-        }
-    }
+    db.delete(note)
+    db.commit()
+    return {"message": "노트가 삭제되었습니다."}

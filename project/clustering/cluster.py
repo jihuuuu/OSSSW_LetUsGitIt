@@ -5,7 +5,9 @@ import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
 from collections import Counter
 from database.connection import SessionLocal
-from models.article import Article  # Article.title+summary
+from models.article import Cluster
+from models.article import ClusterArticle
+from models.article import Article
 
 def load_embeddings(path: str) -> np.ndarray:
     """
@@ -44,19 +46,42 @@ def run_dbscan(embeddings: np.ndarray, eps: float, min_samples: int) -> np.ndarr
     labels = db.fit_predict(embeddings)
     return labels
 
-def save_labels_to_db(article_ids: list[int], labels: np.ndarray):
+def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
     """
-    Article 테이블에 cluster_label 컬럼이 있다고 가정하고,
-    해당 필드를 업데이트합니다.
+    npy나 run_clustering_stage 결과를 바탕으로
+    Cluster 테이블과 ClusterArticle 매핑 테이블에
+    클러스터 결과를 저장합니다.
     """
     session = SessionLocal()
     try:
-        for art_id, label in zip(article_ids, labels):
-            session.query(Article).filter(Article.id == art_id).update({
-                Article.cluster: int(label)
+        # 1) 레이블별 Cluster 레코드 생성
+        label_to_cluster_id: dict[int, int] = {}
+        for lbl in sorted(set(labels)):
+            cluster = Cluster(label=int(lbl), num_articles=0)
+            session.add(cluster)
+            session.flush()  # cluster.id 채워짐
+            label_to_cluster_id[int(lbl)] = cluster.id
+
+        # 2) 매핑 테이블에 Article ↔ Cluster 연결
+        mappings = []
+        for art_id, lbl in zip(article_ids, labels):
+            cid = label_to_cluster_id[int(lbl)]
+            mappings.append(
+                ClusterArticle(article_id=art_id, cluster_id=cid)
+            )
+            # 각 Cluster.num_articles 카운트
+            # (원한다면 나중에 업데이트하거나, bulk로 처리 가능)
+        session.bulk_save_objects(mappings)
+
+        # 3) num_articles 업데이트 (선택)
+        for lbl, cid in label_to_cluster_id.items():
+            count = labels.tolist().count(lbl)
+            session.query(Cluster).filter(Cluster.id == cid).update({
+                Cluster.num_articles: count
             })
+
         session.commit()
-        print("✅ DB에 클러스터 라벨을 저장했습니다.")
+        print("✅ Cluster 테이블과 매핑 테이블에 저장 완료")
     finally:
         session.close()
 

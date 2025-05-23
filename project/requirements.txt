@@ -11,3 +11,5 @@ numpy
 passlib[bcrypt]
 python-jose[cryptography]
 pydantic[email]
+apscheduler
+konlpy
