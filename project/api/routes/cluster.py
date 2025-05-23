@@ -1,55 +1,91 @@
+# routers/clusters.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
-from collections import defaultdict
-from typing import Dict, List
+from typing import List
+from datetime import datetime
 
 from database.deps import get_db
-from models.article import ClusterArticle, Article, Cluster
-from clustering.pipeline import run_embedding_stage, run_clustering_stage
+from models.article import Cluster, ClusterArticle, Article, ClusterKeyword, Keyword
+from pydantic import BaseModel, HttpUrl
 
 router = APIRouter()
 
-@router.get("/today", response_model=Dict[int, List[dict]])
+# --- Pydantic 응답 스키마 정의 ---
+class ArticleOut(BaseModel):
+    article_id: int
+    title: str
+    summary: str
+    link: HttpUrl
+    published: datetime
+
+class ClusterOut(BaseModel):
+    cluster_id: int
+    created_at: datetime
+    label: int
+    num_articles: int
+    keywords: List[str]
+    articles: List[ArticleOut]
+
+    class Config:
+        orm_mode = True
+
+
+@router.get("/today", response_model=List[ClusterOut])
 async def list_clusters(db: Session = Depends(get_db)):
     """
-    시스템 클러스터별 최신순 2개 기사만 묶어서 반환
+    시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
-    # 1) Cluster → ClusterArticle → Article 를 한 번에 로드
+    # Cluster → ClusterArticle → Article, 그리고 ClusterKeyword → Keyword 를 한 번에 로드
     clusters = (
         db.query(Cluster)
           .options(
-              joinedload(Cluster.cluster_article)           # ClusterArticle 객체
-              .joinedload(ClusterArticle.article)                        # 그 안의 Article 객체
+              joinedload(Cluster.cluster_article)
+                .joinedload(ClusterArticle.article),
+              joinedload(Cluster.cluster_keyword)
+                .joinedload(ClusterKeyword.keyword)
           )
           .order_by(Cluster.label)
           .all()
     )
     if not clusters:
-        raise HTTPException(404, "클러스터된 기사가 없습니다")
+        raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
-    # 2) 클러스터별로 2개까지만 보여주기
-    grouped: Dict[int, List[dict]] = defaultdict(list)
+    result: List[ClusterOut] = []
     for cl in clusters:
-        seen_ids = set()
-        cnt = 0
-        # 클러스터 레이블별로 최대 2개만
-        for ca in cl.cluster_article[:2]:
-            art = ca.article
-            if art.id in seen_ids:  # db 단계에서 유니크 조합 제약을 걸 수도 있따
-                continue
-            seen_ids.add(art.id)
-            grouped[cl.label].append({
-                "id":           art.id,
-                "title":        art.title,
-                "summary":      art.summary,
-                "url":          art.link,                     # Article.link 컬럼:contentReference[oaicite:2]{index=2}
-                "fetched_at":   art.fetched_at.isoformat(),
-            })
-            cnt += 1
-            if cnt >= 2:
-                break
+        # 최신순으로 정렬 후 최대 2개 기사만 선택
+        top2 = sorted(
+            cl.cluster_article,
+            key=lambda ca: ca.article.published,
+            reverse=True
+        )[:2]
 
-    return grouped
+        articles_out = [
+            ArticleOut(
+                article_id=ca.article.id,
+                title=ca.article.title,
+                summary=ca.article.summary,
+                link=ca.article.link,
+                published=ca.article.published
+            )
+            for ca in top2
+        ]
+
+        keywords = [ck.keyword.name for ck in cl.cluster_keyword]
+
+        result.append(
+            ClusterOut(
+                cluster_id=cl.id,
+                created_at=cl.created_at,
+                label=cl.label,
+                num_articles=len(cl.cluster_article),
+                keywords=keywords,
+                articles=articles_out
+            )
+        )
+
+    return result
+
 
 @router.get("/today/{cluster_id}/articles", response_model=List[dict])
 async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):

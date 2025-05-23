@@ -19,7 +19,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     # 관계: KnowledgeMap과 1:N
-    knowledge_map = relationship("KnowledgeMap", back_populates="user")
+    knowledge_maps = relationship("KnowledgeMap", back_populates="user")
     notes = relationship("Note", back_populates="user")
     scrap = relationship("Scrap", back_populates="user")
 
