@@ -22,9 +22,9 @@ export default function ScrapbookPage() {
 
   const fetchScrapArticles = async () => {
     const res = await fetch(
-      `/api/scrap?userId=${userId}&keyword=${encodeURIComponent(
+      `http://localhost:8000/users/scraps?userId=${userId}&title=${encodeURIComponent(
         keyword
-      )}&page=${page}&size=10`
+      )}&page=${page}&size=10&_=${Date.now()}`
     );
     const data = await res.json();
     setArticles(data.articles);
@@ -48,7 +48,7 @@ export default function ScrapbookPage() {
           <Logo />
         </div>
         <h1 className="text-white text-xl font-bold mx-auto">SCRAPBOOK</h1>
-        <div className="px-2 py -1">
+        <div className="px-2 py-1">
           <Header />
         </div>
       </header>

@@ -28,29 +28,49 @@ export default function NotePage() {
 
   const size = 10;
 
-  const loadNotes = async (page: number) => {
-    const { notes, totalPages } = await getNotesByKeyword(keyword, size, page);
-    setNotes(notes);
-    setTotalPages(totalPages);
-  };
+const mapNote = (note: any): Note => ({
+  id: Number(note.note_id),          // ✅ id를 number로 변환
+  title: note.title,
+  text: note.text ?? "",             // 혹시 없으면 기본값
+  createdAt: note.created_at,        // ✅ createdAt으로 변환
+});
+
+const loadNotes = async (page: number) => {
+  const res = await fetch(
+    `http://localhost:8000/users/notes?keyword=${encodeURIComponent(keyword)}&page=${page}&size=10&_=${Date.now()}`
+  );
+  const data = await res.json();
+  const rawNotes = data.result.notes || [];
+  setNotes(rawNotes.map(mapNote)); // ✅ 변환 후 저장
+};
 
   useEffect(() => {
-    loadNotes(currentPage);
-  }, [currentPage]);
+  loadNotes(currentPage);
+}, [currentPage, keyword]);
 
   const handleSelect = async (note: Note) => {
+  try {
     setSelectedNote(note);
     setEditedNote({ ...note });
     const articles = await getArticlesByNoteId(Number(note.id));
     setRelatedArticles(articles);
-  };
+  } catch (err) {
+    console.error("❌ 노트 기사 조회 중 오류:", err);
+    alert("노트에 연결된 기사를 불러올 수 없습니다.");
+  }
+};
+
 
   const handleSave = async () => {
     if (!editedNote) return;
-    await updateNote(Number(editedNote.id), {
+    await fetch(`http://localhost:8000/users/notes/${editedNote.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
       title: editedNote.title,
       content: editedNote.text,
-    });
+    }),
+  });
     alert("노트 수정 완료!");
     setSelectedNote(null);
     loadNotes(currentPage);
@@ -59,6 +79,9 @@ export default function NotePage() {
   const handleSearch = () => {
     setCurrentPage(1);
     loadNotes(1);
+    setSelectedNote(null);
+    setEditedNote(null);
+    setRelatedArticles([]);
   };
 
   return (
@@ -73,7 +96,7 @@ export default function NotePage() {
         </div>
       </header>
 
-      <main className="min-h-screen px-6 py-10 flex flex-col items-center">
+      <main className="min-h-screen px-6 py-10 pr-[400px] flex flex-col items-center">
         <div className="w-full max-w-4xl bg-[#ebf2ff] rounded-lg p-10 flex flex-col items-center gap-6">
           <p className="text-gray-500 text-center text-[16px]">
             노트 제목을 입력하세요

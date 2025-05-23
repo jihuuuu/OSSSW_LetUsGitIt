@@ -8,7 +8,7 @@ export default function NoteEditSheetPreview() {
   const [open, setOpen] = useState(true);
 
   const [note, setNote] = useState<Note>({
-    id: "1",
+    id: 1,
     title: "AI 요약 정리",
     text: "ChatGPT가 요약해준 기사 내용입니다.",
     createdAt: "2023-10-01",

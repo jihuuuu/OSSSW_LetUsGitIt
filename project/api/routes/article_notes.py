@@ -1,51 +1,43 @@
 # api/routes/article_notes.py
 # 역할: 기사 중심의 노트 관리 (기사 상세 화면에서 사용)
 
-from fastapi import APIRouter, Depends, HTTPException
+# api/routes/article_notes.py
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from database.deps import get_db
+from models.user import User
+from models.note import Note, NoteArticle
+from models.article import Article
+from api.schemas.notes import NoteCreateRequest, NoteCreateResponse
 from api.utils.auth import get_current_user
-from models.note import Note
-from api.schemas.notes import NoteCreate, NoteUpdate, NoteOut
-from datetime import datetime, timezone
+from database.deps import get_db
+from datetime import datetime
 
 router = APIRouter()
 
-# 특정 기사에 대해 노트 작성
-@router.post("/articles/{article_id}/note", response_model=NoteOut)
-def add_note(article_id: int, note: NoteCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    # 유저가 해당 기사에 이미 작성한 노트가 있는지 확인 (user_id + article_id 조합은 유일해야 함)
-    existing = db.query(Note).filter_by(user_id=user.id, article_id=article_id).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="이미 이 기사에 대한 노트가 존재합니다.")
-
+@router.post("/", response_model=NoteCreateResponse)
+def create_note(
+    note: NoteCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # 1. Note 생성
     new_note = Note(
-        user_id=user.id,
-        article_id=article_id,
-        note_text=note.note_text,
-        created_at=datetime.now(timezone.utc)
+        title=note.title,
+        text=note.text,
+        user_id=current_user.id
     )
     db.add(new_note)
     db.commit()
     db.refresh(new_note)
-    return new_note
 
-# 특정 기사에 대해 작성한 노트 조회
-@router.get("/articles/{article_id}/note", response_model=NoteOut)
-def get_note_for_article(article_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    note = db.query(Note).filter_by(article_id=article_id, user_id=user.id).first()
-    if not note:
-        raise HTTPException(status_code=404, detail="노트가 없습니다.")
-    return note
-
-# 특정 기사에 대해 작성한 노트 수정
-@router.put("/articles/{article_id}/note", response_model=NoteOut)
-def update_note_for_article(article_id: int, update: NoteUpdate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    note = db.query(Note).filter_by(article_id=article_id, user_id=user.id).first()
-    if not note:
-        raise HTTPException(status_code=404, detail="노트를 찾을 수 없습니다.")
-
-    note.note_text = update.note_text
+    # 2. Note-Article 연결
+    for article_id in note.article_ids:
+        article = db.query(Article).filter(Article.id == article_id).first()
+        if not article:
+            raise HTTPException(status_code=404, detail=f"Article {article_id} not found")
+        link = article.link  # 예시 응답을 위해 필요
+        db.add(NoteArticle(note_id=new_note.id, article_id=article_id))
     db.commit()
     db.refresh(note)
     return note

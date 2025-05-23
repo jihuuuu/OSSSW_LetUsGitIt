@@ -1,58 +1,115 @@
 # clustering/pipeline.py
-from typing import List
-from clustering.embedder import make_embeddings
+from typing import List, Dict
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 from database.connection import SessionLocal
 from models.article import Article
 import numpy as np
 import argparse
 from collections import Counter
+from clustering.keyword_extractor import extract_keywords_per_cluster
+from clustering.cache import load_embedding_cache, save_embedding_cache
 from clustering.embedder import make_embeddings
 from clustering.cluster import (
     load_embeddings,
     run_kmeans,
     run_dbscan,
-    save_labels_to_db,
+    save_clusters_to_db,
     fetch_article_ids,
 )
 from clustering.keyword_extractor import extract_keywords_per_cluster
 
-def fetch_all_texts(limit: int | None = None) -> List[str]:
-    """
-    DB에서 분석할 기사 텍스트(제목+요약)를 모두 꺼냅니다.
-    limit을 주면 최근 N건만.
-    """
+
+# 1) 임베딩용: (id, text) 튜플 반환
+def fetch_texts_with_ids(limit: int | None = None, since_hours: int | None = None):
     session = SessionLocal()
     try:
-        query = session.query(Article.title, Article.summary)
+        q = session.query(Article.id, Article.title, Article.summary)
+        if since_hours is not None:
+            cutoff = datetime.utcnow() - timedelta(hours=since_hours)
+            q = q.filter(Article.published >= cutoff)
         if limit:
-            query = query.order_by(Article.fetched_at.desc()).limit(limit)
-        rows = query.all()
-        # 제목과 요약을 합쳐 하나의 텍스트로
-        texts = [f"{t.title} {t.summary or ''}".strip() for t in rows]
-        return texts
+            q = q.order_by(Article.fetched_at.desc()).limit(limit)
+        rows = q.all()
     finally:
         session.close()
+    return [(aid, f"{title} {summary or ''}".strip()) for aid, title, summary in rows]
 
-def run_embedding_stage(limit: int | None = None, batch_size: int = 32):
-    """
-    1) DB에서 기사 텍스트 불러오기
-    2) 임베딩 생성
-    3) (선택) 파일로 저장하거나 다음 단계에 반환
-    """
-    texts = fetch_all_texts(limit=limit)
-    if not texts:
+# 2) 클러스터링&키워드용: 순수 문자열 리스트 반환
+def fetch_all_texts(limit: int | None = None, since_hours: int | None = None) -> list[str]:
+    session = SessionLocal()
+    try:
+        q = session.query(Article.title, Article.summary)
+        if since_hours is not None:
+            cutoff = datetime.utcnow() - timedelta(hours=since_hours)
+            q = q.filter(Article.published >= cutoff)
+        if limit:
+            q = q.order_by(Article.fetched_at.desc()).limit(limit)
+        rows = q.all()
+    finally:
+        session.close()
+    return [f"{t.title} {t.summary or ''}".strip() for t in rows]
+
+
+def run_embedding_stage(
+    *,
+    batch_size: int = 32,
+    since_hours: int = 24,
+    id_path: str = "data/article_ids.npy",
+    emb_path: str = "data/article_embeddings.npy",
+):
+    # 1) 지난 since_hours 기사와 텍스트
+    rows = fetch_texts_with_ids(since_hours=since_hours)
+    if not rows:
         print("⚠️ 분석할 기사 텍스트가 없습니다.")
         return None
 
-    print(f"▶️ {len(texts)}개 기사에 대해 임베딩 생성 시작…")
-    embeddings = make_embeddings(texts, batch_size=batch_size)
-    print("✅ 임베딩 생성 완료:", embeddings.shape)
-    
-    # 예: 파일로 저장 (옵션)
-    np.save("data/article_embeddings.npy", embeddings)
-    print("✅ embeddings.npy 저장 완료")
+    ids_window, texts_window = zip(*rows)
+    ids_window = list(ids_window)
+    texts_window = list(texts_window)
 
-    return embeddings
+    # 2) 기존 캐시 로드
+    cached_ids, cached_embs = load_embedding_cache(id_path, emb_path)
+
+    # 3) 최신 윈도우 내에서 재사용 가능한 인덱스
+    reused_embs = []
+    new_texts = []
+    new_ids = []
+    for aid, txt in zip(ids_window, texts_window):
+        if aid in cached_ids:
+            idx = int(np.where(cached_ids == aid)[0][0])
+            reused_embs.append(cached_embs[idx])
+        else:
+            new_ids.append(aid)
+            new_texts.append(txt)
+
+    # 4) 새로운 임베딩 생성
+    if new_texts:
+        new_embs = make_embeddings(new_texts, batch_size=batch_size)
+        print(f"✅ 신규 {len(new_ids)}개 임베딩 생성")
+    else:
+        new_embs = np.zeros((0, cached_embs.shape[1] if cached_embs.size else new_embs.shape[1]))
+        print("✅ 신규 임베딩 없음, 모두 캐시 재사용")
+
+    # 5) 최종 윈도우 임베딩 배열 재조합
+    final_embs = []
+    new_idx = 0
+    for aid in ids_window:
+        if aid in cached_ids:
+            idx = int(np.where(cached_ids == aid)[0][0])
+            final_embs.append(cached_embs[idx])
+        else:
+            final_embs.append(new_embs[new_idx])
+            new_idx += 1
+    final_embs = np.stack(final_embs, axis=0)
+    final_ids = np.array(ids_window, dtype=int)
+
+    # 6) 캐시에 덮어쓰기
+    save_embedding_cache(final_ids, final_embs, id_path, emb_path)
+    print(f"✅ 캐시가 지난 {since_hours}시간 윈도우({len(final_ids)}개)로 갱신되었습니다")
+
+    return final_embs
+
 
 def run_clustering_stage(
     emb_path: str,
@@ -79,23 +136,34 @@ def run_clustering_stage(
     for lbl, cnt in counts.items():
         print(f"  - Cluster {lbl}: {cnt} articles")
 
+    # 5) DB에 저장
+    if save_db:
+        article_ids = fetch_article_ids(limit=limit)
+        # if len(article_ids) != len(labels):
+        #     print("⚠️ 오류: Article ID 수와 임베딩 수가 일치하지 않습니다.")
+        #     return
+        save_clusters_to_db(article_ids, labels)
+
     # 4) 대표 키워드 추출
     raw_texts = fetch_all_texts(limit=limit)
     from clustering.embedder import preprocess_text
     texts = [preprocess_text(t) for t in raw_texts]
     
-    keywords = extract_keywords_per_cluster(texts, labels, top_n=3)
+    db: Session = SessionLocal()
+    try:
+        keywords: Dict[int, List[str]] = extract_keywords_per_cluster(
+            texts=texts,      
+            labels=labels,    
+            db=db,            
+            top_n=3,
+            max_features=1000
+        )
+    finally:
+        db.close()
+
     print("\n대표 키워드 (클러스터별):")
     for lbl, kws in keywords.items():
         print(f"  - Cluster {lbl}: {', '.join(kws)}")
-
-    # 5) DB에 저장
-    if save_db:
-        article_ids = fetch_article_ids(limit=limit)
-        if len(article_ids) != len(labels):
-            print("⚠️ 오류: Article ID 수와 임베딩 수가 일치하지 않습니다.")
-            return
-        save_labels_to_db(article_ids, labels)
 
 
 def main():
