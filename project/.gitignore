@@ -47,3 +47,7 @@ htmlcov/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+
+# 데이터
+data/article_embeddings.npy
+data/article_ids.npy
