@@ -5,12 +5,15 @@ from fastapi import FastAPI
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .routes import news, cluster, user, scrap, article_notes, user_notes, knowledge_map, trend
+
 from starlette.concurrency import run_in_threadpool
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
 from models.user import User
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes.scrap import router as scrap_router
 from api.utils.auth import get_current_user
+from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
+from database.connection import SessionLocal
 
 def hourly_clustering():
     """
@@ -34,6 +37,12 @@ def hourly_clustering():
         save_db=True
     )
     print("✅ 한 시간 단위 클러스터링 완료")
+    # 사용자별 스크랩 기반 지식맵 추가
+    db = SessionLocal()
+    try:
+        generate_user_scrap_knowledge_maps(db)
+    finally:
+        db.close()
 
 def create_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
@@ -87,6 +96,8 @@ def create_app():
     app.include_router(trend.router,    prefix="/trends",    tags=["trend"])
     app.include_router(user_notes.router, prefix="/users", tags=["user-notes"])
     app.include_router(article_notes.router, tags=["article-notes"])
+    app.include_router(knowledge_map.router, prefix="/users", tags=["knowledge-map"])
+
 
     # 2) 원래 인증 의존성을 가짜 함수로 교체
     app.dependency_overrides[get_current_user] = fake_current_user
