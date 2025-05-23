@@ -8,6 +8,7 @@ from passlib.hash import bcrypt
 from models.user import User, KnowledgeMap
 from models.note import Note, NoteArticle
 from models.article import Article
+from models.scrap import Scrap
 from database.connection import engine, SessionLocal  # ✅ 기존 설정 가져오기
 from models.base import Base
 
@@ -62,5 +63,11 @@ db.commit()
 km = KnowledgeMap(user_id=user.id)
 db.add(km)
 db.commit()
+
+# 5. Scrap 연결
+for article in articles:
+    db.add(Scrap(user_id=user.id, article_id=article.id, created_at=datetime.utcnow()))
+db.commit()
+
 
 print("✅ 더미 데이터 삽입 완료")
