@@ -85,7 +85,7 @@ def create_app():
     app.include_router(user.router,    prefix="/users",    tags=["user"])
     app.include_router(scrap.router,    prefix="/users",    tags=["scrap"])
     app.include_router(trend.router,    prefix="/trends",    tags=["trend"])
-    app.include_router(user_notes.router, tags=["user-notes"])
+    app.include_router(user_notes.router, prefix="/users", tags=["user-notes"])
     app.include_router(article_notes.router, tags=["article-notes"])
 
     # 2) 원래 인증 의존성을 가짜 함수로 교체

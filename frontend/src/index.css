@@ -81,9 +81,6 @@ You can apply the theme on any DOM node, not just the `body`
   --color-text-default-secondary: var(--color-primitives-white-500);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {

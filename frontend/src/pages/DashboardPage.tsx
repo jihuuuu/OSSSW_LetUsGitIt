@@ -33,7 +33,11 @@ export default function DashboardPage() {
               {
                 id: 0,
                 label: 1,
-                keywords: res.keywords,
+                keywords: res.keywords.map((k: { id: number; name: string }) => ({
+                  ...k,
+                  count: 1,
+                  clusterId: 0,
+                })),
               },
             ],
           });
@@ -49,6 +53,7 @@ export default function DashboardPage() {
   }
 
   return (
+    
     <div className="min-h-screen bg-white">
       {/* ✅ 상단 헤더 */}
       <header className="relative bg-sky-400 h-20 flex items-center px-6">

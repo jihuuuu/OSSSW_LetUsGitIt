@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as d3 from "d3";
-import type { Keyword } from "@/types/keyword";
 import type { PCluster } from "@/types/cluster";
 import type { D3DragEvent } from "d3";
 
@@ -10,6 +9,7 @@ type Node = {
   id: number;
   name: string;
   clusterId: number;
+  count?: number; // ✅ count 추가
   x?: number;
   y?: number;
   vx?: number;
@@ -42,6 +42,7 @@ export function KeywordGraph({ clusters }: Props) {
         id: k.id,
         name: k.name,
         clusterId: cluster.id,
+        count: k.count || 1, // ✅ count가 없으면 기본값 1
       }))
     );
 
@@ -61,13 +62,7 @@ export function KeywordGraph({ clusters }: Props) {
 
     const simulation = d3
       .forceSimulation<Node>(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink<Node, Edge>(edges)
-          .id((d) => d.id)
-          .distance(80)
-      )
+      .force("link", d3.forceLink<Node, Edge>(edges).id((d) => d.id).distance(80))
       .force("charge", d3.forceManyBody().strength(-200))
       .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -84,7 +79,7 @@ export function KeywordGraph({ clusters }: Props) {
       .selectAll<SVGCircleElement, Node>("circle")
       .data(nodes)
       .join("circle")
-      .attr("r", 12)
+      .attr("r", (d) => 8 + Math.min(d.count || 1, 20)) // ✅ count에 따라 반영됨
       .attr("fill", (d) => d3.schemeCategory10[d.clusterId % 10])
       .style("cursor", "pointer")
       .on("click", (event, d) => {

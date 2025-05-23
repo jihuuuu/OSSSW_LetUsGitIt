@@ -36,7 +36,9 @@ for _ in range(100):
     a = Article(
         title=fake.sentence(),
         link=fake.url(),
-        summary=fake.text()
+        summary=fake.text(),
+        published=datetime.now()  # 👈 중요
+
     )
     db.add(a)
     articles.append(a)
@@ -48,8 +50,8 @@ note = Note(
     title="AI 뉴스 요약",
     text="오늘의 뉴스 핵심 요약입니다.",
     state=True,
-    created_at=datetime.utcnow(),
-    updated_at=datetime.utcnow()
+    created_at=datetime.now(),
+    updated_at=datetime.now()
 )
 db.add(note)
 db.commit()
@@ -69,5 +71,5 @@ for article in articles:
     db.add(Scrap(user_id=user.id, article_id=article.id, created_at=datetime.utcnow()))
 db.commit()
 
-
 print("✅ 더미 데이터 삽입 완료")
+
