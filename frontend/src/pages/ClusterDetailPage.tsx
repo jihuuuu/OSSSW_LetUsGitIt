@@ -27,87 +27,68 @@ export default function ClusterDetailPage() {
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 10;
+
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    /*// 더미 데이터로 초기화 (서버 연결 전)
-    const dummyCluster: ClusterDetail = {
-      cluster_id: 1,
-      keywords: ["OOO", "전 대통령", "공판 출석"],
-      articles: [
-        {
-          article_id: 12,
-          title: "'내란혐의' OOO 첫 법원 공개출석...포토라인 말없이 통과",
-          link: "http://www.dyenews.co.kr/news/articleView.html?idxno=801677",
-        },
-        {
-          article_id: 9,
-          title: "예시예시 '피그마' 예시",
-          link: "http://www.news.co.kr/news/example",
-        },
-      ],
-    };
-    const dummyScrapIds = [12];
-    setCluster(dummyCluster);
-    setFavorites(new Set(dummyScrapIds));*/
-
-    // 서버 연결 시 주석 해제
-     axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
-    setCluster(res.data);
-  });
-
-  axios
-    .get("http://localhost:8000/users/scraps", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-    .then((res) => {
-      const ids = res.data.articles.map((a: any) => Number(a.article_id || a.id)); // ✅ ID로만 추출
-      setFavorites(new Set(ids)); // ✅ 상태에 저장
-    })
-    .catch((err) => {
-      console.error("스크랩 기사 로딩 실패:", err);
+    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
+      setCluster(res.data);
     });
-}, [clusterId]);
+
+    axios
+      .get("http://localhost:8000/users/scraps", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        const ids = res.data.articles.map((a: any) => Number(a.article_id || a.id));
+        setFavorites(new Set(ids));
+      })
+      .catch((err) => {
+        console.error("스크랩 기사 로딩 실패:", err);
+      });
+  }, [clusterId]);
 
   const handleScrap = async (articleId: number) => {
-  if (loadingIds.has(articleId)) return;
+    if (loadingIds.has(articleId)) return;
 
-  setLoadingIds((prev) => new Set(prev).add(articleId));
-  const isScrapped = favorites.has(articleId);
+    setLoadingIds((prev) => new Set(prev).add(articleId));
+    const isScrapped = favorites.has(articleId);
 
-  try {
-    const url = `http://localhost:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
-    const method = isScrapped ? "put" : "post";
+    try {
+      const url = `http://localhost:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
+      const method = isScrapped ? "put" : "post";
 
-    const res = await axios({
-      method,
-      url,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+      const res = await axios({
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
-    if (res.data?.isSuccess) {
-      setFavorites((prev) => {
+      if (res.data?.isSuccess) {
+        setFavorites((prev) => {
+          const updated = new Set(prev);
+          isScrapped ? updated.delete(articleId) : updated.add(articleId);
+          return updated;
+        });
+      } else {
+        console.error("스크랩 응답 실패:", res.data?.message);
+      }
+    } catch (err) {
+      console.error("스크랩 요청 실패:", err);
+    } finally {
+      setLoadingIds((prev) => {
         const updated = new Set(prev);
-        isScrapped ? updated.delete(articleId) : updated.add(articleId);
+        updated.delete(articleId);
         return updated;
       });
-    } else {
-      console.error("스크랩 응답 실패:", res.data?.message);
     }
-  } catch (err) {
-    console.error("스크랩 요청 실패:", err);
-  } finally {
-    setLoadingIds((prev) => {
-      const updated = new Set(prev);
-      updated.delete(articleId);
-      return updated;
-    });
-  }
-};
+  };
 
   const submitNote = async () => {
     const res = await axios.post(
@@ -122,8 +103,7 @@ export default function ClusterDetailPage() {
         },
       }
     );
-    console.log("노트 응답:", res.data); // 👈 이거 추가!
-    
+
     if (res.data?.isSuccess) {
       alert("노트가 저장되었습니다.");
       setIsNoteModalOpen(false);
@@ -133,8 +113,14 @@ export default function ClusterDetailPage() {
     } else {
       alert("노트 저장 실패: " + (res.data?.message || "알 수 없는 오류"));
     }
-    
   };
+
+  const paginatedArticles = cluster?.articles.slice(
+    (currentPage - 1) * articlesPerPage,
+    currentPage * articlesPerPage
+  ) || [];
+
+  const totalPages = cluster ? Math.ceil(cluster.articles.length / articlesPerPage) : 1;
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -155,7 +141,7 @@ export default function ClusterDetailPage() {
             <div className="bg-gray-50 border rounded-md p-4 shadow">
               <p className="font-semibold text-lg mb-4">관련기사</p>
               <ul className="divide-y divide-gray-200">
-                {cluster.articles.map((article) => (
+                {paginatedArticles.map((article) => (
                   <li
                     key={article.id}
                     className="py-4 flex justify-between items-start gap-4"
@@ -200,6 +186,23 @@ export default function ClusterDetailPage() {
                   </li>
                 ))}
               </ul>
+              <div className="flex justify-center mt-4 gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  이전
+                </button>
+                <span className="px-2">{currentPage} / {totalPages}</span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  다음
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -207,7 +210,6 @@ export default function ClusterDetailPage() {
         )}
       </main>
 
-      {/* 우측 하단 고정 버튼 */}
       <div className="fixed bottom-6 right-6 z-[9999]">
         {noteMode ? (
           <button
@@ -226,7 +228,6 @@ export default function ClusterDetailPage() {
         )}
       </div>
 
-      {/* 노트 작성 모달 */}
       {isNoteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md shadow-lg w-96">
