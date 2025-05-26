@@ -7,7 +7,7 @@ import { Star } from "lucide-react";
 interface Article {
   id: number;
   title: string;
-  link: string;
+  url: string;
 }
 
 interface ClusterDetail {
@@ -54,7 +54,6 @@ export default function ClusterDetailPage() {
 
   const handleScrap = async (articleId: number) => {
     if (loadingIds.has(articleId)) return;
-
     setLoadingIds((prev) => new Set(prev).add(articleId));
     const isScrapped = favorites.has(articleId);
 
@@ -99,7 +98,7 @@ export default function ClusterDetailPage() {
       },
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer accessToken`,
         },
       }
     );
@@ -115,15 +114,13 @@ export default function ClusterDetailPage() {
     }
   };
 
-  const paginatedArticles = cluster?.articles.slice(
-    (currentPage - 1) * articlesPerPage,
-    currentPage * articlesPerPage
-  ) || [];
-
-  const totalPages = cluster ? Math.ceil(cluster.articles.length / articlesPerPage) : 1;
+  const indexOfLast = currentPage * articlesPerPage;
+  const indexOfFirst = indexOfLast - articlesPerPage;
+  const currentArticles = cluster?.articles.slice(indexOfFirst, indexOfLast) || [];
+  const totalPages = cluster ? Math.ceil(cluster.articles.length / articlesPerPage) : 0;
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-white">
       <header className="relative bg-sky-400 h-20 flex items-center px-6">
         <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
           <Logo />
@@ -141,11 +138,8 @@ export default function ClusterDetailPage() {
             <div className="bg-gray-50 border rounded-md p-4 shadow">
               <p className="font-semibold text-lg mb-4">관련기사</p>
               <ul className="divide-y divide-gray-200">
-                {paginatedArticles.map((article) => (
-                  <li
-                    key={article.id}
-                    className="py-4 flex justify-between items-start gap-4"
-                  >
+                {currentArticles.map((article) => (
+                  <li key={article.id} className="py-4 flex justify-between items-start gap-4">
                     <div className="flex flex-col text-left flex-1">
                       {noteMode && (
                         <input
@@ -163,14 +157,19 @@ export default function ClusterDetailPage() {
                           className="mb-1"
                         />
                       )}
-                      <p className="text-sm mb-1">• {article.title}</p>
+                      <p
+                        onClick={() => window.open(article.url, "_blank")}
+                        className="text-sm font-medium text-blue-700 hover:underline cursor-pointer mb-1"
+                      >
+                        • {article.title}
+                      </p>
+
                       <a
-                        href={article.link}
+                        href={article.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 break-all"
+                        className="text-xs text-blue-500 break-all"
                       >
-                        {article.link}
                       </a>
                     </div>
 
@@ -186,23 +185,48 @@ export default function ClusterDetailPage() {
                   </li>
                 ))}
               </ul>
-              <div className="flex justify-center mt-4 gap-2">
+
+              {/* Pagination (Prev / Next only) */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-6 gap-4 items-center">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-white border rounded disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-white border rounded disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sticky note button */}
+            <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+              {noteMode ? (
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  onClick={() => setIsNoteModalOpen(true)}
+                  className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
                 >
-                  이전
+                  note
                 </button>
-                <span className="px-2">{currentPage} / {totalPages}</span>
+              ) : (
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+                  onClick={() => setNoteMode(true)}
+                  className="w-12 h-12 rounded-full border text-2xl shadow"
                 >
-                  다음
+                  ✏️
                 </button>
-              </div>
+              )}
             </div>
           </>
         ) : (
@@ -210,24 +234,7 @@ export default function ClusterDetailPage() {
         )}
       </main>
 
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        {noteMode ? (
-          <button
-            onClick={() => setIsNoteModalOpen(true)}
-            className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-          >
-            note
-          </button>
-        ) : (
-          <button
-            onClick={() => setNoteMode(true)}
-            className="w-12 h-12 rounded-full border text-2xl shadow"
-          >
-            ✏️
-          </button>
-        )}
-      </div>
-
+      {/* 노트 작성 모달 */}
       {isNoteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md shadow-lg w-96">
