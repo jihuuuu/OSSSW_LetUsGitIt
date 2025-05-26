@@ -4,8 +4,7 @@
 from fastapi import FastAPI
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from .routes import news, cluster, user, scrap, article_notes, user_notes, knowledge_map, trend
-
+from .routes import news, cluster, user, scrap, article_notes, user_notes, knowledge_map,trend
 from starlette.concurrency import run_in_threadpool
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
 from models.user import User
@@ -50,11 +49,6 @@ def create_scheduler() -> AsyncIOScheduler:
     scheduler.add_job(hourly_clustering, trigger="cron", minute=0)
     return scheduler
 
-# 더미 유저 반환 함수 (test용)
-def fake_current_user():
-    # DB에 id=1 유저가 있어야 합니다
-    return User(id=1)
-
 
 def create_app():
     app = FastAPI(title="뉴스 클러스터링 API")
@@ -86,8 +80,6 @@ def create_app():
         allow_headers=["*"],                      # 모든 헤더 허용
     )
 
-    # 2) 원래 인증 의존성을 가짜 함수로 교체
-    app.dependency_overrides[get_current_user] = fake_current_user
 
     app.include_router(news.router,    prefix="/news",    tags=["news"])
     app.include_router(cluster.router, prefix="/clusters", tags=["cluster"])
@@ -99,12 +91,8 @@ def create_app():
     app.include_router(knowledge_map.router, prefix="/users", tags=["knowledge-map"])
 
 
-    # 2) 원래 인증 의존성을 가짜 함수로 교체
-    app.dependency_overrides[get_current_user] = fake_current_user
-
     # 3) 라우터 등록
     app.include_router(scrap_router)
 
 
     return app
-

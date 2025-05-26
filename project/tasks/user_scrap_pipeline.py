@@ -1,6 +1,6 @@
 # 📄 tasks/user_scrap_pipeline.py
 from sqlalchemy.orm import Session
-from models.article import Article
+from models.article import Article, Keyword
 from models.scrap import Scrap
 from models.user import User
 from models.user import KnowledgeMap
@@ -66,10 +66,19 @@ def run_user_scrap_knowledge_map(user: User, db: Session):
             db.add(PClusterArticle(article_id=article.id, pcluster_id=pcluster.id))
 
         for kw in cluster_keywords:
-            db.add(PClusterKeyword(keyword=kw, pcluster_id=pcluster.id))
+            # keyword name(str) -> Keyword 객체
+            keyword_obj = db.query(Keyword).filter_by(name=kw).first()
+            if not keyword_obj:
+                keyword_obj = Keyword(name=kw)
+                db.add(keyword_obj)
+                db.commit()
+                db.refresh(keyword_obj)
 
-    db.commit()
-    print(f"✅ 사용자 {user.id} 지식맵 저장 완료")
+            # keyword 관계에 객체로 넣기
+            db.add(PClusterKeyword(keyword=keyword_obj, pcluster_id=pcluster.id))
+
+            db.commit()
+            print(f"✅ 사용자 {user.id} 지식맵 저장 완료")
 
 
 
