@@ -1,10 +1,10 @@
-// src/pages/ScrapbookPage.tsx
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PaginationComponent from "@/components/PaginationComponent";
 import Logo from "@/components/ui/logo";
 import Header from "@/components/Header";
+import api from "@/services/api"; //  axios 인스턴스 import
 
 type Article = {
   id: number;
@@ -18,17 +18,21 @@ export default function ScrapbookPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const userId = 1; // ✅ 로그인 유저 아이디 (임시)
 
   const fetchScrapArticles = async () => {
-    const res = await fetch(
-      `http://localhost:8000/users/scraps?userId=${userId}&title=${encodeURIComponent(
-        keyword
-      )}&page=${page}&size=10&_=${Date.now()}`
-    );
-    const data = await res.json();
-    setArticles(data.articles);
-    setTotalPages(data.totalPages);
+    try {
+      const res = await api.get("/users/scraps", {
+        params: {
+          title: keyword,
+          page,
+          size: 10,
+        },
+      });
+      setArticles(res.data.articles);
+      setTotalPages(res.data.totalPages);
+    } catch (err) {
+      console.error("스크랩 기사 로딩 실패:", err);
+    }
   };
 
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function ScrapbookPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ✅ 상단 헤더 */}
+      {/* 상단 헤더 */}
       <header className="relative bg-sky-400 h-20 flex items-center px-6">
         <div className="px-2 py-1">
           <Logo />
@@ -53,7 +57,7 @@ export default function ScrapbookPage() {
         </div>
       </header>
 
-      {/* ✅ 본문 */}
+      {/*  본문 */}
       <main className="px-6 py-10 flex flex-col items-center">
         <div className="w-full max-w-4xl bg-[#ebf2ff] rounded-lg p-10 flex flex-col items-center gap-6">
           <p className="text-gray-500 text-center text-[16px]">

@@ -17,6 +17,11 @@ def extract_top_keywords(
     주어진 문서 리스트에 대해 TF-IDF를 계산하고,
     문서들에서 평균 TF-IDF 값이 높은 top_n 키워드를 뽑아 반환.
     """
+    # ✅ 방어 로직
+    if not documents or all(not doc.strip() for doc in documents):
+        print(f"⚠️ cluster_id={cluster_id}: 전처리된 문서가 모두 공백입니다. 키워드 추출 생략.")
+        return ["no_keyword"]
+    
     # 1) TF-IDF 행렬 생성
     vectorizer = TfidfVectorizer(
         stop_words=list(STOPWORDS_KO),

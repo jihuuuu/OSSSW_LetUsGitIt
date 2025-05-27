@@ -1,41 +1,43 @@
-// src/components/ui/Header.tsx
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("access_token");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    alert("로그아웃 되었습니다.");
-    navigate("/login");
-  };
-
-  const handleLogin = () => {
-    navigate("/login");
+    localStorage.removeItem("accessToken");
+    alert("로그아웃되었습니다.");
+    navigate("/"); // 홈으로 이동
+    window.location.reload(); // 강제 새로고침해서 상태 반영
   };
 
   return (
-    <div className="w-full flex justify-end px-6 py-4">
-      {token ? (
+    <div className="flex gap-3 items-center">
+      {isLoggedIn ? (
         <>
           <button
-            onClick={handleLogout}
-            className="text-sm px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md"
+            onClick={() => navigate("/dashboard")}
+            className="text-sm font-medium border border-gray-300 bg-gray-100 px-2 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition-all duration-200"
           >
-            로그아웃
+            마이페이지
           </button>
           <button
-            onClick={() => navigate("/dashboard")}
-            className="text-sm px-3 py-1 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md"
-          >
-            myPage
+            onClick={handleLogout}
+            className="text-sm font-medium border border-gray-300 bg-gray-100 px-2 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition-all duration-200"
+          > 
+            로그아웃
           </button>
         </>
       ) : (
         <button
-          onClick={handleLogin}
-          className="text-sm bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md px-3 py-1 "
+          onClick={() => navigate("/users/login")}
+          className="text-sm border px-2 py-1 rounded hover:bg-gray-100"
         >
           로그인
         </button>
