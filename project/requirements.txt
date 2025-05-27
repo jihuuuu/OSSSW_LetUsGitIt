@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+python-dotenv
+feedparser
+requests
+sentence-transformers
+scikit-learn
+numpy
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic[email]
+apscheduler
+konlpy
+faker
