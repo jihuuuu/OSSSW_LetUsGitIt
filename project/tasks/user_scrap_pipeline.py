@@ -39,9 +39,15 @@ def run_user_scrap_knowledge_map(user: User, db: Session):
 
     # 3. 임베딩 & 클러스터링
     embeddings = make_embeddings(texts_filtered)
-
+    num_samples = len(embeddings)
+    
+    # 샘플이 2건 미만이면 클러스터링 스킵
+    if num_samples < 2:
+        print(f"⚠️ 사용자 {user.id} 임베딩 수({num_samples}) < 2, 클러스터링 건너뜀")
+        return
+    
     # 클러스터 수는 너무 많지 않게 조절 (최소 2, 최대 5)
-    n_clusters = min(max(2, len(embeddings) // 2), 5)
+    n_clusters = min(max(2, num_samples // 2), num_samples)
     labels = run_kmeans(embeddings, n_clusters=n_clusters)
 
     # 4. KnowledgeMap 생성

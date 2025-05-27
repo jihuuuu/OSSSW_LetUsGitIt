@@ -6,8 +6,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .routes import cluster, knowledge_map, news, notes, scrap, trend, user
 from starlette.concurrency import run_in_threadpool
 from clustering.pipeline import run_embedding_stage, run_clustering_stage
-from models.user import User
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
 from database.connection import SessionLocal
 from collector.rss_collector import parse_and_store
@@ -55,6 +55,32 @@ def create_scheduler() -> AsyncIOScheduler:
 
 def create_app():
     app = FastAPI(title="뉴스 클러스터링 API")
+
+    # Swagger UI에서 수동 Bearer 토큰 테스트를 위한 securitySchemes 추가
+    def custom_openapi():
+        if app.openapi_schema:
+            return app.openapi_schema
+        openapi_schema = get_openapi(
+            title=app.title,
+            version="1.0.0",
+            description="뉴스 클러스터링 및 노트 API",
+            routes=app.routes,
+        )
+        # HTTP Bearer 스킴 등록
+        openapi_schema.setdefault("components", {}).setdefault("securitySchemes", {})
+        openapi_schema["components"]["securitySchemes"]["bearerAuth"] = {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+        # 2) 모든 경로에 보안 요건 추가
+        for path in openapi_schema["paths"].values():
+            for op in path.values():
+                op.setdefault("security", []).append({"bearerAuth": []})
+        app.openapi_schema = openapi_schema
+        return openapi_schema
+
+    app.openapi = custom_openapi
 
     scheduler = create_scheduler()
 
