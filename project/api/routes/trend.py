@@ -27,36 +27,34 @@ def get_weekly_trends(
     num_days = (end_date - start_date).days + 1
     dates = [start_date + timedelta(days=i) for i in range(num_days)]
 
-    # 3) 키워드별 누적 기사 수 계산
-    keyword_counts: List[tuple[str,int, int]] = []  # (키워드, 키워드_id, 누적합)
-    keywords = (
-        db.query(Keyword.id, Keyword.name, ClusterKeyword.cluster_id)
-          .join(ClusterKeyword, ClusterKeyword.keyword_id == Keyword.id)
-          .all()
-    )
-    for kw_id, kw_name, cluster_id in keywords:
-        # cluster → cluster_article → article
-        total = (
-            db.query(Article.id)
-              .join(ClusterArticle, ClusterArticle.article_id == Article.id)
-              .filter(ClusterArticle.cluster_id == cluster_id)
-              .filter(Article.published >= datetime.combine(start_date, datetime.min.time()))
-              .filter(Article.published <  datetime.combine(end_date + timedelta(days=1), datetime.min.time()))
-              .filter(
-                  or_(
-                      Article.title.contains(kw_name),
-                      Article.summary.contains(kw_name)
-                  )
-              )
-              .distinct()
-              .count()
-        )
-        keyword_counts.append((kw_name, kw_id, total))
+    # 3) 키워드별 누적 기사 수 계산 (클러스터 구분 없이 키워드 단위로 한 번만)
+    from sqlalchemy import func
 
-    # 4) 상위 5개 뽑기
-    keyword_counts.sort(key=lambda x: x[2], reverse=True)
-    top5 = keyword_counts[:5]
-    top_keywords = [kw for kw, _, _ in top5]
+    keyword_counts = (
+        db.query(
+            Keyword.id.label("kw_id"),
+            Keyword.name.label("kw_name"),
+            func.count(func.distinct(Article.id)).label("total")
+        )
+        .join(ClusterKeyword, ClusterKeyword.keyword_id == Keyword.id)
+        .join(ClusterArticle, ClusterArticle.cluster_id == ClusterKeyword.cluster_id)
+        .join(Article, Article.id == ClusterArticle.article_id)
+        .filter(Article.published >= datetime.combine(start_date, datetime.min.time()))
+        .filter(Article.published <  datetime.combine(end_date + timedelta(days=1), datetime.min.time()))
+        .filter(
+            or_(
+                Article.title.contains(Keyword.name),
+                Article.summary.contains(Keyword.name)
+            )
+        )
+        .group_by(Keyword.id, Keyword.name)
+        .order_by(func.count(Article.id).desc())
+        .limit(5)
+        .all()
+    )
+    # 이제 중복 없이 상위 5개 키워드만 남음
+    top5 = [(row.kw_name, row.kw_id, row.total) for row in keyword_counts]
+    top_keywords = [name for name, _, _ in top5]
 
     # 5) 일별 변화 구하기
     trend_data: List[KeywordTrend] = []
