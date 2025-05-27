@@ -148,7 +148,15 @@ def run_clustering_stage(
     raw_texts = fetch_all_texts(limit=limit)
     from clustering.embedder import preprocess_text
     texts = [preprocess_text(t) for t in raw_texts]
-    
+    # 📌 디버깅용 로그 추가: 전처리 후 공백률 확인
+    non_empty = [t for t in texts if t.strip()]
+    empty_count = len(texts) - len(non_empty)
+    print("── 전처리 디버깅 ──")
+    print(f"전체 기사 수: {len(texts)}")
+    print(f"빈 문자열 수: {empty_count}")
+    print(f"공백이 아닌 예시 3개: {non_empty[:3]}")
+    print("──────────────────")
+
     db: Session = SessionLocal()
     try:
         keywords: Dict[int, List[str]] = extract_keywords_per_cluster(

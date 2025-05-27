@@ -13,7 +13,8 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await login(email, password); // ✅ 서비스 함수 호출
-      localStorage.setItem("access_token", res.access_token); // ✅ 토큰 저장
+      localStorage.setItem("accessToken", res.access_token); // ✅ 토큰 저장
+      console.log("✅ accessToken 저장됨:", res.access_token);
       alert("로그인 성공!");
       navigate("/dashboard"); // 로그인 후 이동
     } catch (err: any) {

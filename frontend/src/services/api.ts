@@ -8,7 +8,7 @@ const api = axios.create({
 
 // 요청 시 access token을 Authorization 헤더에 자동 포함
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
