@@ -112,7 +112,7 @@ def create_app():
     )
 
 
-    app.include_router(news.router,    prefix="/news",    tags=["news"])
+    # app.include_router(news.router,    prefix="/news",    tags=["news"])
     app.include_router(cluster.router, prefix="/clusters", tags=["cluster"])
     app.include_router(user.router,    prefix="/users",    tags=["user"])
     app.include_router(scrap.router,    prefix="/users",    tags=["scrap"])

@@ -2,7 +2,7 @@
 # 역할: 기사 관련 모델 정의
 # article, cluster, cluster_article, cluster_keyword, keyword
 
-from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Text, ForeignKey, Boolean
 from datetime import datetime, timezone
 from models.base import Base
 from sqlalchemy.orm import relationship
@@ -11,8 +11,8 @@ class Article(Base):
     __tablename__ = "article"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    title = Column(String(100), nullable=False)
-    link = Column(String(255), nullable=False)
+    title = Column(String(512), nullable=False)
+    link = Column(String(1024), unique=True, index=True, nullable=False)
     summary = Column(Text, nullable=True)
     published = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     fetched_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
@@ -61,7 +61,7 @@ class Keyword(Base):
     __tablename__ = "keyword"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
+    name = Column(String(100), unique=True, nullable=False)
 
     # 관계
     cluster_keyword = relationship("ClusterKeyword", back_populates="keyword")
