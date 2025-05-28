@@ -12,6 +12,8 @@ import NoteEditSheetPreview from "@/pages/NoteEditSheetPreview";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import KeywordDetailPagePreview from "@/pages/KeywordDetailPagePreview";
 import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
+import TrendRoutes from "./TrendRoutes";
+
 export default function AppRouter() {
   return (
     <Router>
@@ -29,6 +31,7 @@ export default function AppRouter() {
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
         <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
         <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
+        <Route path="/trend/*" element={<TrendRoutes />} />
       </Routes>
     </Router>
   );

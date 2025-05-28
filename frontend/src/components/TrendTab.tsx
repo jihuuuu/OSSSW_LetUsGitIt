@@ -3,11 +3,11 @@ import { NavLink } from 'react-router-dom';
 
 export default function TrendTab() {
   return (
-    <div className="flex space-x-6 border-b pb-2">
+    <div className="flex space-x-8 border-b pb-2">
       <NavLink
         to="/trend/weekly"
         className={({ isActive }) =>
-          isActive ? 'border-b-2 border-black font-bold' : 'text-gray-500'
+          isActive ? 'border-b-2 border-black font-bold' : 'text-gray-500 visited:text-gray-500'
         }
       >
         주간 이슈 변화
@@ -15,7 +15,7 @@ export default function TrendTab() {
       <NavLink
         to="/trend/search"
         className={({ isActive }) =>
-          isActive ? 'border-b-2 border-black font-bold' : 'text-gray-500'
+          isActive ? 'border-b-2 border-black font-bold' : 'text-gray-500 visited:text-gray-500'
         }
       >
         키워드 검색

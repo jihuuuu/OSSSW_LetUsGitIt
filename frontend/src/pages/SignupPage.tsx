@@ -26,7 +26,7 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("/api/users/signup", {
+      const response = await fetch("http://localhost:8000/users/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export default function SignupPage() {
 
       if (response.ok) {
         alert(data.message); // ex: "회원가입이 완료되었습니다."
-        navigate("/SignupCompletePage"); // ✅ 이동
+        navigate("/signup/complete"); // ✅ 이동
       } else {
         switch (data.errorCode) {
           case "PASSWORD_MISMATCH":
