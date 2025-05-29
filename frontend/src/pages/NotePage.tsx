@@ -126,13 +126,18 @@ const loadNotes = async (page: number) => {
       </main>
 
       <NoteEditSheet
-        open={!!selectedNote}
-        note={editedNote}
-        articles={relatedArticles}
-        onClose={() => setSelectedNote(null)}
-        onChange={(updated) => setEditedNote(updated)}
-        onSave={handleSave}
-      />
+      open={!!selectedNote}
+      note={editedNote}
+      articles={relatedArticles}
+      onClose={() => {
+        setSelectedNote(null);
+        setEditedNote(null);
+        setRelatedArticles([]);
+      }}
+      onChange={(updated) => setEditedNote(updated)}
+      onSave={handleSave}
+/>
+
     </>
   );
 }

@@ -5,6 +5,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import type { Note } from "@/types/note"; // 이미 있을 수 있음
+import { useNavigate } from "react-router-dom"; // ✅ useNavigate 추가
 
 type NoteAccordionListProps = {
   notes: Note[];
@@ -21,6 +22,7 @@ function formatDate(isoString: string) {
 }
 
 export function NoteAccordionList({ notes, onSelect }: NoteAccordionListProps) {
+  const navigate = useNavigate(); // ✅ useNavigate 훅 사용
   return (
     <Accordion
       type="single"
@@ -55,11 +57,11 @@ export function NoteAccordionList({ notes, onSelect }: NoteAccordionListProps) {
               </p>
               <div className="mt-4 text-right">
                 <button
-                  onClick={() => onSelect(note)}
-                  className="text-sm text-blue-500 hover:underline"
-                >
-                  노트 내용 보기
-                </button>
+                onClick={() => navigate(`/note/${note.id}/edit`)} // ✅ 여기서 이동
+                className="text-sm text-blue-500 hover:underline"
+              >
+                편집하기
+              </button>
               </div>
             </AccordionContent>
           </AccordionItem>

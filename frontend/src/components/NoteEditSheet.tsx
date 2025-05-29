@@ -31,7 +31,7 @@ export default function NoteEditSheet({
   if (!note) return null;
 
   return (
-    <Sheet open={open}>
+     <Sheet open={open}>
        <SheetContent
     className={`fixed right-0 top-0 h-full w-[400px] z-[50] bg-white shadow-xl border-l p-6 overflow-y-auto transition-transform duration-300 ${
       open ? "translate-x-0" : "translate-x-full"

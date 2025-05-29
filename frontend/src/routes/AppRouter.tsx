@@ -8,30 +8,40 @@ import ClusterDetailPage from "@/pages/ClusterDetailPage";
 
 import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
 import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
-import NoteEditSheetPreview from "@/pages/NoteEditSheetPreview";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import KeywordDetailPagePreview from "@/pages/KeywordDetailPagePreview";
 import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
 import TrendRoutes from "./TrendRoutes";
+import Header from "@/components/Header";
+import NoteCreatePage from "@/pages/NoteCreatePage";
+import NoteEditPage from "../pages/NoteEditPage";
 
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<div>홈입니다</div>} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/users/notes" element={<NotePage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signup/complete" element={<SignupCompletePage />} />
-        <Route path="/today/issue" element={<TodayIssuePage />} />
-        <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
-        <Route path="/users/scraps" element={<ScrapbookPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/users/notes/:noteId" element={<NoteEditSheetPreview />} />
-        <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
-        <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
-        <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
-        <Route path="/trend/*" element={<TrendRoutes />} />
+        <>
+          <Route path="/" element={
+            <>
+              <div>홈입니다</div>
+              <div className="px-2 py -1"><Header /></div>
+            </>
+          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/users/notes" element={<NotePage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup/complete" element={<SignupCompletePage />} />
+          <Route path="/today/issue" element={<TodayIssuePage />} />
+          <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
+          <Route path="/users/scraps" element={<ScrapbookPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
+          <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
+          <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
+          <Route path="/trend/*" element={<TrendRoutes />} />
+          <Route path="/note/new" element={<NoteCreatePage />} />
+          <Route path="/note/:noteId/edit" element={<NoteEditPage />} />
+        </>
       </Routes>
     </Router>
   );
