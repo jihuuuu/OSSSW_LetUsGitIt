@@ -3,12 +3,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Logo from "@/components/ui/logo";
 import { Star } from "lucide-react";
+import Header from "@/components/Header";
+import { useNavigate } from "react-router-dom";
 
-interface Article {
-  id: number;
-  title: string;
-  url: string;
-}
+import type { Article } from "@/types/article";
 
 interface ClusterDetail {
   cluster_id: number;
@@ -118,7 +116,29 @@ export default function ClusterDetailPage() {
   const indexOfFirst = indexOfLast - articlesPerPage;
   const currentArticles = cluster?.articles.slice(indexOfFirst, indexOfLast) || [];
   const totalPages = cluster ? Math.ceil(cluster.articles.length / articlesPerPage) : 0;
+  
+const navigate = useNavigate();
+const handleCreateNotePage = () => {
+  const selected = Array.from(selectedArticles)
+    .map((id) => cluster?.articles.find((a) => a.id === id))
+    .filter((a): a is Article => !!a);
 
+  if (selected.length === 0) {
+    alert("기사를 1개 이상 선택해주세요.");
+    return;
+  }
+
+  const defaultText = selected
+    .map((article) => `• ${article.title}\n${article.link}`)
+    .join("\n\n");
+
+  navigate("/note/new", {
+    state: {
+      defaultText,
+      articles: selected,
+    },
+  });
+};
   return (
     <div className="min-h-screen bg-white">
       <header className="relative bg-sky-400 h-20 flex items-center px-6">
@@ -126,6 +146,9 @@ export default function ClusterDetailPage() {
           <Logo />
         </div>
         <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
+        <div className="px-2 py -1">
+                  <Header />
+                </div>
       </header>
 
       <main className="max-w-4xl mx-auto p-6">
@@ -158,14 +181,14 @@ export default function ClusterDetailPage() {
                         />
                       )}
                       <p
-                        onClick={() => window.open(article.url, "_blank")}
+                        onClick={() => window.open(article.link, "_blank")}
                         className="text-sm font-medium text-blue-700 hover:underline cursor-pointer mb-1"
                       >
                         • {article.title}
                       </p>
 
                       <a
-                        href={article.url}
+                        href={article.link}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-500 break-all"
@@ -214,11 +237,11 @@ export default function ClusterDetailPage() {
             <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
               {noteMode ? (
                 <button
-                  onClick={() => setIsNoteModalOpen(true)}
+                  onClick={handleCreateNotePage}
                   className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-                >
+                  >
                   note
-                </button>
+              </button>
               ) : (
                 <button
                   onClick={() => setNoteMode(true)}
@@ -234,35 +257,7 @@ export default function ClusterDetailPage() {
         )}
       </main>
 
-      {/* 노트 작성 모달 */}
-      {isNoteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
-            <h2 className="text-lg font-bold mb-2">노트 작성</h2>
-            <textarea
-              rows={5}
-              className="w-full border rounded p-2 mb-4"
-              placeholder="노트 내용을 입력하세요"
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsNoteModalOpen(false)}
-                className="text-sm text-gray-500"
-              >
-                취소
-              </button>
-              <button
-                onClick={submitNote}
-                className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-              >
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }

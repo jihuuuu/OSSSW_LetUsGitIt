@@ -36,7 +36,7 @@ export default function Header() {
         </>
       ) : (
         <button
-          onClick={() => navigate("/users/login")}
+          onClick={() => navigate("/login")}
           className="text-sm border px-2 py-1 rounded hover:bg-gray-100"
         >
           로그인

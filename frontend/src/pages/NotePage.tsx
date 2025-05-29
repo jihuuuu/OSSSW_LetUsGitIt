@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import { getArticlesByNoteId } from "@/services/note"; // ✅ 연관 기사 가져오는 서비스
 import type { Article } from "@/types/article";
-import NoteEditSheet from "@/components/NoteEditSheet";
+
 
 export default function NotePage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -29,7 +29,7 @@ export default function NotePage() {
   const size = 10;
 
 const mapNote = (note: any): Note => ({
-  id: Number(note.note_id),          // ✅ id를 number로 변환
+  id: Number(note.id),          // ✅ id를 number로 변환
   title: note.title,
   text: note.text ?? "",             // 혹시 없으면 기본값
   createdAt: note.created_at,        // ✅ createdAt으로 변환
@@ -37,44 +37,72 @@ const mapNote = (note: any): Note => ({
 
 const loadNotes = async (page: number) => {
   const res = await fetch(
-    `http://localhost:8000/users/notes?keyword=${encodeURIComponent(keyword)}&page=${page}&size=10&_=${Date.now()}`
+    `http://localhost:8000/users/notes?keyword={encodeURIComponent(keyword)}&page={page}&size=10&_={Date.now()}`,
+    {
+        headers: {
+        "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  
   );
   const data = await res.json();
   const rawNotes = data.result.notes || [];
   setNotes(rawNotes.map(mapNote)); // ✅ 변환 후 저장
+  setTotalPages(data.result.totalPages || 1); // 🔄 총 페이지도 반영
 };
 
   useEffect(() => {
   loadNotes(currentPage);
 }, [currentPage, keyword]);
 
-  const handleSelect = async (note: Note) => {
+const handleSelect = async (note: Note) => {
   try {
-    setSelectedNote(note);
-    setEditedNote({ ...note });
-    const articles = await getArticlesByNoteId(Number(note.id));
-    setRelatedArticles(articles);
+    const res = await fetch(`http://localhost:8000/users/notes/{note.id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    const data = await res.json();
+    const result = data.result;
+
+    const mappedNote: Note = {
+      id: result.note_id,
+      title: result.title,
+      text: result.text,
+      createdAt: result.created_at,
+    };
+
+    setSelectedNote(mappedNote);
+    setEditedNote({ ...mappedNote });
+    setRelatedArticles(result.articles);  // ✅ 연관 기사 포함
   } catch (err) {
-    console.error("❌ 노트 기사 조회 중 오류:", err);
-    alert("노트에 연결된 기사를 불러올 수 없습니다.");
+    console.error("❌ 노트 조회 오류:", err);
+    alert("노트 정보를 불러오지 못했습니다.");
   }
 };
 
-
-  const handleSave = async () => {
-    if (!editedNote) return;
-    await fetch(`http://localhost:8000/users/notes/${editedNote.id}`, {
+// Save button for editing a note
+// (Uncomment and use this function in your UI if you want to enable note editing)
+/*
+const handleSave = async () => {
+  if (!editedNote) return;
+  await fetch(`http://localhost:8000/users/notes/${editedNote.id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem("accessToken")}`, // ✅ 추가 필요
+    },
     body: JSON.stringify({
       title: editedNote.title,
-      content: editedNote.text,
+      text: editedNote.text, // ✅ 이게 맞음!
     }),
   });
-    alert("노트 수정 완료!");
-    setSelectedNote(null);
-    loadNotes(currentPage);
-  };
+  alert("노트 수정 완료!");
+  setSelectedNote(null);
+  loadNotes(currentPage);
+};
+*/
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -125,14 +153,8 @@ const loadNotes = async (page: number) => {
         </div>
       </main>
 
-      <NoteEditSheet
-        open={!!selectedNote}
-        note={editedNote}
-        articles={relatedArticles}
-        onClose={() => setSelectedNote(null)}
-        onChange={(updated) => setEditedNote(updated)}
-        onSave={handleSave}
-      />
+      
+
     </>
   );
 }
