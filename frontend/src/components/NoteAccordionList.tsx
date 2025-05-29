@@ -56,12 +56,16 @@ export function NoteAccordionList({ notes, onSelect }: NoteAccordionListProps) {
                 {note.text?.slice(0, 100) || "내용 없음"}
               </p>
               <div className="mt-4 text-right">
-                <button
-                onClick={() => navigate(`/note/${note.id}/edit`)} // ✅ 여기서 이동
-                className="text-sm text-blue-500 hover:underline"
-              >
-                편집하기
-              </button>
+               <button
+                onClick={async () => {
+                  console.log("편집하려는 note id:", note.id); // ← 이거 찍어보세요
+                await onSelect(note);               // ✅ 노트 선택 처리 먼저
+                navigate(`/note/${note.id}/edit`);  // ✅ 그 후에 이동
+          }}
+            className="text-sm text-blue-500 hover:underline"
+            >
+           편집하기
+          </button>
               </div>
             </AccordionContent>
           </AccordionItem>
