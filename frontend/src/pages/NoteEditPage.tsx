@@ -13,20 +13,29 @@ export default function NoteEditPage() {
 
   useEffect(() => {
     const loadNote = async () => {
-      const res = await fetch(`http://localhost:8000/users/notes/${noteId}`);
-      const data = await res.json();
-      setTitle(data.result.title || "");
-      setText(data.result.text || "");
+      if (!noteId) return;  // noteId가 없으면 중단
 
-      const related = await getArticlesByNoteId(Number(noteId));
-      setArticles(related);
-    };
+    const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    const data = await res.json();
+    console.log("📌 Note 데이터:", data);
+
+    setTitle(data.result.title || "");
+    setText(data.result.text || "");
+
+    const related = await getArticlesByNoteId(Number(noteId));
+    setArticles(related);
+  };
 
     loadNote();
   }, [noteId]);
 
   const handleSave = async () => {
-    const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
+    const res = await fetch(`http://localhost:8000/users/notes/{noteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, content: text }),
@@ -34,7 +43,7 @@ export default function NoteEditPage() {
 
     if (res.ok) {
       alert("노트 수정 완료!");
-      navigate("/note"); // 목록으로 돌아감
+      navigate("users/notes"); // 목록으로 돌아감
     } else {
       alert("수정 실패");
     }

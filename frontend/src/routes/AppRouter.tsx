@@ -14,7 +14,7 @@ import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
 import TrendRoutes from "./TrendRoutes";
 import Header from "@/components/Header";
 import NoteCreatePage from "@/pages/NoteCreatePage";
-import NoteEditPage from "../pages/NoteEditPage";
+import NoteEditPage from "@/pages/NoteEditPage";
 
 export default function AppRouter() {
   return (
