@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import { getArticlesByNoteId } from "@/services/note"; // ✅ 연관 기사 가져오는 서비스
 import type { Article } from "@/types/article";
-import NoteEditSheet from "@/components/NoteEditSheet";
+import { useNavigate } from "react-router-dom";
 
 export default function NotePage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -27,6 +27,7 @@ export default function NotePage() {
   const [keyword, setKeyword] = useState("");
 
   const size = 10;
+  const navigate = useNavigate();
 
 const mapNote = (note: any): Note => ({
   id: Number(note.note_id),          // ✅ id를 number로 변환
@@ -49,32 +50,8 @@ const loadNotes = async (page: number) => {
 }, [currentPage, keyword]);
 
   const handleSelect = async (note: Note) => {
-  try {
-    setSelectedNote(note);
-    setEditedNote({ ...note });
-    const articles = await getArticlesByNoteId(Number(note.id));
-    setRelatedArticles(articles);
-  } catch (err) {
-    console.error("❌ 노트 기사 조회 중 오류:", err);
-    alert("노트에 연결된 기사를 불러올 수 없습니다.");
-  }
+    navigate(`/notes/${note.id}/edit`, { state: { note } });
 };
-
-
-  const handleSave = async () => {
-    if (!editedNote) return;
-    await fetch(`http://localhost:8000/users/notes/${editedNote.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: editedNote.title,
-      content: editedNote.text,
-    }),
-  });
-    alert("노트 수정 완료!");
-    setSelectedNote(null);
-    loadNotes(currentPage);
-  };
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -124,15 +101,6 @@ const loadNotes = async (page: number) => {
           />
         </div>
       </main>
-
-      <NoteEditSheet
-        open={!!selectedNote}
-        note={editedNote}
-        articles={relatedArticles}
-        onClose={() => setSelectedNote(null)}
-        onChange={(updated) => setEditedNote(updated)}
-        onSave={handleSave}
-      />
     </>
   );
 }

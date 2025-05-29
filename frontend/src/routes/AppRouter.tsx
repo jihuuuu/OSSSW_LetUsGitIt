@@ -8,7 +8,7 @@ import ClusterDetailPage from "@/pages/ClusterDetailPage";
 
 import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
 import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
-import NoteEditSheetPreview from "@/pages/NoteEditSheetPreview";
+import NoteEditSheetPage from "@/pages/NoteEditPage";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import KeywordDetailPagePreview from "@/pages/KeywordDetailPagePreview";
 import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
@@ -25,7 +25,7 @@ export default function AppRouter() {
         <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
         <Route path="/users/scraps" element={<ScrapbookPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/users/notes/:noteId" element={<NoteEditSheetPreview />} />
+        <Route path="/users/notes/:noteId" element={<NoteEditSheetPage />} />
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
         <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
         <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
