@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Logo from "@/components/ui/logo";
 import { useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
 
 interface Article {
   article_id: number;
@@ -69,6 +70,9 @@ export default function TodayIssuePage() {
           <Logo />
         </div>
         <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
+        <div className="px-2 py -1">
+           <Header />
+        </div>
       </header>
 
       {/* 본문 */}

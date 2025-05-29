@@ -1,4 +1,5 @@
 import os, numpy as np
+from pathlib import Path
 from clustering.embedder import EMBEDDING_DIM
 
 def load_embedding_cache(id_path: str, emb_path: str):
@@ -11,5 +12,9 @@ def load_embedding_cache(id_path: str, emb_path: str):
     return ids, embs
 
 def save_embedding_cache(ids, embs, id_path: str, emb_path: str):
+    # 디렉토리 자동 생성
+    Path(id_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(emb_path).parent.mkdir(parents=True, exist_ok=True)
+    
     np.save(id_path, ids)
     np.save(emb_path, embs)

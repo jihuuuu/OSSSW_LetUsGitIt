@@ -2,6 +2,7 @@
 import api from "./api";
 import type { Note } from "@/types/note";
 import type { Article } from "@/types/article";
+
 export async function getNotesByPage(page: number, size: number): Promise<{
   notes: Note[];
 }> {
@@ -12,9 +13,15 @@ export async function getNotesByPage(page: number, size: number): Promise<{
   const result = res.data.result;
 
   return {
-    notes: result.notes,
+    notes: result.notes.map((n: any) => ({
+      id: n.note_id, // ✅ 백엔드에서 note_id로 오면 매핑
+      title: n.title,
+      text: n.text,
+      createdAt: n.created_at,
+    })),
   };
 }
+
 
 export async function createNote(data: { title: string; content: string }) {
   const res = await api.post("/users/notes", data);

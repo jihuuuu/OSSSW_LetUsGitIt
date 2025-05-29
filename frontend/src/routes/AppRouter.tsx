@@ -9,11 +9,13 @@ import HomePage from "@/pages/HomePage";
 
 import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
 import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
-import NoteEditSheetPreview from "@/pages/NoteEditSheetPreview";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import KeywordDetailPagePreview from "@/pages/KeywordDetailPagePreview";
 import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
 import TrendRoutes from "./TrendRoutes";
+import Header from "@/components/Header";
+import NoteCreatePage from "@/pages/NoteCreatePage";
+import NoteEditPage from "@/pages/NoteEditPage";
 
 export default function AppRouter() {
   return (
