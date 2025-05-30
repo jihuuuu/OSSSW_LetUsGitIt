@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .routes import cluster, knowledge_map, news, notes, scrap, trend, user
 from starlette.concurrency import run_in_threadpool
-from clustering.pipeline import run_embedding_stage, run_clustering_stage
+from clustering.pipeline import run_embedding_stage, run_clustering_stage, run_keyword_extraction
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
@@ -17,23 +17,35 @@ def hourly_clustering():
     지난 24시간 기사로 임베딩 생성 → 클러스터링 수행 및 DB 저장
     매시 정각마다 실행됩니다.
     """
-    # 임베딩 생성 (지난 24시간)
-    embs = run_embedding_stage(batch_size=32, since_hours=24)
-    if embs is None:
+    # 1) 임베딩 생성 및 전처리 (지난 24시간)
+    result = run_embedding_stage(batch_size=32, since_hours=24)
+    if result is None:
         print("⚠️ 지난 24시간 내 임베딩할 기사가 없습니다.")
         return
+    embs, ids, raw_texts, cleaned_texts = result
+    clean_map = dict(zip(ids, cleaned_texts))
 
-    # 클러스터링 수행 및 DB 저장
-    run_clustering_stage(
+
+    # 2) 클러스터링 수행 및 DB 저장
+    labels, cluster_docs, label_map = run_clustering_stage(
         emb_path="data/article_embeddings.npy",
         method="kmeans",
         n_clusters=10,
         eps=None,
         min_samples=None,
         limit=None,
-        save_db=True
+        save_db=True,
+        clean_map=clean_map
     )
     print("✅ 한 시간 단위 클러스터링 완료")
+
+        # 3) 키워드 추출 → DB 저장
+    run_keyword_extraction(
+        cluster_to_docs=cluster_docs,
+        label_to_cluster_id=label_map,
+        top_n=3
+    )
+
     # 사용자별 스크랩 기반 지식맵 추가
     db = SessionLocal()
     try:
@@ -88,16 +100,15 @@ def create_app():
     async def startup_event():
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  
-        # 앱 띄울 때 초기 한 번 RSS 크롤링
+        # 초기 RSS 크롤링
         await run_in_threadpool(parse_and_store)
-        # 기존 hourly_clustering 초기 실행
+        # 초기 클러스터링
         await run_in_threadpool(hourly_clustering)
 
     @app.on_event("shutdown")
     async def shutdown_event():
         scheduler.shutdown()
     
-    # 루트 엔드포인트 없으면 중간에 404 떠서 추가
     @app.get("/")
     async def root():
         return {"message": "Hello, world!"}

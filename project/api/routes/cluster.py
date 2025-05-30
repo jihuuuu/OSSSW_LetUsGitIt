@@ -1,33 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List
-from datetime import datetime
-
+from datetime import datetime, timedelta, timezone
 from database.deps import get_db
 from models.article import Cluster, ClusterArticle, Article, ClusterKeyword, Keyword
 from pydantic import BaseModel, HttpUrl
 from operator import attrgetter
+from api.schemas.cluster import *
 
 router = APIRouter()
-
-# --- Pydantic 응답 스키마 정의 ---
-class ArticleOut(BaseModel):
-    article_id: int
-    title: str
-    summary: str
-    link: HttpUrl
-    published: datetime
-
-class ClusterOut(BaseModel):
-    cluster_id: int
-    created_at: datetime
-    label: int
-    num_articles: int
-    keywords: List[str]
-    articles: List[ArticleOut]
-
-    class Config:
-        orm_mode = True
 
 
 @router.get("/today", response_model=List[ClusterOut])
@@ -35,20 +16,21 @@ async def list_clusters(db: Session = Depends(get_db)):
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
     # Cluster → ClusterArticle → Article, 그리고 ClusterKeyword → Keyword 를 한 번에 로드
     clusters = (
         db.query(Cluster)
           .options(
-              joinedload(Cluster.cluster_article)
-                .joinedload(ClusterArticle.article),
-              joinedload(Cluster.cluster_keyword)
-                .joinedload(ClusterKeyword.keyword)
+              joinedload(Cluster.cluster_article).joinedload(ClusterArticle.article),
+              joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
           )
-          .order_by(Cluster.created_at.desc())  # 최신 클러스터부터
-          .limit(10) # 최근 10개 클러스터만
+          .filter(Cluster.created_at >= cutoff)
+          .order_by(Cluster.num_articles.desc(), Cluster.created_at.desc())
+          .limit(10)
           .all()
     )
     clusters.sort(key=attrgetter("num_articles"), reverse=True)  # 기사 수 기준으로 정렬
+
     if not clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
@@ -57,7 +39,7 @@ async def list_clusters(db: Session = Depends(get_db)):
         # 최신순으로 정렬 후 최대 2개 기사만 선택
         top2 = sorted(
             cl.cluster_article,
-            key=lambda ca: ca.article.published,
+            key=lambda ca: ca.article.published or datetime.min,
             reverse=True
         )[:2]
 
@@ -130,3 +112,50 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
         "keywords": keyword_list,
         "articles": article_dicts,
     }
+
+@router.get(
+    "/keywords/today",response_model=List[KeywordsTodayOut],
+    summary="최근 24시간 생성된 클러스터별 대표 키워드와 기사 수"
+)
+
+def get_keywords_today(db: Session = Depends(get_db)):
+
+    # 1) 시간 필터: 24시간 전
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+
+    # 2) Cluster → ClusterKeyword → Keyword 한 번에 로드
+    clusters = (
+        db.query(Cluster)
+          .options(
+              joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
+          )
+          .filter(Cluster.created_at >= cutoff)
+          .order_by(Cluster.created_at.desc())
+          .all()
+    )
+
+    result: List[KeywordsTodayOut] = []
+    for cl in clusters:
+        kws: List[KeywordCount] = []
+        for ck in cl.cluster_keyword:
+            name = ck.keyword.name
+            # 3) 각 키워드별로 해당 클러스터에 속한 기사 중 title/summary에 키워드가 포함된 개수 집계
+            cnt = (
+                db.query(Article.id)
+                  .join(ClusterArticle, ClusterArticle.article_id == Article.id)
+                  .filter(
+                      ClusterArticle.cluster_id == cl.id,
+                      (Article.title.contains(name)) |
+                      (Article.summary.contains(name))
+                  )
+                  .distinct()
+                  .count()
+            )
+            kws.append(KeywordCount(keyword=name, article_count=cnt))
+        result.append(KeywordsTodayOut(
+            cluster_id=cl.id,
+            created_at=cl.created_at,
+            keywords=kws
+        ))
+
+    return result
