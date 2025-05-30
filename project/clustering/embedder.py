@@ -5,6 +5,7 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from konlpy.tag import Okt
+from sklearn.preprocessing import normalize
 
 # 불용어 리스트 (초안)
 STOPWORDS_KO = {
@@ -61,14 +62,11 @@ def make_embeddings(
     내부에서 전처리(preprocess_text)를 먼저 수행합니다.
     """
     model = _get_model()
-    # 전처리
-    cleaned = [preprocess_text(t) for t in texts]
 
-        # 전처리 결과 샘플 10개만 출력
-    print("── 전처리된 텍스트 샘플 ──")
-    for t in cleaned[:10]:
-        print("-", t)
-    print("───────────────────────")
     # 모델에 batch 단위로 전달
-    embeddings = model.encode(cleaned, batch_size=batch_size, show_progress_bar=True)
+    embeddings = model.encode(texts, batch_size=batch_size, show_progress_bar=True)
+
+    # 정규화
+    embeddings = normalize(embeddings, norm="l2")
+
     return np.array(embeddings)
