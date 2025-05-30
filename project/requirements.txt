@@ -14,3 +14,5 @@ pydantic[email]
 apscheduler
 konlpy
 faker
+umap-learn
+hdbscan
