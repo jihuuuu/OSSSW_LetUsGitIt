@@ -5,6 +5,7 @@ import SignupCompletePage from "@/pages/SignupCompletePage";
 import SignupPage from "@/pages/SignupPage";
 import TodayIssuePage from "@/pages/TodayIssuePage";
 import ClusterDetailPage from "@/pages/ClusterDetailPage";
+import HomePage from "@/pages/HomePage";
 
 import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
 import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
@@ -12,11 +13,16 @@ import NoteEditSheetPage from "@/pages/NoteEditPage";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import KeywordDetailPagePreview from "@/pages/KeywordDetailPagePreview";
 import KeywordGraphPreview from "@/pages/KeywordGraphPreview";
+import TrendRoutes from "./TrendRoutes";
+import Header from "@/components/Header";
+import NoteCreatePage from "@/pages/NoteCreatePage";
+import NoteEditPage from "@/pages/NoteEditPage";
+
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<div>홈입니다</div>} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/users/notes" element={<NotePage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -29,6 +35,10 @@ export default function AppRouter() {
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
         <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
         <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
+        <Route path="/note/new" element={<NoteCreatePage />} />
+        <Route path="/note/:noteId/edit" element={<NoteEditPage />} />
+        {/* 헤더 컴포넌트 추가 */}
+        <Route path="/trend/*" element={<TrendRoutes />} />
       </Routes>
     </Router>
   );

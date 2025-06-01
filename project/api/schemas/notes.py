@@ -3,26 +3,37 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
+from .common import StandardResponse
+from pydantic import ConfigDict
 
-#  1. 노트 생성 요청
+# 1. 노트 생성 요청
 class NoteCreateRequest(BaseModel):
     title: str
     text: str
     article_ids: List[int]
 
-#  2. 노트 수정 요청
+    model_config = ConfigDict(from_attributes=True)
+
+
+# 2. 노트 수정 요청
 class NoteUpdateRequest(BaseModel):
     title: str
     text: str
     article_ids: Optional[List[int]] = None
 
-#  3. 요약된 기사 정보 (노트 생성/조회에 사용)
+    model_config = ConfigDict(from_attributes=True)
+
+
+# 3. 요약된 기사 정보 (노트 생성/조회에 사용)
 class ArticleOut(BaseModel):
     id: int
     title: str
     link: str
 
-#  4. 노트 생성 응답 구조
+    model_config = ConfigDict(from_attributes=True)
+
+
+# 4. 노트 생성/수정 응답의 result 부분
 class NoteCreateResult(BaseModel):
     userId: int
     noteId: int
@@ -33,25 +44,44 @@ class NoteCreateResult(BaseModel):
     updated_at: datetime
     articles: List[ArticleOut]
 
-class NoteCreateResponse(BaseModel):
-    isSuccess: bool
-    code: int
-    message: str
-    result: NoteCreateResult
+    model_config = ConfigDict(from_attributes=True)
 
-#  5. 노트 목록 응답용 요약
-class NoteSummary(BaseModel):
+NoteCreateResponse = StandardResponse[NoteCreateResult]
+
+
+# 5. 노트 목록 아이템
+class NoteListItem(BaseModel):
     note_id: int
     title: str
     created_at: datetime
 
-#  6. 노트 상세 보기 응답
+    model_config = ConfigDict(from_attributes=True)
+
+
+# 6. 노트 목록 조회 결과 (페이징)
+class NoteListResult(BaseModel):
+    page: int
+    size: int
+    total: int
+    totalPages: int
+    notes: List[NoteListItem]
+
+    model_config = ConfigDict(from_attributes=True)
+
+NoteListResponse = StandardResponse[NoteListResult]
+
+
+# 7. 기사 상세 정보
 class ArticleSummary(BaseModel):
     id: int
     title: str
     link: str
     summary: str
 
+    model_config = ConfigDict(from_attributes=True)
+
+
+# 8. 노트 상세 정보 result
 class NoteDetail(BaseModel):
     note_id: int
     title: str
@@ -59,3 +89,7 @@ class NoteDetail(BaseModel):
     created_at: datetime
     updated_at: datetime
     articles: List[ArticleSummary]
+
+    model_config = ConfigDict(from_attributes=True)
+
+NoteDetailResponse = StandardResponse[NoteDetail]

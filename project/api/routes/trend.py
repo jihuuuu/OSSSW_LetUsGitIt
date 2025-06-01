@@ -5,11 +5,13 @@ from datetime import date, datetime, timedelta
 from typing import List, Optional
 from pydantic import BaseModel
 from api.schemas.trend import *
-
+from models.article import Cluster
 from database.deps import get_db                             # :contentReference[oaicite:0]{index=0}
 from models.article import Article, ClusterArticle,            \
                              ClusterKeyword, Keyword
 from clustering.keyword_extractor import extract_top_keywords
+from clustering.embedder import preprocess_text
+from konlpy.tag import Okt
 
 router = APIRouter()
 
@@ -27,36 +29,34 @@ def get_weekly_trends(
     num_days = (end_date - start_date).days + 1
     dates = [start_date + timedelta(days=i) for i in range(num_days)]
 
-    # 3) 키워드별 누적 기사 수 계산
-    keyword_counts: List[tuple[str,int, int]] = []  # (키워드, 키워드_id, 누적합)
-    keywords = (
-        db.query(Keyword.id, Keyword.name, ClusterKeyword.cluster_id)
-          .join(ClusterKeyword, ClusterKeyword.keyword_id == Keyword.id)
-          .all()
-    )
-    for kw_id, kw_name, cluster_id in keywords:
-        # cluster → cluster_article → article
-        total = (
-            db.query(Article.id)
-              .join(ClusterArticle, ClusterArticle.article_id == Article.id)
-              .filter(ClusterArticle.cluster_id == cluster_id)
-              .filter(Article.published >= datetime.combine(start_date, datetime.min.time()))
-              .filter(Article.published <  datetime.combine(end_date + timedelta(days=1), datetime.min.time()))
-              .filter(
-                  or_(
-                      Article.title.contains(kw_name),
-                      Article.summary.contains(kw_name)
-                  )
-              )
-              .distinct()
-              .count()
-        )
-        keyword_counts.append((kw_name, kw_id, total))
+    # 3) 키워드별 누적 기사 수 계산 (클러스터 구분 없이 키워드 단위로 한 번만)
+    from sqlalchemy import func
 
-    # 4) 상위 5개 뽑기
-    keyword_counts.sort(key=lambda x: x[2], reverse=True)
-    top5 = keyword_counts[:5]
-    top_keywords = [kw for kw, _, _ in top5]
+    keyword_counts = (
+        db.query(
+            Keyword.id.label("kw_id"),
+            Keyword.name.label("kw_name"),
+            func.count(func.distinct(Article.id)).label("total")
+        )
+        .join(ClusterKeyword, ClusterKeyword.keyword_id == Keyword.id)
+        .join(ClusterArticle, ClusterArticle.cluster_id == ClusterKeyword.cluster_id)
+        .join(Article, Article.id == ClusterArticle.article_id)
+        .filter(Article.published >= datetime.combine(start_date, datetime.min.time()))
+        .filter(Article.published <  datetime.combine(end_date + timedelta(days=1), datetime.min.time()))
+        .filter(
+            or_(
+                Article.title.contains(Keyword.name),
+                Article.summary.contains(Keyword.name)
+            )
+        )
+        .group_by(Keyword.id, Keyword.name)
+        .order_by(func.count(Article.id).desc())
+        .limit(5)
+        .all()
+    )
+    # 이제 중복 없이 상위 5개 키워드만 남음
+    top5 = [(row.kw_name, row.kw_id, row.total) for row in keyword_counts]
+    top_keywords = [name for name, _, _ in top5]
 
     # 5) 일별 변화 구하기
     trend_data: List[KeywordTrend] = []
@@ -93,6 +93,9 @@ def get_weekly_trends(
         top_keywords=top_keywords,
         trend_data=trend_data
     )
+
+# Okt 인스턴스와 불용어는 embedder.py 쪽에 정의돼 있다고 가정
+_okt = Okt()
 
 @router.get("/search", response_model=SearchTrendResponse)
 def search_trends(
@@ -139,25 +142,32 @@ def search_trends(
         co = [ck.keyword.name for ck in cl.cluster_keyword if ck.keyword.name != keyword]
 
         # 클러스터 내 기사 텍스트 모음
-        texts = [
-            art.title + " " + (art.summary or "")
-            for art in (
-                db.query(Article)
-                  .join(ClusterArticle, ClusterArticle.article_id == Article.id)
-                  .filter(ClusterArticle.cluster_id == cl.id)
-                  .all()
-            )
-        ]
-        # TF-IDF 기반 비대표 키워드 추출 후 대표 키워드·검색 키워드 제외
-        freqs = extract_top_keywords(texts, top_n=5)
-        exclude = set(co + [keyword])
-        freq_kws = [w for w in freqs if w not in exclude][:2]
+        articles = (
+            db.query(Article)
+              .join(ClusterArticle, ClusterArticle.article_id == Article.id)
+              .filter(ClusterArticle.cluster_id == cl.id)
+              .all()
+        )
+        raw_texts = [art.title + " " + (art.summary or "") for art in articles]
+        proc_texts = [preprocess_text(t) for t in raw_texts]
 
+        # 4) TF-IDF 로 비대표 키워드 풀 뽑기 (예: top_n=3)
+        all_freqs = extract_top_keywords(
+            documents=proc_texts,
+            db=db,
+            cluster_id=cl.id,
+            top_n=3
+        )
+        # 5) 대표 + 검색 키워드 제외
+        exclude = set(co + [keyword])
+        nonrep = [w for w in all_freqs if w not in exclude]
+
+        # 6) API에 보여줄 개수만큼
         related.append(RelatedKeyword(
             cluster_id=cl.id,
             created_at=cl.created_at,
             co_keywords=co,
-            frequent_keywords=freq_kws
+            frequent_keywords=nonrep
         ))
 
     return SearchTrendResponse(

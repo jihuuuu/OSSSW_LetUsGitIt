@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { use, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "@/components/ui/logo";
 import { login } from "../services/auth"; // 👈 로그인 API 함수만 사용
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/"; // 로그인 후 이동할 경로
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,9 +15,10 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await login(email, password); // ✅ 서비스 함수 호출
-      localStorage.setItem("access_token", res.access_token); // ✅ 토큰 저장
+      localStorage.setItem("accessToken", res.access_token); // ✅ 토큰 저장
+      console.log("✅ accessToken 저장됨:", res.access_token);
       alert("로그인 성공!");
-      navigate("/dashboard"); // 로그인 후 이동
+      navigate(from,{replace: true}); // 로그인 후 이동
     } catch (err: any) {
       console.error("로그인 오류:", err);
       alert("로그인 실패! 이메일 또는 비밀번호를 확인하세요.");

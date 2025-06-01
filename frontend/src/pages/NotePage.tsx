@@ -2,13 +2,6 @@ import { useEffect, useState } from "react";
 import { getNotesByKeyword, getNotesByPage, updateNote } from "../services/note";
 import { NoteAccordionList } from "../components/NoteAccordionList";
 import PaginationComponent from "../components/PaginationComponent";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "../components/ui/sheet";
 import Logo from "../components/ui/logo";
 import type { Note } from "@/types/note";
 import { Input } from "@/components/ui/input";
@@ -30,7 +23,7 @@ export default function NotePage() {
   const navigate = useNavigate();
 
 const mapNote = (note: any): Note => ({
-  id: Number(note.note_id),          // ✅ id를 number로 변환
+  id: Number(note.id),          // ✅ id를 number로 변환
   title: note.title,
   text: note.text ?? "",             // 혹시 없으면 기본값
   createdAt: note.created_at,        // ✅ createdAt으로 변환
@@ -38,11 +31,19 @@ const mapNote = (note: any): Note => ({
 
 const loadNotes = async (page: number) => {
   const res = await fetch(
-    `http://localhost:8000/users/notes?keyword=${encodeURIComponent(keyword)}&page=${page}&size=10&_=${Date.now()}`
+    `http://localhost:8000/users/notes?keyword={encodeURIComponent(keyword)}&page={page}&size=10&_={Date.now()}`,
+    {
+        headers: {
+        "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  
   );
   const data = await res.json();
   const rawNotes = data.result.notes || [];
   setNotes(rawNotes.map(mapNote)); // ✅ 변환 후 저장
+  setTotalPages(data.result.totalPages || 1); // 🔄 총 페이지도 반영
 };
 
   useEffect(() => {

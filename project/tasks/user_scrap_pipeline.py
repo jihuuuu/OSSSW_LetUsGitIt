@@ -1,6 +1,6 @@
 # 📄 tasks/user_scrap_pipeline.py
 from sqlalchemy.orm import Session
-from models.article import Article
+from models.article import Article, Keyword
 from models.scrap import Scrap
 from models.user import User
 from models.user import KnowledgeMap
@@ -39,9 +39,15 @@ def run_user_scrap_knowledge_map(user: User, db: Session):
 
     # 3. 임베딩 & 클러스터링
     embeddings = make_embeddings(texts_filtered)
-
+    num_samples = len(embeddings)
+    
+    # 샘플이 2건 미만이면 클러스터링 스킵
+    if num_samples < 2:
+        print(f"⚠️ 사용자 {user.id} 임베딩 수({num_samples}) < 2, 클러스터링 건너뜀")
+        return
+    
     # 클러스터 수는 너무 많지 않게 조절 (최소 2, 최대 5)
-    n_clusters = min(max(2, len(embeddings) // 2), 5)
+    n_clusters = min(max(2, num_samples // 2), num_samples)
     labels = run_kmeans(embeddings, n_clusters=n_clusters)
 
     # 4. KnowledgeMap 생성
@@ -66,10 +72,19 @@ def run_user_scrap_knowledge_map(user: User, db: Session):
             db.add(PClusterArticle(article_id=article.id, pcluster_id=pcluster.id))
 
         for kw in cluster_keywords:
-            db.add(PClusterKeyword(keyword=kw, pcluster_id=pcluster.id))
+            # keyword name(str) -> Keyword 객체
+            keyword_obj = db.query(Keyword).filter_by(name=kw).first()
+            if not keyword_obj:
+                keyword_obj = Keyword(name=kw)
+                db.add(keyword_obj)
+                db.commit()
+                db.refresh(keyword_obj)
 
-    db.commit()
-    print(f"✅ 사용자 {user.id} 지식맵 저장 완료")
+            # keyword 관계에 객체로 넣기
+            db.add(PClusterKeyword(keyword=keyword_obj, pcluster_id=pcluster.id))
+
+            db.commit()
+            print(f"✅ 사용자 {user.id} 지식맵 저장 완료")
 
 
 

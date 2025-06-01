@@ -1,5 +1,3 @@
-# api/routes/user_notes.py
-
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
@@ -9,9 +7,60 @@ from models.note import Note, NoteArticle
 from models.user import User
 from models.article import Article
 from datetime import datetime
-from api.schemas.notes import NoteUpdateRequest, NoteCreateResponse, NoteCreateRequest
+from api.schemas.notes import *
+from api.schemas.common import *
 
 router = APIRouter()
+
+
+# ✅ 3. 노트 생성
+@router.post("/notes", response_model=NoteCreateResponse)
+def create_note(
+    note_data: NoteCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_note = Note(
+        user_id=current_user.id,
+        title=note_data.title,
+        text=note_data.text,
+        state=True
+    )
+    db.add(new_note)
+    db.commit()
+    db.refresh(new_note)
+
+    articles = db.query(Article).filter(Article.id.in_(note_data.article_ids)).all()
+    if len(articles) != len(note_data.article_ids):
+        raise HTTPException(status_code=404, detail="Some articles not found")
+
+    for article in articles:
+        db.add(NoteArticle(note_id=new_note.id, article_id=article.id))
+    db.commit()
+
+    return {
+        "isSuccess": True,
+        "code": "NOTE_CREATED",
+        "message": "노트가 성공적으로 생성되었습니다.",
+        "result": {
+            "userId": current_user.id,
+            "noteId": new_note.id,
+            "title": new_note.title,
+            "text": new_note.text,
+            "state": new_note.state,
+            "created_at": new_note.created_at,
+            "updated_at": new_note.updated_at,
+            "articles": [
+                ArticleOut(
+                    id=a.id,
+                    title=a.title,
+                    link=a.link
+                ).dict() for a in articles
+            ]
+        }
+    }
+
+
 
 # ✅ 1. 노트에 연결된 기사 조회 → 구체적인 경로 먼저!
 @router.get("/notes/{note_id}/articles")
@@ -70,54 +119,6 @@ def get_note_detail(
                     "title": a.title,
                     "link": a.link,
                     "summary": a.summary
-                } for a in articles
-            ]
-        }
-    }
-
-
-# ✅ 3. 노트 생성
-@router.post("/notes", response_model=NoteCreateResponse)
-def create_note(
-    note_data: NoteCreateRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    new_note = Note(
-        user_id=current_user.id,
-        title=note_data.title,
-        text=note_data.text,
-        state=True
-    )
-    db.add(new_note)
-    db.commit()
-    db.refresh(new_note)
-
-    articles = db.query(Article).filter(Article.id.in_(note_data.article_ids)).all()
-    if len(articles) != len(note_data.article_ids):
-        raise HTTPException(status_code=404, detail="Some articles not found")
-
-    for article in articles:
-        db.add(NoteArticle(note_id=new_note.id, article_id=article.id))
-    db.commit()
-
-    return {
-        "isSuccess": True,
-        "code": 200,
-        "message": "노트가 성공적으로 생성되었습니다.",
-        "result": {
-            "userId": current_user.id,
-            "noteId": new_note.id,
-            "title": new_note.title,
-            "text": new_note.text,
-            "state": new_note.state,
-            "created_at": new_note.created_at,
-            "updated_at": new_note.updated_at,
-            "articles": [
-                {
-                    "id": a.id,
-                    "title": a.title,
-                    "link": a.link
                 } for a in articles
             ]
         }
@@ -237,3 +238,14 @@ def delete_note(
             "updated_at": note.updated_at
         }
     }
+
+# 특정 기사에 대해 작성한 노트 삭제
+@router.delete("/articles/{article_id}/note")
+def delete_note_for_article(article_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    note = db.query(Note).filter_by(article_id=article_id, user_id=user.id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="노트를 찾을 수 없습니다.")
+
+    db.delete(note)
+    db.commit()
+    return {"message": "노트가 삭제되었습니다."}
