@@ -10,6 +10,7 @@ from clustering.cache import load_embedding_cache, save_embedding_cache
 from clustering.embedder import make_embeddings, preprocess_text
 from collector.rss_collector import fetch_texts_with_ids, fetch_all_texts
 import time
+from umap import UMAP
 from clustering.cluster import (
     load_embeddings, run_kmeans, run_dbscan, run_hdbscan,
     save_clusters_to_db, fetch_article_ids
@@ -19,8 +20,8 @@ from collector.rss_collector import fetch_texts_with_ids, fetch_all_texts
 
 def run_embedding_stage(
     *, limit: int | None = None, batch_size: int = 32,
-    since_hours: int = 24, id_path: str = "data/article_ids.npy",
-    emb_path: str = "data/article_embeddings.npy",
+    since_hours: int = 24, id_path: str = "data/article_ids_768.npy",
+    emb_path: str = "data/article_embeddings_768.npy",
 ):
     # 1) 지난 since_hours 기사와 텍스트
     rows = fetch_texts_with_ids(since_hours=since_hours)
@@ -72,7 +73,7 @@ def run_embedding_stage(
         else:
             final_embs.append(new_embs[new_idx])
             new_idx += 1
-    final_embs = np.stack(final_embs, axis=0)
+    final_embs = np.vstack(final_embs)
     final_ids = np.array(ids_window, dtype=int)
 
     # 6) 캐시에 덮어쓰기
@@ -93,8 +94,7 @@ def run_clustering_stage(
     print(f"▶️ loaded embeddings: {embeddings.shape}")
 
     # 1-1) 차원 축소 (UMAP)
-    from umap import UMAP
-    embeddings = UMAP(n_components=10, random_state=42).fit_transform(embeddings)
+    embeddings = UMAP(n_neighbors=5, min_dist=0.02, n_components=10, random_state=42, metric='cosine').fit_transform(embeddings)
     print(f"▶️ reduced embeddings: {embeddings.shape}")
 
     # 2) 클러스터링 수행
@@ -188,7 +188,7 @@ def main():
     parser = argparse.ArgumentParser(description="뉴스 파이프라인: 임베딩 및 클러스터링")
     # 클러스터링 관련 인자만 유지
     parser.add_argument("--method", choices=["kmeans", "dbscan", "hbscan"], default="kmeans", help="클러스터링 알고리즘 선택")
-    parser.add_argument("--n-clusters", type=int, default=10, help="KMeans 클러스터 수")
+    parser.add_argument("--n-clusters", type=int, default=20, help="KMeans 클러스터 수")
     parser.add_argument("--eps", type=float, default=0.5, help="DBSCAN eps 파라미터")
     parser.add_argument("--min-samples", type=int, default=5, help="DBSCAN min_samples 파라미터")
     parser.add_argument("--limit", type=int, help="최근 N건만 처리")
@@ -209,7 +209,7 @@ def main():
     raw_map = dict(zip(ids, raw_texts))
     clean_map = dict(zip(ids, cleaned_texts))
     labels, cluster_docs, label_map = run_clustering_stage(
-        emb_path="data/article_embeddings.npy",
+        emb_path="data/article_embeddings_768.npy",
         method=args.method, n_clusters=args.n_clusters,
         eps=args.eps, min_samples=args.min_samples,
         limit=args.limit, save_db=args.save_db, clean_map=clean_map

@@ -12,13 +12,13 @@ STOPWORDS_KO = {
     "저", "나", "우리", "그", "것", "수", "등", "더", "안", "잘", 
     "그리고", "하지만", "그래서", "또한", "때문", "있다", "없다", "하다", 
     "되다", "대다", "잊다", "오늘", "바꾸다", "이다", "키우다", "만들다", 
-    "늘다", "오다", "보다"
+    "늘다", "오다", "보다", "기자", "가다"
 }
 
-EMBEDDING_DIM = 384
+EMBEDDING_DIM = 768
 
 # 1) 전역에서 한 번만 모델 로딩
-_MODEL_NAME = "all-MiniLM-L6-v2"  # 가벼우면서 성능 좋은 SBERT 모델
+_MODEL_NAME = "jhgan/ko-sbert-sts" 
 _model: SentenceTransformer | None = None
 
 def _get_model() -> SentenceTransformer:
@@ -33,6 +33,7 @@ _okt = Okt()
 # 2) 간단 전처리: 소문자화, 특수문자 제거
 def preprocess_text(text: str) -> str:
     # 1) 기본 정제
+    text = re.sub(r'<[^>]+>', '', text)
     text = text.lower()
     text = re.sub(r"http\S+", "", text)          # URL 제거
     text = re.sub(r"[^a-z0-9가-힣\s]", " ", text)  # 특수문자 제거 (한글+영문+숫자만 남김)
