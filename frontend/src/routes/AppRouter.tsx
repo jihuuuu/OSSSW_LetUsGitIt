@@ -33,6 +33,9 @@ export default function AppRouter() {
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
         <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
         <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
+        <Route path="/note/new" element={<NoteCreatePage />} />
+        <Route path="/note/:noteId/edit" element={<NoteEditPage />} />
+        {/* 헤더 컴포넌트 추가 */}
         <Route path="/trend/*" element={<TrendRoutes />} />
       </Routes>
     </Router>
