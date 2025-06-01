@@ -16,7 +16,6 @@ import Header from "@/components/Header";
 import { getArticlesByNoteId } from "@/services/note"; // ✅ 연관 기사 가져오는 서비스
 import type { Article } from "@/types/article";
 
-
 export default function NotePage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [totalPages, setTotalPages] = useState(1);
