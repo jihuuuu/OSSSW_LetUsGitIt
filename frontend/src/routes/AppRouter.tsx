@@ -30,7 +30,6 @@ export default function AppRouter() {
         <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
         <Route path="/users/scraps" element={<ScrapbookPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/users/notes/:noteId" element={<NoteEditSheetPreview />} />
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
         <Route path="/keyword-detail-preview" element={<KeywordDetailPagePreview />} />
         <Route path="/keyword-graph-preview" element={<KeywordGraphPreview />} />
