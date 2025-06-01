@@ -2,19 +2,13 @@ import { useEffect, useState } from "react";
 import { getNotesByKeyword, getNotesByPage, updateNote } from "../services/note";
 import { NoteAccordionList } from "../components/NoteAccordionList";
 import PaginationComponent from "../components/PaginationComponent";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "../components/ui/sheet";
 import Logo from "../components/ui/logo";
 import type { Note } from "@/types/note";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import { getArticlesByNoteId } from "@/services/note"; // ✅ 연관 기사 가져오는 서비스
 import type { Article } from "@/types/article";
+import { useNavigate } from "react-router-dom";
 
 export default function NotePage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -26,6 +20,7 @@ export default function NotePage() {
   const [keyword, setKeyword] = useState("");
 
   const size = 10;
+  const navigate = useNavigate();
 
 const mapNote = (note: any): Note => ({
   id: Number(note.id),          // ✅ id를 number로 변환
@@ -55,53 +50,9 @@ const loadNotes = async (page: number) => {
   loadNotes(currentPage);
 }, [currentPage, keyword]);
 
-const handleSelect = async (note: Note) => {
-  try {
-    const res = await fetch(`http://localhost:8000/users/notes/{note.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-    const data = await res.json();
-    const result = data.result;
-
-    const mappedNote: Note = {
-      id: result.note_id,
-      title: result.title,
-      text: result.text,
-      createdAt: result.created_at,
-    };
-
-    setSelectedNote(mappedNote);
-    setEditedNote({ ...mappedNote });
-    setRelatedArticles(result.articles);  // ✅ 연관 기사 포함
-  } catch (err) {
-    console.error("❌ 노트 조회 오류:", err);
-    alert("노트 정보를 불러오지 못했습니다.");
-  }
+  const handleSelect = async (note: Note) => {
+    navigate(`/notes/${note.id}/edit`, { state: { note } });
 };
-
-// Save button for editing a note
-// (Uncomment and use this function in your UI if you want to enable note editing)
-/*
-const handleSave = async () => {
-  if (!editedNote) return;
-  await fetch(`http://localhost:8000/users/notes/${editedNote.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${localStorage.getItem("accessToken")}`, // ✅ 추가 필요
-    },
-    body: JSON.stringify({
-      title: editedNote.title,
-      text: editedNote.text, // ✅ 이게 맞음!
-    }),
-  });
-  alert("노트 수정 완료!");
-  setSelectedNote(null);
-  loadNotes(currentPage);
-};
-*/
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -151,9 +102,6 @@ const handleSave = async () => {
           />
         </div>
       </main>
-
-      
-
     </>
   );
 }

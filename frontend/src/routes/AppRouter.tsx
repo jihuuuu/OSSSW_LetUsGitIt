@@ -9,6 +9,7 @@ import HomePage from "@/pages/HomePage";
 
 import ScrapbookPage from "@/pages/ScrapbookPage";  //스크랩 페이지
 import DashboardPage from "@/pages/DashboardPage"; // 대시보드 페이지 import
+import NoteEditSheetPage from "@/pages/NoteEditPage";
 import KeywordDetailPage from "@/pages/KeywordDetailPage"; // 지식맵 키워드 상세 페이지 
 import TrendRoutes from "./TrendRoutes";
 import Header from "@/components/Header";
@@ -28,7 +29,13 @@ export default function AppRouter() {
         <Route path="/clusters/:clusterId" element={<ClusterDetailPage />} />
         <Route path="/users/scraps" element={<ScrapbookPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+
         <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
+        <Route path="/users/notes/:noteId" element={<NoteEditSheetPage />} />
+        <Route path="/keywords/:keywordId" element={<KeywordDetailPage />} />
+        <Route path="/note/new" element={<NoteCreatePage />} />
+        <Route path="/note/:noteId/edit" element={<NoteEditPage />} />
+        {/* 헤더 컴포넌트 추가 */}
         <Route path="/trend/*" element={<TrendRoutes />} />
         <Route path="/note/new" element={<NoteCreatePage />} />
         <Route path="/note/:noteId/edit" element={<NoteEditPage />} />
