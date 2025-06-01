@@ -28,9 +28,9 @@ def hourly_clustering():
 
     # 2) 클러스터링 수행 및 DB 저장
     labels, cluster_docs, label_map = run_clustering_stage(
-        emb_path="data/article_embeddings.npy",
+        emb_path="data/article_embeddings_768.npy",
         method="kmeans",
-        n_clusters=10,
+        n_clusters=20,
         eps=None,
         min_samples=None,
         limit=None,

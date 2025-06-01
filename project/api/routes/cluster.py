@@ -25,11 +25,12 @@ async def list_clusters(db: Session = Depends(get_db)):
               joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
           )
           .filter(Cluster.created_at >= cutoff)
-          .order_by(Cluster.num_articles.desc(), Cluster.created_at.desc())
-          .limit(10)
+          .order_by(Cluster.created_at.desc())
+          .limit(20)
           .all()
     )
-    clusters.sort(key=attrgetter("num_articles"), reverse=True)  # 기사 수 기준으로 정렬
+
+    # clusters.sort(key=lambda cl: cl.num_articles, reverse=True)
 
     if not clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
@@ -121,7 +122,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
 def get_keywords_today(db: Session = Depends(get_db)):
 
     # 1) 시간 필터: 24시간 전
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
 
     # 2) Cluster → ClusterKeyword → Keyword 한 번에 로드
     clusters = (
@@ -131,6 +132,7 @@ def get_keywords_today(db: Session = Depends(get_db)):
           )
           .filter(Cluster.created_at >= cutoff)
           .order_by(Cluster.created_at.desc())
+          .limit(20)
           .all()
     )
 
