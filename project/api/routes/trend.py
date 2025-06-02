@@ -22,7 +22,7 @@ def get_weekly_trends(
     db:         Session = Depends(get_db),
 ):
     # 1) 날짜 계산: 기본은 최근 7일
-    end_date   = date.today()
+    end_date   = date.today() - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
 
     # 2) 기간별 일자 리스트

@@ -8,6 +8,8 @@ from database.connection import SessionLocal
 from models.article import Cluster
 from models.article import ClusterArticle
 from models.article import Article
+from hdbscan import HDBSCAN
+from typing import Tuple
 
 def load_embeddings(path: str) -> np.ndarray:
     """
@@ -46,6 +48,32 @@ def run_dbscan(embeddings: np.ndarray, eps: float, min_samples: int) -> np.ndarr
     labels = db.fit_predict(embeddings)
     return labels
 
+def run_hdbscan(
+    embeddings: np.ndarray,
+    min_cluster_size: int = 5,
+    min_samples: int | None = None,
+    metric: str = "euclidean",
+    cluster_selection_method: str = "eom",
+    return_probabilities: bool = False
+) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
+    """
+    HDBSCAN 으로 클러스터링 수행하고 각 샘플의 레이블을 반환합니다.
+    """
+    clusterer = HDBSCAN(
+        min_cluster_size=min_cluster_size,
+        min_samples=(min_samples if min_samples is not None else min_cluster_size),
+        metric=metric,
+        cluster_selection_method=cluster_selection_method
+    )
+    labels = clusterer.fit_predict(embeddings)
+
+    if return_probabilities:
+        probabilities = clusterer.probabilities_
+        return labels, probabilities
+    
+    return labels
+
+
 def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
     """
     npy나 run_clustering_stage 결과를 바탕으로
@@ -82,6 +110,7 @@ def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
 
         session.commit()
         print("✅ Cluster 테이블과 매핑 테이블에 저장 완료")
+        return label_to_cluster_id
     finally:
         session.close()
 
