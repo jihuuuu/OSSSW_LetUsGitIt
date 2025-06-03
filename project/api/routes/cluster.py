@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, aliased
 from typing import List
 from datetime import datetime, timedelta, timezone
 from database.deps import get_db
@@ -18,32 +18,35 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
     cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
-    # Cluster → ClusterArticle → Article, 그리고 ClusterKeyword → Keyword 를 한 번에 로드
-    clusters = (
-        db.query(Cluster)
-          .options(
-              joinedload(Cluster.cluster_article).joinedload(ClusterArticle.article),
-              joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
-          )
-          .filter(Cluster.created_at >= cutoff)
-    )
-    if topic is not None:
-        clusters = clusters.filter(Cluster.topic == topic)
-
-    clusters = (
-        clusters
+    base_q = db.query(Cluster).filter(Cluster.created_at >= cutoff)
+    # 2) 최신순으로 50개 클러스터만 추출하는 서브쿼리 생성
+    subq = (
+        base_q
           .order_by(Cluster.created_at.desc())
-          .limit(25)
+          .limit(50)
+          .subquery()
+    )
+
+    # 3) 서브쿼리를 Cluster 엔티티로 다시 매핑(aliased 사용)
+    ClusterAlias = aliased(Cluster, subq)
+
+    # 4) 서브쿼리 결과(최신 50개)에 대해 num_articles 기준으로 정렬 후 최종 20개 조회
+    top_clusters: List[Cluster] = (
+        db.query(ClusterAlias)
+          .options(
+              joinedload(ClusterAlias.cluster_article).joinedload(ClusterArticle.article),
+              joinedload(ClusterAlias.cluster_keyword).joinedload(ClusterKeyword.keyword)
+          )
+          .order_by(ClusterAlias.num_articles.desc())           # num_articles 내림차순
+          .limit(20)
           .all()
     )
 
-    # clusters.sort(key=lambda cl: cl.num_articles, reverse=True)
-
-    if not clusters:
+    if not top_clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
     result: List[ClusterOut] = []
-    for cl in clusters:
+    for cl in top_clusters:
         # 최신순으로 정렬 후 최대 2개 기사만 선택
         top2 = sorted(
             cl.cluster_article,
