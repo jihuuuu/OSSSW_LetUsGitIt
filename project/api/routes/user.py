@@ -3,13 +3,13 @@
 
 from datetime import datetime, timedelta
 from passlib.hash import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
 from sqlalchemy.orm import Session
-from jose import jwt
+from jose import JWTError, jwt
 from database.deps import get_db
 from models.user import User
 from api.schemas.user import UserCreate, UserLogin
-from api.utils.auth import verify_password
+from api.utils.auth import verify_password, get_current_user
 from api.config import SECRET_KEY, ALGORITHM
 import re
 
@@ -116,3 +116,25 @@ def logout(response: Response):
     return {
         "message": "로그아웃이 완료되었습니다."
     }
+
+# 토큰 유효성 검사 API
+@router.get("/me")
+def read_current_user(user: User = Depends(get_current_user)):
+    return {"id": user.id, "email": user.email}
+
+# 토큰 만료 시 새 access token 발급
+@router.post("/refresh")
+def refresh_token(request: Request):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="refresh_token 없음")
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="토큰 유효하지 않음")
+
+    # user.py의 /refresh 라우트 내부
+    access_token = create_access_token(user_id=int(user_id), expires_delta=timedelta(minutes=15))   
+    return {"access_token": access_token}
