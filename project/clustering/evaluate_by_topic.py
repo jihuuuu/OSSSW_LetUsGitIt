@@ -1,10 +1,9 @@
 import os
+import argparse
 from typing import Optional, List, Tuple, Dict
-
 import numpy as np
 from sklearn.metrics import silhouette_score
 from umap import UMAP
-
 from models.topic import TopicEnum
 from clustering.running_stage import run_embedding_stage
 from clustering.cluster import run_kmeans, run_dbscan, run_hdbscan
@@ -30,9 +29,6 @@ def compute_silhouette_for_topic(
     - n_clusters: KMeans 클러스터 수 또는 HDBSCAN의 min_cluster_size
     - eps: DBSCAN eps 파라미터
     - min_samples: DBSCAN/HDBSCAN min_samples 파라미터
-    - since_hours: 최근 몇 시간 이내의 기사만 사용
-    - data_dir: "data" 폴더 경로 (캐시 파일이 저장된 폴더)
-    - random_state: UMAP과 KMeans의 랜덤 시드
     """
 
     # 1) run_embedding_stage 호출 → (final_embs, ids_window, raw_texts, cleaned_texts) 반환
@@ -50,7 +46,7 @@ def compute_silhouette_for_topic(
 
     # 2) UMAP 차원 축소 (768 → 10)
     reducer = UMAP(
-        n_neighbors=10,
+        n_neighbors=5,
         min_dist=0.02,
         n_components=10,
         metric="cosine",
@@ -87,23 +83,26 @@ def compute_silhouette_for_topic(
 
 
 if __name__ == "__main__":
-    # 예시: 토픽별 Silhouette 점수 계산
-    clustering_method = "kmeans"    # "kmeans", "dbscan", "hdbscan" 중 선택
-    n_clusters = 10                 # KMeans 클러스터 개수 (또는 HDBSCAN min_cluster_size)
-    eps = 0.5                       # DBSCAN eps
-    min_samples = 5                 # DBSCAN/HDBSCAN min_samples
-    since_hours = 24                # 최근 24시간 기사 사용
-    data_directory = "data"
+    parser = argparse.ArgumentParser(description="토픽별 Silhouette 점수 계산 스크립트")
+    parser.add_argument("--method", "-m", choices=["kmeans", "dbscan", "hdbscan"], default="kmeans", help="클러스터링 방법 (kmeans, dbscan, hdbscan)")
+    parser.add_argument("--n_clusters", "-k", type=int, default=10, help="KMeans 클러스터 개수 또는 HDBSCAN의 min_cluster_size")
+    parser.add_argument("--eps", "-e", type=float, default=0.5, help="DBSCAN eps 파라미터")
+    parser.add_argument("--min_samples", "-s", type=int, default=5, help="DBSCAN/HDBSCAN min_samples 파라미터")
+    parser.add_argument("--since_hours", "-t", type=int, default=24, help="최근 N시간 이내 기사만 사용 (기본: 24시간)")
+    parser.add_argument("--data_dir", "-d", type=str, default="data", help="임베딩 캐시가 저장된 디렉토리")
+    parser.add_argument("--random_state", "-r", type=int, default=42, help="난수 시드")
+
+    args = parser.parse_args()
 
     for topic in TopicEnum:
-        print(f"\n===== [{topic.value}] Silhouette 계산 시작 =====")
+        print(f"\n===== [{topic.value}] Silhouette 계산 시작 ( {args.method} )=====")
         compute_silhouette_for_topic(
             topic=topic,
-            method=clustering_method,
-            n_clusters=n_clusters,
-            eps=eps,
-            min_samples=min_samples,
-            since_hours=since_hours,
-            data_dir=data_directory,
-            random_state=42
+            method=args.method,
+            n_clusters=args.n_clusters,
+            eps=args.eps,
+            min_samples=args.min_samples,
+            since_hours=args.since_hours,
+            data_dir=args.data_dir,
+            random_state=args.random_state
         )

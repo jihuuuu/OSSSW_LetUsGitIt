@@ -28,7 +28,7 @@ def run_embedding_stage(
     """
 
     # 1) 토픽별 파일 경로 생성 (토픽 이름에 따라 파일명 동적 지정)
-    # 예: "data/정치_ids.npy", "data/정치_embs.npy"
+    # 예: "data/정치_ids_768.npy", "data/정치_embs_768.npy"
     os.makedirs(data_dir, exist_ok=True)
     id_path = os.path.join(data_dir, f"{topic.value}_ids_768.npy")
     emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")

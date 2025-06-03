@@ -2,7 +2,7 @@
 
 import argparse
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Optional
 from models.topic import TopicEnum
 import os
 from clustering.running_stage import (
@@ -14,10 +14,10 @@ from clustering.running_stage import (
 
 def run_all_topics_pipeline(
     clustering_method: str = "kmeans",
-    k_or_params: int | None = 10,
-    eps: float | None = None,
-    min_samples: float | None = None,
-    since_hours: int | None = 24,
+    k: Optional[int] = 10,
+    eps: Optional[float] = None,
+    min_samples: Optional[int] = None,
+    since_hours: Optional[int] = 24,
     data_dir: str = "data"
 ):
     """
@@ -49,7 +49,7 @@ def run_all_topics_pipeline(
             raw_texts=raw_texts,
             cleaned_texts=cleaned_texts,
             method=clustering_method,
-            n_clusters=k_or_params if isinstance(k_or_params, int) else k_or_params.get("k"),
+            n_clusters=k,
             eps=eps,
             min_samples=min_samples,
             topic=topic,
@@ -73,11 +73,11 @@ def main():
     parser.add_argument("--method", choices=["kmeans", "dbscan", "hdbscan"], default="kmeans",
                         help="클러스터링 알고리즘 선택 (default: kmeans)")
     parser.add_argument("--n-clusters", type=int, default=10,
-                        help="KMeans 클러스터 수 (default: 20)")
+                        help="KMeans 클러스터 수 (HDBSCAN 사용 시에는 --min-cluster-size 사용, 기본값: 10)")
     parser.add_argument("--eps", type=float, default=0.5,
                         help="DBSCAN eps 파라미터 (default: 0.5)")
-    parser.add_argument("--min-samples", type=int, default=5,
-                        help="DBSCAN/HDBSCAN min_samples 파라미터 (default: 5)")
+    parser.add_argument("--min-samples", type=int, default=10,
+                        help="DBSCAN/HDBSCAN min_samples 파라미터 (default: 10)")
     parser.add_argument("--since-hours", type=int, default=24,
                         help="최근 N시간 내 기사만 처리 (default: 24)")
     parser.add_argument("--data-dir", type=str, default="data",
@@ -86,7 +86,7 @@ def main():
 
     run_all_topics_pipeline(
         clustering_method=args.method,
-        k_or_params=args.n_clusters,
+        k=args.n_clusters,
         eps=args.eps,
         min_samples=args.min_samples,
         since_hours=args.since_hours,
