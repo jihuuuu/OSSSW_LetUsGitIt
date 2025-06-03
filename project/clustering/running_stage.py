@@ -1,5 +1,5 @@
 from models.topic import TopicEnum
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import numpy as np
 import os
 from collector.rss_collector import fetch_texts_with_ids_by_topic
@@ -94,16 +94,18 @@ def run_embedding_stage(
 
 def run_clustering_stage(
     emb_path: str, ids_window: List[int], raw_texts: List[str],
-    cleaned_texts: List[str], method: str, n_clusters: int | None, 
-    eps: float | None, min_samples: int | None, topic, 
-    save_db: bool, top_kws: int = 3, model_name: str = 'jhgan/ko-sbert-sts'
+    cleaned_texts: List[str], method: str, n_clusters: Optional[int], 
+    eps: Optional[float], min_samples: Optional[int], topic, 
+    save_db: bool, umap_n_neighbors: int = 5, umap_min_dist: float = 0.02,
+    top_kws: int = 3, model_name: str = 'jhgan/ko-sbert-sts'
 ) -> Tuple[np.ndarray, Dict[int, List[str]], Dict[int, int]]:
     # 1) 임베딩 로드
     embeddings = load_embeddings(emb_path)
     print(f"▶️ loaded embeddings: {embeddings.shape}")
 
     # 1-1) 차원 축소 (UMAP)
-    embeddings = UMAP(n_neighbors=5, min_dist=0.02, n_components=10, random_state=42, metric='cosine').fit_transform(embeddings)
+    embeddings = UMAP(n_neighbors=umap_n_neighbors, min_dist=umap_min_dist, 
+                      n_components=10, random_state=42, metric='cosine').fit_transform(embeddings)
     print(f"▶️ reduced embeddings: {embeddings.shape}")
 
     # 2) 클러스터링 수행
@@ -147,7 +149,7 @@ def run_clustering_stage(
 def run_keyword_extraction(
     cluster_to_docs: Dict[int, List[str]],
     label_to_cluster_id : Dict[int, int],
-    top_n: int = 3,
+    top_n: int = 3, save_db: bool = True
 ) -> Dict[int, List[str]]:
     # TF-IDF 기반
     # 또는 SBERT 병렬 추출: parallel_extract_keywords
@@ -166,28 +168,31 @@ def run_keyword_extraction(
             continue
 
         # TF-IDF 기반으로 top_n 키워드 추출 + DB 저장
-        kws = extract_top_keywords(documents=docs, db=db, cluster_id=cid, top_n=top_n)
+        kws = extract_top_keywords(documents=docs, cluster_id=cid, top_n=top_n)
         kw_map[label] = kws
 
-        # 2) Keyword / ClusterKeyword 테이블에 저장
-        for name in kws:
-            # (a) Keyword 테이블에 없으면 생성
-            kw_obj = db.query(Keyword).filter_by(name=name).first()
-            if not kw_obj:
-                kw_obj = Keyword(name=name)
-                db.add(kw_obj)
-                db.flush()   # kw_obj.id 확보
+        if save_db:
+            # 2) Keyword / ClusterKeyword 테이블에 저장
+            for name in kws:
+                # (a) Keyword 테이블에 없으면 생성
+                kw_obj = db.query(Keyword).filter_by(name=name).first()
+                if not kw_obj:
+                    kw_obj = Keyword(name=name)
+                    db.add(kw_obj)
+                    db.flush()   # kw_obj.id 확보
 
-            # (b) ClusterKeyword 매핑이 없으면 생성
-            exists = (
-                db.query(ClusterKeyword)
-                  .filter_by(cluster_id=cid, keyword_id=kw_obj.id)
-                  .first()
-            )
-            if not exists:
-                db.add(ClusterKeyword(cluster_id=cid, keyword_id=kw_obj.id))
+                # (b) ClusterKeyword 매핑이 없으면 생성
+                exists = (
+                    db.query(ClusterKeyword)
+                    .filter_by(cluster_id=cid, keyword_id=kw_obj.id)
+                    .first()
+                )
+                if not exists:
+                    db.add(ClusterKeyword(cluster_id=cid, keyword_id=kw_obj.id))
 
-    db.commit()
+    if save_db:
+        db.commit()
+        print("✅ ClusterKeyword 관계에 키워드를 저장했습니다.")
     db.close()
-    print("✅ ClusterKeyword 관계에 키워드를 저장했습니다.")
+
     return kw_map

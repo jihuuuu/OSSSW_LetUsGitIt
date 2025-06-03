@@ -4,17 +4,12 @@ from typing import List, Dict
 from sqlalchemy.orm import Session
 from sklearn.feature_extraction.text import TfidfVectorizer
 from clustering.embedder import STOPWORDS_KO
-from models.article import Keyword, ClusterKeyword
 from collections import Counter
 from itertools import chain
 from konlpy.tag import Okt
 
 def extract_top_keywords(
-    documents: List[str],
-    db : Session,
-    cluster_id : int,
-    top_n: int = 3,
-    max_features: int = 300
+    documents: List[str], top_n: int = 3, max_features: int = 300
 ) -> List[str]:
     """
     주어진 문서 리스트에 대해 TF-IDF를 계산하고,
@@ -22,7 +17,6 @@ def extract_top_keywords(
     """
     # ✅ 방어 로직
     if not documents or all(not doc.strip() for doc in documents):
-        print(f"⚠️ cluster_id={cluster_id}: 전처리된 문서가 모두 공백입니다. 키워드 추출 생략.")
         return ["no_keyword"]
     
     # 1) TF-IDF 행렬 생성
@@ -40,30 +34,6 @@ def extract_top_keywords(
     # 3) 상위 top_n 인덱스 추출
     top_indices = mean_tfidf.argsort()[::-1][:top_n]
     top_terms   = [feature_names[i] for i in top_indices]
-
-    # 4) DB 저장 로직
-    # for term in top_terms:
-    #    # 4-1) Keyword 테이블에 없으면 생성
-    #    kw_obj = db.query(Keyword).filter_by(name=term).first()
-    #    if not kw_obj:
-    #        kw_obj = Keyword(name=term)
-    #        db.add(kw_obj)
-    #        db.flush()  # id 채워 넣기
-
-        # 4-2) ClusterKeyword 매핑이 없으면 생성
-    #    exists = (
-    #        db.query(ClusterKeyword)
-    #          .filter_by(cluster_id=cluster_id, keyword_id=kw_obj.id)
-    #          .first()
-    #    )
-    #    if not exists:
-    #        mapping = ClusterKeyword(
-    #            cluster_id=cluster_id,
-    #            keyword_id=kw_obj.id
-    #        )
-    #        db.add(mapping)
-
-    # db.commit()
     
     return top_terms
 
