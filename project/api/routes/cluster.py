@@ -7,12 +7,13 @@ from models.article import Cluster, ClusterArticle, Article, ClusterKeyword, Key
 from pydantic import BaseModel, HttpUrl
 from operator import attrgetter
 from api.schemas.cluster import *
+from models.topic import TopicEnum
 
 router = APIRouter()
 
 
 @router.get("/today", response_model=List[ClusterOut])
-async def list_clusters(db: Session = Depends(get_db)):
+async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(get_db)):
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
@@ -25,8 +26,14 @@ async def list_clusters(db: Session = Depends(get_db)):
               joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
           )
           .filter(Cluster.created_at >= cutoff)
+    )
+    if topic is not None:
+        clusters = clusters.filter(Cluster.topic == topic)
+
+    clusters = (
+        clusters
           .order_by(Cluster.created_at.desc())
-          .limit(20)
+          .limit(25)
           .all()
     )
 
@@ -60,6 +67,7 @@ async def list_clusters(db: Session = Depends(get_db)):
         result.append(
             ClusterOut(
                 cluster_id=cl.id,
+                topic=cl.topic.value if cl.topic else None,
                 created_at=cl.created_at,
                 label=cl.label,
                 num_articles=len(cl.cluster_article),
@@ -119,7 +127,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
     summary="최근 24시간 생성된 클러스터별 대표 키워드와 기사 수"
 )
 
-def get_keywords_today(db: Session = Depends(get_db)):
+def get_keywords_today(topic: TopicEnum | None = None, db: Session = Depends(get_db)):
 
     # 1) 시간 필터: 24시간 전
     cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
@@ -131,6 +139,12 @@ def get_keywords_today(db: Session = Depends(get_db)):
               joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
           )
           .filter(Cluster.created_at >= cutoff)
+    )
+    if topic is not None:
+        clusters = clusters.filter(Cluster.topic == topic)
+
+    clusters = (
+        clusters
           .order_by(Cluster.created_at.desc())
           .limit(20)
           .all()
