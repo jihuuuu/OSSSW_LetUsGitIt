@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getArticlesByNoteId } from "@/services/note";
 import type { Article } from "@/types/article";
 
 export default function NoteEditPage() {
   const { noteId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
 
-  useEffect(() => {
-    const loadNote = async () => {
-      if (!noteId) return;  // noteId가 없으면 중단
+useEffect(() => {
+  const loadNote = async () => {
+    if (!noteId) return;
 
     const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       headers: {
@@ -28,14 +29,20 @@ export default function NoteEditPage() {
     setText(data.result.text || "");
 
     const related = await getArticlesByNoteId(Number(noteId));
-    setArticles(related);
+    setArticles(related); // 기본 로드
   };
 
+  // newArticles가 있으면 그걸로 대체
+  if (location.state?.newArticles) {
+    setArticles(location.state.newArticles);
+  } else {
     loadNote();
-  }, [noteId]);
+  }
+}, [noteId, location.state]);
+
 
   const handleSave = async () => {
-    const res = await fetch(`http://localhost:8000/users/notes/{noteId}`, {
+    const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, content: text }),
@@ -64,6 +71,36 @@ export default function NoteEditPage() {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
+
+      <button
+    className="text-sm underline text-blue-600 mb-4"
+    onClick={() =>
+      navigate("users/scraps", {
+        state: {
+          mode: "edit-note",
+          originNoteId: noteId,
+          selectedArticles: articles,
+        },
+      })
+    }
+  >
+    스크랩북+
+  </button>
+  <button
+    className="text-sm underline text-blue-600 mb-4"
+    onClick={() =>
+      navigate("/today/issue", {
+        state: {
+          mode: "edit-note",
+          originNoteId: noteId,
+          selectedArticles: articles,
+        },
+      })
+    }
+  >
+    기사페이지+
+  </button>
+      
       <h2 className="font-semibold mb-2">연관 기사</h2>
       <ul className="list-disc pl-5 text-blue-600 mb-6">
         {articles.map((a) => (
@@ -82,6 +119,23 @@ export default function NoteEditPage() {
         >
           저장
         </button>
+        <ul className="list-disc pl-5 text-blue-600 mb-6">
+  {articles.map((a) => (
+    <li key={a.id} className="flex justify-between items-center">
+      <a href={a.link} target="_blank" rel="noreferrer">
+        {a.title}
+      </a>
+      <button
+        onClick={() =>
+          setArticles((prev) => prev.filter((article) => article.id !== a.id))
+        }
+        className="ml-2 text-red-500 text-sm"
+      >
+        삭제
+      </button>
+    </li>
+  ))}
+</ul>
       </div>
     </div>
   );

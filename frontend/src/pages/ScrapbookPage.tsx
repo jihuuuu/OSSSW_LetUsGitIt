@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PaginationComponent from "@/components/PaginationComponent";
@@ -18,6 +19,14 @@ export default function ScrapbookPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [noteMode, setNoteMode] = useState(false);
+  const [selectedArticles, setSelectedArticles] = useState<Set<number>>(new Set());
+
+  const location = useLocation();
+  const mode = location.state?.mode;
+  const originNoteId = location.state?.originNoteId;
+  const preselected = location.state?.selectedArticles || [];
+
 
   const fetchScrapArticles = async () => {
     try {
@@ -37,12 +46,46 @@ export default function ScrapbookPage() {
 
   useEffect(() => {
     fetchScrapArticles();
+    if (mode === "edit-note") {
+    setNoteMode(true);
+    setSelectedArticles(new Set(preselected.map((a: Article) => a.id)));
+  }
   }, [page]);
 
   const handleSearch = () => {
     setPage(1);
     fetchScrapArticles();
   };
+  const navigate = useNavigate();
+const handleCreateNotePage = () => {
+  const selected = Array.from(selectedArticles)
+    .map((id) => articles.find((a) => a.id === id))
+    .filter((a): a is Article => !!a);
+
+  if (selected.length === 0) {
+    alert("기사를 1개 이상 선택해주세요.");
+    return;
+  }
+  if (location.state?.mode === "edit-note") {
+    navigate(`/note/edit/${location.state.originNoteId}`, {
+      state: {
+        newArticles: selected,
+      },
+    });
+    return;
+  }
+
+  const defaultText = selected
+    .map((article) => `• ${article.title}\n${article.link}`)
+    .join("\n\n");
+
+  navigate("/note/new", {
+    state: {
+      defaultText,
+      articles: selected,
+    },
+  });
+};
 
   return (
     <div className="min-h-screen bg-white">
@@ -90,6 +133,25 @@ export default function ScrapbookPage() {
             totalPages={totalPages}
             onPageChange={setPage}
           />
+        </div>
+
+        {/* Sticky note button */}
+        <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+          {noteMode ? (
+            <button
+              onClick={handleCreateNotePage}
+              className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
+            >
+              note
+            </button>
+          ) : (
+            <button
+              onClick={() => setNoteMode(true)}
+              className="w-12 h-12 rounded-full border text-2xl shadow"
+            >
+              ✏️
+            </button>
+          )}
         </div>
       </main>
     </div>

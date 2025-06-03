@@ -1,9 +1,9 @@
 // TodayIssuePage.tsx
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Logo from "@/components/ui/logo";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 
 interface Article {
@@ -27,7 +27,12 @@ export default function TodayIssuePage() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedArticles, setSelectedArticles] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
+  const location = useLocation();
+  const mode = location.state?.mode;
+  const originNoteId = location.state?.originNoteId;
+  const preselected = location.state?.selectedArticles || [];
 
   useEffect(() => {
     const fetchClusters = async () => {
@@ -43,6 +48,10 @@ export default function TodayIssuePage() {
       }
     };
     fetchClusters();
+    if (mode === "edit-note") {
+    setNoteMode(true);
+    setSelectedArticles(new Set(preselected.map((a: Article) => a.article_id)));
+  }
   }, []);
   
 
@@ -117,3 +126,7 @@ export default function TodayIssuePage() {
     </div>
   );
 }
+function setNoteMode(arg0: boolean) {
+  throw new Error("Function not implemented.");
+}
+
