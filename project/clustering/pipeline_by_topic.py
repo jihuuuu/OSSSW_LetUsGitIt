@@ -1,0 +1,98 @@
+# clustering/pipeline_main.py
+
+import argparse
+import numpy as np
+from typing import Dict, List
+from models.topic import TopicEnum
+import os
+from clustering.running_stage import (
+    run_embedding_stage,
+    run_clustering_stage,
+    run_keyword_extraction
+)
+
+
+def run_all_topics_pipeline(
+    clustering_method: str = "kmeans",
+    k_or_params: int | None = 10,
+    eps: float | None = None,
+    min_samples: float | None = None,
+    since_hours: int | None = 24,
+    data_dir: str = "data"
+):
+    """
+    모든 토픽 순회하며 순차적으로 임베딩, 클러스터링, 키워드 추출 단계를 실행합니다.
+    """
+    for topic in TopicEnum:
+        print(f"\n===== [{topic.value}] 파이프라인 시작 =====")
+
+        # 1) 임베딩 단계
+        emb_result = run_embedding_stage(
+            topic=topic,
+            since_hours=since_hours,
+            data_dir=data_dir,
+            batch_size=32
+        )
+        if emb_result is None:
+            print(f"----- [{topic.value}] 임베딩 단계 건너뜀 -----")
+            continue
+
+        emb_array, ids_window, raw_texts, cleaned_texts = emb_result
+
+        # emb_path 생성 (토픽별 .npy 임베딩 파일 경로)
+        emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
+
+        # 2) 클러스터링 단계
+        labels, cluster_to_docs, label_to_cluster_id = run_clustering_stage(
+            emb_path=emb_path,
+            ids_window=ids_window,
+            raw_texts=raw_texts,
+            cleaned_texts=cleaned_texts,
+            method=clustering_method,
+            n_clusters=k_or_params if isinstance(k_or_params, int) else k_or_params.get("k"),
+            eps=eps,
+            min_samples=min_samples,
+            topic=topic,
+            save_db=True
+        )
+
+        # 3) 키워드 추출 단계
+        kw_map = run_keyword_extraction(
+            cluster_to_docs=cluster_to_docs,
+            label_to_cluster_id=label_to_cluster_id,
+            top_n=3
+        )
+        for lbl, kws in kw_map.items():
+            print(f"  Cluster {lbl} 키워드: {', '.join(kws)}")
+
+        print(f"===== [{topic.value}] 파이프라인 완료 =====\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="뉴스 클러스터링 & 키워드 파이프라인")
+    parser.add_argument("--method", choices=["kmeans", "dbscan", "hdbscan"], default="kmeans",
+                        help="클러스터링 알고리즘 선택 (default: kmeans)")
+    parser.add_argument("--n-clusters", type=int, default=10,
+                        help="KMeans 클러스터 수 (default: 20)")
+    parser.add_argument("--eps", type=float, default=0.5,
+                        help="DBSCAN eps 파라미터 (default: 0.5)")
+    parser.add_argument("--min-samples", type=int, default=5,
+                        help="DBSCAN/HDBSCAN min_samples 파라미터 (default: 5)")
+    parser.add_argument("--since-hours", type=int, default=24,
+                        help="최근 N시간 내 기사만 처리 (default: 24)")
+    parser.add_argument("--data-dir", type=str, default="data",
+                        help="임베딩 캐시 저장 디렉토리 (default: data)")
+    args = parser.parse_args()
+
+    run_all_topics_pipeline(
+        clustering_method=args.method,
+        k_or_params=args.n_clusters,
+        eps=args.eps,
+        min_samples=args.min_samples,
+        since_hours=args.since_hours,
+        data_dir=args.data_dir
+    )
+
+
+if __name__ == "__main__":
+    main()
