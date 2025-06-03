@@ -23,13 +23,13 @@ export default function Header() {
         <>
           <button
             onClick={() => navigate("/dashboard")}
-            className="text-sm font-medium border border-gray-300 bg-gray-100 px-2 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition-all duration-200"
+            className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
           >
             마이페이지
           </button>
           <button
             onClick={handleLogout}
-            className="text-sm font-medium border border-gray-300 bg-gray-100 px-2 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition-all duration-200"
+            className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
           > 
             로그아웃
           </button>
@@ -37,7 +37,7 @@ export default function Header() {
       ) : (
         <button
           onClick={() => navigate("/login")}
-          className="text-sm border px-2 py-1 rounded hover:bg-gray-100"
+          className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
         >
           로그인
         </button>

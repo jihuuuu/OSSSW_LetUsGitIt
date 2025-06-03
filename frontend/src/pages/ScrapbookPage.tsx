@@ -119,12 +119,31 @@ const handleCreateNotePage = () => {
 
         <div className="w-full max-w-4xl mt-10 space-y-2">
           {articles.map((a) => (
-            <div key={a.id} className="text-blue-600 hover:underline">
-              <a href={a.link} target="_blank" rel="noopener noreferrer">
-                {a.title}
-              </a>
-            </div>
-          ))}
+  <div key={a.id} className="flex items-start gap-2">
+    {noteMode && (
+      <input
+        type="checkbox"
+        checked={selectedArticles.has(a.id)}
+        onChange={(e) => {
+          setSelectedArticles((prev) => {
+            const updated = new Set(prev);
+            e.target.checked ? updated.add(a.id) : updated.delete(a.id);
+            return updated;
+          });
+        }}
+      />
+    )}
+
+    <a
+      href={a.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:underline"
+    >
+      {a.title}
+    </a>
+  </div>
+))}
         </div>
 
         <div className="mt-8">

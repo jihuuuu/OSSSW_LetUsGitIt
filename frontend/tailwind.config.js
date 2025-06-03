@@ -3,8 +3,8 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{html,js,ts,jsx,tsx}",
-    "./src/pages/**/*.{ts,tsx}",
-    "./src/components/**/*.{ts,tsx}",
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -56,6 +56,7 @@ export default {
         "single-line-body-base": "var(--single-line-body-base-font-family)",
         subheading: "var(--subheading-font-family)",
         "title-page": "var(--title-page-font-family)",
+        inter: ['Inter', 'sans-serif'],
         sans: [
           "ui-sans-serif",
           "system-ui",
@@ -82,8 +83,8 @@ export default {
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.3s ease-out",
-        "accordion-up": "accordion-up 0.3s ease-out",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
     container: {

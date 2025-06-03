@@ -7,6 +7,8 @@ import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 
 import type { Article } from "@/types/article";
+// import needed functions or objects from articleUtils, e.g.:
+import { getSelectedArticles, clearSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 
 interface ClusterDetail {
   cluster_id: number;
@@ -87,49 +89,25 @@ export default function ClusterDetailPage() {
     }
   };
 
-  const submitNote = async () => {
-    const res = await axios.post(
-      "http://localhost:8000/users/notes",
-      {
-        articleIds: Array.from(selectedArticles),
-        text: noteContent,
-      },
-      {
-        headers: {
-          Authorization: `Bearer accessToken`,
-        },
-      }
-    );
-
-    if (res.data?.isSuccess) {
-      alert("노트가 저장되었습니다.");
-      setIsNoteModalOpen(false);
-      setSelectedArticles(new Set());
-      setNoteContent("");
-      setNoteMode(false);
-    } else {
-      alert("노트 저장 실패: " + (res.data?.message || "알 수 없는 오류"));
-    }
-  };
-
   const indexOfLast = currentPage * articlesPerPage;
   const indexOfFirst = indexOfLast - articlesPerPage;
   const currentArticles = cluster?.articles.slice(indexOfFirst, indexOfLast) || [];
   const totalPages = cluster ? Math.ceil(cluster.articles.length / articlesPerPage) : 0;
   
 const navigate = useNavigate();
-const handleCreateNotePage = () => {
-  const selected = Array.from(selectedArticles)
-    .map((id) => cluster?.articles.find((a) => a.id === id))
-    .filter((a): a is Article => !!a);
 
-  if (selected.length === 0) {
-    alert("기사를 1개 이상 선택해주세요.");
+const handleCreateNotePage = () => {
+  const selectedIds = getSelectedArticles();
+
+  if (selectedIds.length === 0) {
+    alert("기사를 선택해주세요.");
     return;
   }
 
+  const selected = cluster?.articles.filter((a) => selectedIds.includes(a.id)) || [];
+
   const defaultText = selected
-    .map((article) => `• ${article.title}\n${article.link}`)
+    .map((a) => `• ${a.title}\n${a.link}`)
     .join("\n\n");
 
   navigate("/note/new", {
@@ -138,6 +116,8 @@ const handleCreateNotePage = () => {
       articles: selected,
     },
   });
+
+  clearSelectedArticles(); // 이동 후 초기화
 };
   return (
     <div className="min-h-screen bg-white">
@@ -169,6 +149,11 @@ const handleCreateNotePage = () => {
                           type="checkbox"
                           checked={selectedArticles.has(article.id)}
                           onChange={(e) => {
+                            if (e.target.checked) {
+                              addSelectedArticle(article.id);
+                            } else {
+                            removeSelectedArticle(article.id);
+                      }
                             setSelectedArticles((prev) => {
                               const updated = new Set(prev);
                               e.target.checked
