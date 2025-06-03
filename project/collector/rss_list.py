@@ -4,74 +4,89 @@
 rss_urls_by_topic = {
     "정치": [
         # 조선일보
-        "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml",  # :contentReference[oaicite:0]{index=0}
-        # 동아일보
-        "https://rss.donga.com/list_politics.xml",  # (기존)
+        "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml",   
         # 한겨레신문
-        "https://www.hani.co.kr/rss/politics/",  # :contentReference[oaicite:1]{index=1}
+        "https://www.hani.co.kr/rss/politics/",  
         # 경향신문
-        "https://www.khan.co.kr/rss/rssdata/politic_news.xml",  # 
+        "https://www.khan.co.kr/rss/rssdata/politic_news.xml",  
         # 매일경제
-        "https://www.mk.co.kr/rss/30200030/",  # :contentReference[oaicite:3]{index=3}
+        "https://www.mk.co.kr/rss/30200030/", 
         # 한국경제
-        "https://www.hankyung.com/feed/politics",  # :contentReference[oaicite:4]{index=4}
+        "https://www.hankyung.com/feed/politics", 
+        # 연합뉴스
+        "https://www.yna.co.kr/rss/politics.xml", 
     ],
     "경제": [
         # 조선일보
-        "https://www.chosun.com/arc/outboundfeeds/rss/category/economy/?outputType=xml",  # :contentReference[oaicite:6]{index=6}
-        # 동아일보
-        "https://rss.donga.com/list_economy.xml",  # (기존)
+        "https://www.chosun.com/arc/outboundfeeds/rss/category/economy/?outputType=xml",  
         # 한겨레신문
-        "https://www.hani.co.kr/rss/economy/",  # :contentReference[oaicite:7]{index=7}
+        "https://www.hani.co.kr/rss/economy/",  
         # 경향신문
-        "https://www.khan.co.kr/rss/rssdata/economy_news.xml",  # 
+        "https://www.khan.co.kr/rss/rssdata/economy_news.xml",  
         # 매일경제
-        "https://www.mk.co.kr/rss/30100041/",  # :contentReference[oaicite:9]{index=9}
+        "https://www.mk.co.kr/rss/30100041/", 
         # 한국경제
-        "https://www.hankyung.com/feed/economy",  # :contentReference[oaicite:10]{index=10}
+        "https://www.hankyung.com/feed/economy",
+        # 연합뉴스
+        "https://www.yna.co.kr/rss/economy.xml",
     ],
     "스포츠": [
         # 조선일보
-        "https://www.chosun.com/arc/outboundfeeds/rss/category/sports/?outputType=xml",  # :contentReference[oaicite:12]{index=12}
-        # 동아일보
-        "https://rss.donga.com/list_sports.xml",  # (기존)
+        "https://www.chosun.com/arc/outboundfeeds/rss/category/sports/?outputType=xml",  
         # 한겨레신문
-        "https://www.hani.co.kr/rss/sports/",  # :contentReference[oaicite:13]{index=13}
+        "https://www.hani.co.kr/rss/sports/", 
         # 경향신문
-        "http://www.khan.co.kr/rss/rssdata/kh_sports.xml",  # 
+        "http://www.khan.co.kr/rss/rssdata/kh_sports.xml",  
         # 매일경제
-        "https://www.mk.co.kr/rss/71000001/",  # :contentReference[oaicite:15]{index=15}
+        "https://www.mk.co.kr/rss/71000001/", 
         # 한국경제
-        "https://www.hankyung.com/feed/sports",  # :contentReference[oaicite:16]{index=16}
+        "https://www.hankyung.com/feed/sports", 
+        # 연합뉴스
+        "https://www.yna.co.kr/rss/sports.xml",
     ],
-    "IT": [
+    "국제": [
         # 조선일보
-        "https://www.chosun.com/arc/outboundfeeds/rss/category/tech/?outputType=xml",  # :contentReference[oaicite:18]{index=18}
+        "https://www.chosun.com/arc/outboundfeeds/rss/category/international/?outputType=xml",
         # 동아일보
-        "https://rss.donga.com/list_it.xml",  # (기존)
+        "http://rss.donga.com/international.xml",
         # 한겨레신문
-        "https://www.hani.co.kr/rss/it/",  # :contentReference[oaicite:19]{index=19}
+        "https://www.hani.co.kr/rss/international/",
         # 경향신문
-        "https://www.khan.co.kr/rss/rssdata/science_news.xml",  #   (IT 대체로 “과학·환경” 사용)
-        # 매일경제
-        # — IT 전용 RSS는 없지만 “문화·연예”에서 IT 관련 기사 노출됨
-        "https://www.mk.co.kr/rss/30000023/",  # :contentReference[oaicite:21]{index=21}
+        "https://www.khan.co.kr/rss/rssdata/kh_world.xml",
+        # 세계일보
+        "http://rss.segye.com/segye_international.xml",
         # 한국경제
-        "https://www.hankyung.com/feed/it",  # :contentReference[oaicite:22]{index=22}
+        "https://www.hankyung.com/feed/international",
+
     ],
-    "연예/문화": [
+    "문화": [
         # 조선일보
-        "https://www.chosun.com/arc/outboundfeeds/rss/category/entertainments/?outputType=xml",  # :contentReference[oaicite:24]{index=24}
-        # 동아일보
-        "https://rss.donga.com/list_culture.xml",  # (기존)
-        # 한겨레신문
-        "https://www.hani.co.kr/rss/entertainment/",  # :contentReference[oaicite:25]{index=25}
+        "https://www.chosun.com/arc/outboundfeeds/rss/category/entertainments/?outputType=xml", 
         # 경향신문
-        "https://www.khan.co.kr/rss/rssdata/culture_news.xml",  # 
+        "https://www.khan.co.kr/rss/rssdata/culture_news.xml",  
         # 매일경제
-        "https://www.mk.co.kr/rss/30000023/",  # :contentReference[oaicite:27]{index=27}
+        "https://www.mk.co.kr/rss/30000023/",  
         # 한국경제
-        "https://www.hankyung.com/feed/entertainment",  # :contentReference[oaicite:28]{index=28}
+        "https://www.hankyung.com/feed/entertainment", 
+        # 연합뉴스
+        "https://www.yna.co.kr/rss/culture.xml",
+        # 스포츠조선
+        "https://www.sportschosun.com/rss/index_enter.htm",
+
+    ],
+    "사회": [
+        # 조선일보
+        "http://www.chosun.com/arc/outboundfeeds/rss/category/national/?outputType=xml",             # :contentReference[oaicite:0]{index=0}
+        # 동아일보
+        "http://rss.donga.com/national.xml",                         
+        # 경향신문
+        "https://www.khan.co.kr/rss/rssdata/society_news.xml",           # :contentReference[oaicite:3]{index=3}
+        # 매일경제
+        "https://www.mk.co.kr/rss/50400012/",                            # :contentReference[oaicite:4]{index=4}
+        # 세계일보
+        "http://rss.segye.com/segye_society.xml",                        # :contentReference[oaicite:5]{index=5}
+        # 서울신문
+        "https://www.seoul.co.kr/xml/rss/rss_society.xml",               # :contentReference[oaicite:6]{index=6}
     ],
 }
 
