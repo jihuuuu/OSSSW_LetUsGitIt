@@ -30,10 +30,10 @@ def hourly_clustering():
     # 2) 토픽별 전체 파이프라인 실행
     print("⏳ [Pipeline] 토픽별 전체 파이프라인 실행…")
     try:
-        # 기본값: kmeans, 클러스터 개수 20, eps=0.5, min_samples=5, since_hours=24, data_dir="data"
+        # 기본값: kmeans, 클러스터 개수 10, eps=0.5, min_samples=5, since_hours=24, data_dir="data"
         run_all_topics_pipeline(
             clustering_method="kmeans",
-            k_or_params=10,
+            k=10,
             eps=0.5,
             min_samples=5,
             since_hours=24,

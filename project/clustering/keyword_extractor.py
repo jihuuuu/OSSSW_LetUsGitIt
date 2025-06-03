@@ -4,12 +4,14 @@ from typing import List, Dict
 from sqlalchemy.orm import Session
 from sklearn.feature_extraction.text import TfidfVectorizer
 from clustering.embedder import STOPWORDS_KO
+from models.article import Keyword, ClusterKeyword
 from collections import Counter
 from itertools import chain
 from konlpy.tag import Okt
 
 def extract_top_keywords(
-    documents: List[str], top_n: int = 3, max_features: int = 300
+    documents: List[str], cluster_id : int,
+    top_n: int = 3, max_features: int = 300
 ) -> List[str]:
     """
     주어진 문서 리스트에 대해 TF-IDF를 계산하고,
@@ -17,6 +19,7 @@ def extract_top_keywords(
     """
     # ✅ 방어 로직
     if not documents or all(not doc.strip() for doc in documents):
+        print(f"⚠️ cluster_id={cluster_id}: 전처리된 문서가 모두 공백입니다. 키워드 추출 생략.")
         return ["no_keyword"]
     
     # 1) TF-IDF 행렬 생성

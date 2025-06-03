@@ -81,7 +81,7 @@ def compute_silhouette_for_topic(
             continue
 
         # (2) TF-IDF 키워드 추출
-        kws = extract_top_keywords(documents=docs, top_n=top_kws)
+        kws = extract_top_keywords(documents=docs, cluster_id=lbl, top_n=top_kws)
         print(f"  Cluster {lbl}: {', '.join(kws)}")
 
 
