@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { checkAuth } from "../services/auth";
 
 export default function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLoggedIn(!!token);
-  }, []);
+  const validate = async () => {
+    const user = await checkAuth();  // 실패 시 null
+    setIsLoggedIn(!!user);
+  };
+  validate();
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
+    fetch("http://localhost:8000/users/logout", {
+      method: "POST",
+      credentials: "include", // refresh_token 쿠키 삭제
+    });
     alert("로그아웃되었습니다.");
-    navigate("/"); // 홈으로 이동
-    window.location.reload(); // 강제 새로고침해서 상태 반영
+    navigate("/");
+    window.location.reload();
   };
 
   return (

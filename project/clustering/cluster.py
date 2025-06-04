@@ -8,6 +8,10 @@ from database.connection import SessionLocal
 from models.article import Cluster
 from models.article import ClusterArticle
 from models.article import Article
+from hdbscan import HDBSCAN
+from typing import Tuple
+from models.topic import TopicEnum
+from typing import List, Dict
 
 def load_embeddings(path: str) -> np.ndarray:
     """
@@ -46,7 +50,34 @@ def run_dbscan(embeddings: np.ndarray, eps: float, min_samples: int) -> np.ndarr
     labels = db.fit_predict(embeddings)
     return labels
 
-def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
+def run_hdbscan(
+    embeddings: np.ndarray,
+    min_cluster_size: int = 5,
+    min_samples: int | None = None,
+    metric: str = "euclidean",
+    cluster_selection_method: str = "eom",
+    return_probabilities: bool = False
+) -> np.ndarray | Tuple[np.ndarray, np.ndarray]:
+    """
+    HDBSCAN 으로 클러스터링 수행하고 각 샘플의 레이블을 반환합니다.
+    """
+    clusterer = HDBSCAN(
+        min_cluster_size=min_cluster_size,
+        min_samples=(min_samples if min_samples is not None else min_cluster_size),
+        metric=metric,
+        cluster_selection_method=cluster_selection_method
+    )
+    labels = clusterer.fit_predict(embeddings)
+
+    if return_probabilities:
+        probabilities = clusterer.probabilities_
+        return labels, probabilities
+    
+    return labels
+
+
+def save_clusters_to_db(article_ids: list[int], labels: np.ndarray, topic: TopicEnum
+) -> Dict[int, int]:
     """
     npy나 run_clustering_stage 결과를 바탕으로
     Cluster 테이블과 ClusterArticle 매핑 테이블에
@@ -56,15 +87,15 @@ def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
     try:
         # 1) 레이블별 Cluster 레코드 생성
         label_to_cluster_id: dict[int, int] = {}
-        for lbl in sorted(set(labels)):
-            cluster = Cluster(label=int(lbl), num_articles=0)
+        for lbl in sorted(set(labels.tolist())):
+            cluster = Cluster(label=int(lbl), num_articles=0, topic=topic)
             session.add(cluster)
             session.flush()  # cluster.id 채워짐
             label_to_cluster_id[int(lbl)] = cluster.id
 
         # 2) 매핑 테이블에 Article ↔ Cluster 연결
         mappings = []
-        for art_id, lbl in zip(article_ids, labels):
+        for art_id, lbl in zip(article_ids, labels.tolist()):
             cid = label_to_cluster_id[int(lbl)]
             mappings.append(
                 ClusterArticle(article_id=art_id, cluster_id=cid)
@@ -75,13 +106,14 @@ def save_clusters_to_db(article_ids: list[int], labels: np.ndarray):
 
         # 3) num_articles 업데이트 (선택)
         for lbl, cid in label_to_cluster_id.items():
-            count = labels.tolist().count(lbl)
+            count = int((labels == lbl).sum())
             session.query(Cluster).filter(Cluster.id == cid).update({
                 Cluster.num_articles: count
             })
 
         session.commit()
         print("✅ Cluster 테이블과 매핑 테이블에 저장 완료")
+        return label_to_cluster_id
     finally:
         session.close()
 
