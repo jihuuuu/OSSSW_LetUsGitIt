@@ -27,6 +27,7 @@ class ArticleOut(BaseModel):
 
 class ClusterOut(BaseModel):
     cluster_id: int
+    topic: str | None  
     created_at: datetime
     label: int
     num_articles: int

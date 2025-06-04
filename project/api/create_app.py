@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .routes import cluster, knowledge_map, news, notes, scrap, trend, user
 from starlette.concurrency import run_in_threadpool
-from clustering.pipeline import run_embedding_stage, run_clustering_stage, run_keyword_extraction
+from clustering.pipeline_by_topic import run_all_topics_pipeline
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
@@ -14,37 +14,34 @@ from collector.rss_collector import parse_and_store
 
 def hourly_clustering():
     """
-    지난 24시간 기사로 임베딩 생성 → 클러스터링 수행 및 DB 저장
-    매시 정각마다 실행됩니다.
+    매시 정각에 실행되는 함수:
+    1) RSS 파싱 → MySQL 저장 (parse_and_store)
+    2) 모든 토픽에 대해 run_all_topics_pipeline 실행 (임베딩→클러스터링→키워드 추출)
+    3) 사용자 스크랩 기반 지식맵 생성
     """
-    # 1) 임베딩 생성 및 전처리 (지난 24시간)
-    result = run_embedding_stage(batch_size=32, since_hours=24)
-    if result is None:
-        print("⚠️ 지난 24시간 내 임베딩할 기사가 없습니다.")
-        return
-    embs, ids, raw_texts, cleaned_texts = result
-    clean_map = dict(zip(ids, cleaned_texts))
+    # 1) RSS 크롤링 & DB 저장
+    print("⏳ [Pipeline] RSS 크롤링 시작…")
+    try:
+        parse_and_store()
+        print("✅ [Pipeline] RSS 크롤링 완료.")
+    except Exception as e:
+        print(f"⚠️ [Pipeline] RSS 크롤링 중 에러 발생: {e}")
 
-
-    # 2) 클러스터링 수행 및 DB 저장
-    labels, cluster_docs, label_map = run_clustering_stage(
-        emb_path="data/article_embeddings_768.npy",
-        method="kmeans",
-        n_clusters=20,
-        eps=None,
-        min_samples=None,
-        limit=None,
-        save_db=True,
-        clean_map=clean_map
-    )
-    print("✅ 한 시간 단위 클러스터링 완료")
-
-        # 3) 키워드 추출 → DB 저장
-    run_keyword_extraction(
-        cluster_to_docs=cluster_docs,
-        label_to_cluster_id=label_map,
-        top_n=3
-    )
+    # 2) 토픽별 전체 파이프라인 실행
+    print("⏳ [Pipeline] 토픽별 전체 파이프라인 실행…")
+    try:
+        # 기본값: kmeans, 클러스터 개수 10, eps=0.5, min_samples=5, since_hours=24, data_dir="data"
+        run_all_topics_pipeline(
+            clustering_method="kmeans",
+            k=10,
+            eps=0.5,
+            min_samples=5,
+            since_hours=24,
+            data_dir="data"
+        )
+        print("✅ [Pipeline] 토픽별 전체 파이프라인 완료.")
+    except Exception as e:
+        print(f"⚠️ [Pipeline] 토픽별 파이프라인 중 에러 발생: {e}")
 
     # 사용자별 스크랩 기반 지식맵 추가
     db = SessionLocal()
@@ -100,8 +97,6 @@ def create_app():
     async def startup_event():
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  
-        # 초기 RSS 크롤링
-        await run_in_threadpool(parse_and_store)
         # 초기 클러스터링
         await run_in_threadpool(hourly_clustering)
 
