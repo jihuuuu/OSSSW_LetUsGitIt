@@ -2,20 +2,24 @@
 # 역할: 기사 관련 모델 정의
 # article, cluster, cluster_article, cluster_keyword, keyword
 
-from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, CHAR, Enum as SQLEnum
 from datetime import datetime, timezone
 from models.base import Base
 from sqlalchemy.orm import relationship
+from models.topic import TopicEnum
 
 class Article(Base):
     __tablename__ = "article"
 
     id = Column(BigInteger, primary_key=True, index=True)
     title = Column(String(512), nullable=False)
-    link = Column(String(1024), unique=True, index=True, nullable=False)
+    link = Column(String(1024), nullable=False)
+    link_hash = Column(CHAR(32), nullable=False, unique=True, index=True)
     summary = Column(Text, nullable=True)
     published = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     fetched_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    # Enum으로 토픽을 엄격하게 제한
+    topic = Column(SQLEnum(TopicEnum, name="topic_enum"), nullable=False)
 
     # 관계
     scrap = relationship("Scrap", back_populates="article")
@@ -30,6 +34,7 @@ class Cluster(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     label = Column(Integer, nullable=False)
     num_articles = Column(Integer, nullable=False)
+    topic = Column(SQLEnum(TopicEnum, name="topic_enum"), nullable=False)
 
     # 관계
     cluster_article = relationship("ClusterArticle", back_populates="cluster")
