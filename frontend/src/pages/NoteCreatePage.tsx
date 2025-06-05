@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Article } from "@/types/article";
+import { clearSelectedArticles } from "@/utils/selectedArticles";
 
 export default function NoteCreatePage() {
   const location = useLocation();
@@ -61,7 +62,10 @@ export default function NoteCreatePage() {
         ))}
       </ul>
       <div className="flex justify-end gap-2">
-        <button onClick={() => navigate(-1)}>취소</button>
+        <button onClick={() => {
+          clearSelectedArticles();// 선택한 기사 초기화 (필요하다면 여기에 초기화 로직 추가)
+          navigate(-1);
+        }}>취소</button>
         <button
           onClick={handleSave}
           className="bg-blue-500 text-white px-4 py-2 rounded"

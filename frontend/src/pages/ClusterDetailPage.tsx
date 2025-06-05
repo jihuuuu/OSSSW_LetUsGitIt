@@ -8,7 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 import type { Article } from "@/types/article";
 // import needed functions or objects from articleUtils, e.g.:
-import { getSelectedArticles, clearSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
+import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
+import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
 
 interface ClusterDetail {
   cluster_id: number;
@@ -33,24 +34,30 @@ export default function ClusterDetailPage() {
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
-      setCluster(res.data);
-    });
-
-    axios
-      .get("http://localhost:8000/users/scraps", {
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/users/scraps", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      })
-      .then((res) => {
-        const ids = res.data.articles.map((a: any) => Number(a.article_id || a.id));
-        setFavorites(new Set(ids));
-      })
-      .catch((err) => {
-        console.error("스크랩 기사 로딩 실패:", err);
       });
-  }, [clusterId]);
+
+      const ids = res.data.articles.map((a: any) =>
+        Number(a.article_id || a.id)
+      );
+
+      const localScraps = getScrappedArticles();
+      const merged = new Set([...ids, ...localScraps]);
+
+      setFavorites(merged);
+    } catch (err) {
+      console.error("스크랩 기사 로딩 실패:", err);
+    }
+  };
+
+  fetchData();
+}, [clusterId]);
+
 
   const handleScrap = async (articleId: number) => {
     if (loadingIds.has(articleId)) return;
@@ -72,7 +79,13 @@ export default function ClusterDetailPage() {
       if (res.data?.isSuccess) {
         setFavorites((prev) => {
           const updated = new Set(prev);
-          isScrapped ? updated.delete(articleId) : updated.add(articleId);
+          if (isScrapped) {
+          updated.delete(articleId);
+          removeScrappedArticle(articleId);
+          } else {
+          updated.add(articleId);
+          addScrappedArticle(articleId);
+    }
           return updated;
         });
       } else {
@@ -116,8 +129,6 @@ const handleCreateNotePage = () => {
       articles: selected,
     },
   });
-
-  clearSelectedArticles(); // 이동 후 초기화
 };
   return (
     <div className="min-h-screen bg-white">

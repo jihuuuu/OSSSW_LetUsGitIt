@@ -6,7 +6,7 @@ import PaginationComponent from "@/components/PaginationComponent";
 import Logo from "@/components/ui/logo";
 import Header from "@/components/Header";
 import api from "@/services/api"; //  axios 인스턴스 import
-
+import { addSelectedArticle, getSelectedArticles, removeSelectedArticle } from "@/utils/selectedArticles";
 type Article = {
   id: number;
   title: string;
@@ -46,6 +46,9 @@ export default function ScrapbookPage() {
 
   useEffect(() => {
     fetchScrapArticles();
+    // 초기 상태 설정
+    const localSelected = getSelectedArticles();
+    setSelectedArticles(new Set(localSelected));
     if (mode === "edit-note") {
     setNoteMode(true);
     setSelectedArticles(new Set(preselected.map((a: Article) => a.id)));
@@ -57,6 +60,7 @@ export default function ScrapbookPage() {
     fetchScrapArticles();
   };
   const navigate = useNavigate();
+
 const handleCreateNotePage = () => {
   const selected = Array.from(selectedArticles)
     .map((id) => articles.find((a) => a.id === id))
@@ -127,7 +131,13 @@ const handleCreateNotePage = () => {
         onChange={(e) => {
           setSelectedArticles((prev) => {
             const updated = new Set(prev);
-            e.target.checked ? updated.add(a.id) : updated.delete(a.id);
+            if (e.target.checked) {
+          updated.add(a.id);
+          addSelectedArticle(a.id); // ✅ 로컬 반영
+          } else {
+          updated.delete(a.id);
+          removeSelectedArticle(a.id); // ✅ 로컬 반영
+      }
             return updated;
           });
         }}

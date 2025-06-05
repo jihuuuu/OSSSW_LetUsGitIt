@@ -32,13 +32,21 @@ useEffect(() => {
     setArticles(related); // 기본 로드
   };
 
-  // newArticles가 있으면 그걸로 대체
-  if (location.state?.newArticles) {
-    setArticles(location.state.newArticles);
-  } else {
-    loadNote();
-  }
-}, [noteId, location.state]);
+  // newArticles가 있으면 추가
+if (location.state?.newArticles) {
+  const incoming = location.state.newArticles;
+  const existing = articles;
+
+  const mergedMap = new Map<number, Article>();
+  existing.forEach((a) => mergedMap.set(a.id, a));
+  incoming.forEach((a: Article) => mergedMap.set(a.id, a)); // 중복 제거하면서 추가
+
+  setArticles(Array.from(mergedMap.values()));
+} else {
+  loadNote();
+}
+// useEffect dependencies
+}, [noteId, location.state?.newArticles]);
 
 
   const handleSave = async () => {
@@ -84,21 +92,7 @@ useEffect(() => {
       })
     }
   >
-    스크랩북+
-  </button>
-  <button
-    className="text-sm underline text-blue-600 mb-4"
-    onClick={() =>
-      navigate("/today/issue", {
-        state: {
-          mode: "edit-note",
-          originNoteId: noteId,
-          selectedArticles: articles,
-        },
-      })
-    }
-  >
-    기사페이지+
+    기사 추가하기+
   </button>
       
       <h2 className="font-semibold mb-2">연관 기사</h2>
