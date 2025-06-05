@@ -6,7 +6,7 @@ import PaginationComponent from "../components/PaginationComponent";
 import Logo from "../components/ui/logo";
 import Header from "@/components/Header";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "@/services/api";
 import { getNotesByKeyword, getNotesByPage } from "@/services/note";
 import type { Note } from "@/types/note";
@@ -17,6 +17,8 @@ export default function NotePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const incomingArticles = location.state?.newArticles || [];
 
   const size = 10;
 
@@ -46,7 +48,12 @@ export default function NotePage() {
   };
 
   const handleSelect = (note: Note) => {
-    navigate(`/notes/${note.id}/edit`, { state: { note } });
+    navigate(`/notes/${note.id}/edit`, {
+    state: {
+      note,
+      newArticles: incomingArticles,
+    },
+  });
   };
 
   const handleDelete = async (noteId: number) => {

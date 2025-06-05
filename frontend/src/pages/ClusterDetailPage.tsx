@@ -34,6 +34,10 @@ export default function ClusterDetailPage() {
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
+    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
+      setCluster(res.data);
+    });
+
   const fetchData = async () => {
     try {
       const res = await axios.get("http://localhost:8000/users/scraps", {
@@ -239,12 +243,29 @@ const handleCreateNotePage = () => {
                   note
               </button>
               ) : (
-                <button
-                  onClick={() => setNoteMode(true)}
-                  className="w-12 h-12 rounded-full border text-2xl shadow"
-                >
-                  ✏️
-                </button>
+            <div className="flex items-center">
+            <button
+            onClick={() => setNoteMode(true)}
+            className="w-12 h-12 rounded-full border text-2xl shadow"
+        >
+      ✏️
+      </button>
+  {/* 기존 noteMode와 별도로 새로운 버튼 */}
+    <button
+    className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+    onClick={() => {
+      const selectedIds = getSelectedArticles();
+      const selected = cluster?.articles.filter((a) =>
+        selectedIds.includes(a.id)
+      );
+      navigate("/notes", {
+        state: { newArticles: selected },
+      });
+    }}
+  >
+    ➕ 기존 노트에 추가
+  </button>
+</div>
               )}
             </div>
           </>

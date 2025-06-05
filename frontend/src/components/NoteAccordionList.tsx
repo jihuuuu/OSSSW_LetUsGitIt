@@ -23,6 +23,7 @@ function formatDate(isoString: string) {
   });
 }
 export function NoteAccordionList({ notes, onSelect, onDelete }: NoteAccordionListProps) {
+  const navigate = useNavigate();
   return (
     <div className="w-full max-w-3xl mx-auto font-sans text-base"> {/* ✅ 통일된 너비 + 폰트 */}
       <Accordion type="single" collapsible className="w-full">
@@ -37,11 +38,19 @@ export function NoteAccordionList({ notes, onSelect, onDelete }: NoteAccordionLi
       <AccordionContent>
         <p className="whitespace-pre-wrap mb-4">{note.text}</p>
         <div className="flex gap-2 justify-end">
-          <button
-            className="px-3 py-1 rounded bg-blue-500 text-white text-sm"
-            onClick={() => onSelect(note)}
-          >
-            편집
+           <button
+                onClick={async () => {
+                  console.log("편집하려는 note id:", note.id); // ← 이거 찍어보세요
+                  await onSelect(note);               // ✅ 노트 선택 처리 먼저
+                  navigate(`/note/${note.id}/edit`, {
+                state: {
+                newArticles: [], // ✅ 최소한 빈 배열이라도 넘겨야 병합 useEffect가 안전하게 동작함
+  },
+});  // ✅ 그 후에 이동
+          }}
+            className="text-sm text-blue-500 hover:underline"
+            >
+           편집
           </button>
           {onDelete && (
             <button
