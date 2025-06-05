@@ -45,7 +45,7 @@ export default function WeeklyIssuePreview() {
           더보기
         </button>
       </div>
-      <div className="h-[250px]">
+      <div className="h-[400px]">
         <LineChart data={trendData} />
       </div>
     </div>
