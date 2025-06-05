@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -159,5 +161,6 @@ You can apply the theme on any DOM node, not just the `body`
 
   body {
     font-feature-settings: "rlig" 1, "calt" 1;
+    @apply font-inter text-gray-900;
   }
 }
