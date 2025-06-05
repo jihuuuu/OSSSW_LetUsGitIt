@@ -1,7 +1,7 @@
 // src/pages/HomePage.tsx
-import TodayIssuePreview from "@/components/TodayIssuePreview";
-import WeeklyIssuePreview from "@/components/WeeklyIssuePreview";
-// import { KeywordGraph } from "@/components/KeywordGraph";
+import TodayIssuePreview from "@/components/card/TodayIssueCard";
+import WeeklyIssuePreview from "@/components/card/WeeklyIssueCard";
+import {TodayKeywordPreview} from "@/components/card/TodayKeywordCard"; // ★ 추가
 import Logo from "@/components/ui/logo";
 import Header from "@/components/Header";
 
@@ -24,13 +24,12 @@ export default function HomePage() {
 
       {/* 오늘의 키워드 + 뉴스 트렌드 나란히 */}
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="bg-white shadow-md rounded-xl p-4 flex-1">
-          <h2 className="text-lg font-semibold text-blue-500 mb-4">오늘의 키워드 10</h2>
-          <div className="h-[250px] flex items-center justify-center text-gray-400">
-            (키워드 API 대기중...)
-          </div>
+        {/* 왼쪽: TodayKeywordPreview */}
+        <div className="flex-1 bg-white shadow-md rounded-xl p-4">
+          <TodayKeywordPreview />
         </div>
 
+        {/* 오른쪽: WeeklyIssuePreview */}
         <div className="flex-1">
           <WeeklyIssuePreview />
         </div>
