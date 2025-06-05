@@ -1,25 +1,29 @@
 // src/components/ui/Button.tsx
 import React from "react";
 
+type ButtonProps = {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: "default" | "outline" | "ghost";
+  size?: "default" | "icon";
+  className?: string;
+  disabled?: boolean;
+};
+
 export function Button({
   children,
   onClick,
   variant = "default",
   size = "default",
   className = "",
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "default" | "outline" | "ghost";
-  size?: "default" | "icon";
-  className?: string;
-}) {
-  const base = "rounded font-medium text-sm transition";
+  disabled = false,
+}: ButtonProps) {
+  const base = "rounded-md font-medium text-sm transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
-    default: "bg-blue-600 text-white hover:bg-blue-700",
-    outline: "border border-blue-600 text-blue-600 hover:bg-blue-50",
-    ghost: "bg-transparent text-gray-700 hover:bg-gray-100",
+    default: "bg-sky-500 text-white hover:bg-sky-600",
+    outline: "border border-sky-500 text-sky-500 hover:bg-sky-50",
+    ghost: "bg-transparent text-sky-600 hover:bg-sky-100",
   };
 
   const sizes = {
@@ -29,8 +33,9 @@ export function Button({
 
   return (
     <button
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
       onClick={onClick}
+      disabled={disabled}
+      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {children}
     </button>

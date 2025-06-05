@@ -7,18 +7,18 @@ import Header from "@/components/Header";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen px-10 py-8">
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
+
+    <div className="min-h-screen flex flex-col justify-start">
+      <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
+        <div className="flex items-center">
           <Logo />
         </div>
-        <h1 className="text-white text-xl font-bold mx-auto"></h1>
-        <div className="px-2 py-1">
+        <div className="px-2 py -1">
           <Header />
         </div>
       </header>
 
-      <div className="flex justify-center mb-10">
+      <div className="flex justify-center mb-20 gap-y-20">
         <TodayIssuePreview />
       </div>
 

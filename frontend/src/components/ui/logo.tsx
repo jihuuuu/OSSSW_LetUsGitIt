@@ -7,7 +7,7 @@ export default function Logo() {
       <img
         src="/logo.png"
         alt="Hot Issue Logo"
-        className="w-[120px] h-auto select-none cursor-pointer"
+        className="w-[150px] h-auto select-none cursor-pointer"
       />
     </Link>
   );

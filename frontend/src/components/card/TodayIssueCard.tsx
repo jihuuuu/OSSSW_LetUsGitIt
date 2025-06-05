@@ -26,7 +26,7 @@ export default function TodayIssuePreview() {
   }, []);
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-4 w-[400px]">
+    <div className="bg-white shadow-md rounded-xl p-4 w-[800px]">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-blue-500">오늘의 이슈</h2>
         <button
@@ -36,7 +36,7 @@ export default function TodayIssuePreview() {
           더보기
         </button>
       </div>
-      <ol className="space-y-2">
+      <ol className="space-y-4">
         {clusters.map((cluster, i) => (
           <li key={cluster.cluster_id} className="flex items-center gap-2">
             <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
