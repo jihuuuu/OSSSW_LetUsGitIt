@@ -55,7 +55,7 @@ export default function DashboardPage() {
   return (
     
     <div className="min-h-screen flex flex-col justify-start">
-          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
+          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-10">
             <div className="flex items-center">
               <Logo />
             </div>

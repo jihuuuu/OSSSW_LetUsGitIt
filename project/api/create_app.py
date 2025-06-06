@@ -8,7 +8,7 @@ from starlette.concurrency import run_in_threadpool
 from clustering.pipeline_by_topic import run_all_topics_pipeline
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
+#from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
 from database.connection import SessionLocal
 from collector.rss_collector import parse_and_store
 
@@ -44,11 +44,12 @@ def hourly_clustering():
         print(f"⚠️ [Pipeline] 토픽별 파이프라인 중 에러 발생: {e}")
 
     # 사용자별 스크랩 기반 지식맵 추가
+    """ 
     db = SessionLocal()
     try:
         generate_user_scrap_knowledge_maps(db)
     finally:
-        db.close()
+        db.close()"""
 
 def create_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()

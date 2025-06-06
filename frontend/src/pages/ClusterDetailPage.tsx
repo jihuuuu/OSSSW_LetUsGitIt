@@ -135,17 +135,15 @@ const handleCreateNotePage = () => {
   });
 };
   return (
-    <div className="min-h-screen bg-white">
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
-        <div className="px-2 py -1">
-                  <Header />
-                </div>
-      </header>
-
+     <div className="min-h-screen flex flex-col justify-start">
+           <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Logo />
+              </div>
+              <div className="px-2 py-1">
+                <Header />
+              </div>
+            </header>
       <main className="max-w-4xl mx-auto p-6">
         {cluster ? (
           <>
@@ -235,38 +233,39 @@ const handleCreateNotePage = () => {
 
             {/* Sticky note button */}
             <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-              {noteMode ? (
-                <button
-                  onClick={handleCreateNotePage}
-                  className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-                  >
-                  note
-              </button>
-              ) : (
-            <div className="flex items-center">
-            <button
-            onClick={() => setNoteMode(true)}
-            className="w-12 h-12 rounded-full border text-2xl shadow"
-        >
-      ✏️
-      </button>
-  {/* 기존 noteMode와 별도로 새로운 버튼 */}
+{noteMode ? (
+  <div className="flex items-center">
     <button
-    className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
-    onClick={() => {
-      const selectedIds = getSelectedArticles();
-      const selected = cluster?.articles.filter((a) =>
-        selectedIds.includes(a.id)
-      );
-      navigate("/notes", {
-        state: { newArticles: selected },
-      });
-    }}
-  >
-    ➕ 기존 노트에 추가
-  </button>
-</div>
-              )}
+      onClick={handleCreateNotePage}
+      className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
+    >
+      note
+    </button>
+    <button
+      className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+      onClick={() => {
+        const selectedIds = getSelectedArticles();
+        const selected = cluster?.articles.filter((a) =>
+          selectedIds.includes(a.id)
+        );
+        navigate("/users/notes", {
+          state: { mode: "select-note", newArticles: selected },
+        });
+      }}
+    >
+      ➕ 기존 노트에 추가
+    </button>
+  </div>
+) : (
+  <div className="flex items-center">
+    <button
+      onClick={() => setNoteMode(true)}
+      className="w-12 h-12 rounded-full border text-2xl shadow"
+    >
+      ✏️
+    </button>
+  </div>
+)}
             </div>
           </>
         ) : (

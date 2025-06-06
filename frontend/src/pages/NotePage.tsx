@@ -18,6 +18,7 @@ export default function NotePage() {
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const mode = location.state?.mode || "view"; // 기본 모드는 'view'
   const incomingArticles = location.state?.newArticles || [];
 
   const size = 10;
@@ -48,13 +49,22 @@ export default function NotePage() {
   };
 
   const handleSelect = (note: Note) => {
+  // 👇 모드에 따라 다르게 처리
+  if (mode === "select-note") {
     navigate(`/notes/${note.id}/edit`, {
-    state: {
-      note,
-      newArticles: incomingArticles,
-    },
-  });
-  };
+      state: {
+        note,
+        newArticles: incomingArticles,
+      },
+    });
+  } else {
+    navigate(`/notes/${note.id}/edit`, {
+      state: {
+        note,
+      },
+    });
+  }
+};
 
   const handleDelete = async (noteId: number) => {
     const confirmDelete = window.confirm("정말 이 노트를 삭제하시겠습니까?");
@@ -108,6 +118,7 @@ export default function NotePage() {
             notes={notes}
             onSelect={handleSelect}
             onDelete={handleDelete}
+            mode={mode}
           />
         </div>
 
