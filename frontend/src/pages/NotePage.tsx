@@ -18,6 +18,7 @@ export default function NotePage() {
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const mode = location.state?.mode || "view"; // 기본 모드는 'view'
   const incomingArticles = location.state?.newArticles || [];
 
   const size = 10;
@@ -48,13 +49,22 @@ export default function NotePage() {
   };
 
   const handleSelect = (note: Note) => {
+  // 👇 모드에 따라 다르게 처리
+  if (mode === "select-note") {
     navigate(`/notes/${note.id}/edit`, {
-    state: {
-      note,
-      newArticles: incomingArticles,
-    },
-  });
-  };
+      state: {
+        note,
+        newArticles: incomingArticles,
+      },
+    });
+  } else {
+    navigate(`/notes/${note.id}/edit`, {
+      state: {
+        note,
+      },
+    });
+  }
+};
 
   const handleDelete = async (noteId: number) => {
     const confirmDelete = window.confirm("정말 이 노트를 삭제하시겠습니까?");
@@ -79,17 +89,17 @@ export default function NotePage() {
 
   return (
     <>
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">NOTE</h1>
-        <div className="px-2 py-1">
-          <Header />
-        </div>
-      </header>
+      <div className="min-h-screen flex flex-col justify-start">
+            <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
+              <div className="flex items-center">
+                <Logo />
+              </div>
+              <div className="px-2 py -1">
+                <Header />
+              </div>
+            </header>
 
-      <main className="min-h-screen px-6 py-10 pr-[400px] flex flex-col items-center">
+      <main className="min-h-screen flex flex-col items-center">
         <div className="w-full max-w-4xl bg-[#ebf2ff] rounded-lg p-10 flex flex-col items-center gap-6">
           <p className="text-gray-500 text-center text-[16px]">노트 제목을 입력하세요</p>
           <div className="flex w-full max-w-sm items-center gap-2">
@@ -103,11 +113,12 @@ export default function NotePage() {
           </div>
         </div>
 
-        <div className="w-full max-w-2xl space-y-4 my-12">
+        <div className="w-full space-y-4 my-12">
           <NoteAccordionList
             notes={notes}
             onSelect={handleSelect}
             onDelete={handleDelete}
+            mode={mode}
           />
         </div>
 
@@ -119,6 +130,7 @@ export default function NotePage() {
           />
         </div>
       </main>
+      </div>
     </>
   );
 }
