@@ -182,7 +182,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 🆕 새 노트 생성 */}
-  {!noteMode && (
+  {noteMode && (
     <button
       className="px-4 py-2 bg-blue-500 text-white rounded-full shadow text-sm"
       onClick={() => {
@@ -205,7 +205,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 📌 기존 노트에 추가 */}
-  {!noteMode && (
+  {noteMode && (
     <button
       className="px-4 py-2 bg-green-500 text-white rounded-full shadow text-sm"
       onClick={() => {
