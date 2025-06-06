@@ -54,22 +54,20 @@ export default function DashboardPage() {
 
   return (
     
-    <div className="min-h-screen bg-white">
-      {/* ✅ 상단 헤더 */}
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">DASHBOARD</h1>
-        <div className="px-2 py -1">
-          <Header />
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col justify-start">
+          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
+            <div className="flex items-center">
+              <Logo />
+            </div>
+            <div className="px-2 py -1">
+              <Header />
+            </div>
+          </header>
 
       {/* ✅ 본문 (세로 정렬) */}
-      <main className="px-6 py-10 flex flex-col items-center gap-10">
+      <main className="px-6 flex flex-col items-center gap-10">
         {/* ✅ 지식맵 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">MY KNOWLEDGE-MAP</h2>
           </div>
@@ -83,7 +81,7 @@ export default function DashboardPage() {
         </section>
 
         {/* ✅ 스크랩 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">SCRAP</h2>
             <Button
@@ -114,7 +112,7 @@ export default function DashboardPage() {
         </section>
 
         {/* ✅ 노트 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">NOTE</h2>
             <Button

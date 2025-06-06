@@ -92,7 +92,7 @@ const handleCreateNotePage = () => {
 };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
       {/* 상단 헤더 */}
       <header className="relative bg-sky-400 h-20 flex items-center px-6">
         <div className="px-2 py-1">
@@ -182,20 +182,34 @@ const handleCreateNotePage = () => {
       ✏️
       </button>
   {/* 기존 noteMode와 별도로 새로운 버튼 */}
-    <button
+    {!noteMode ?(
+      <button
     className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
     onClick={() => {
       const selectedIds = getSelectedArticles();
       const selected = articles.filter((a) =>
         selectedIds.includes(a.id)
       );
-      navigate("/notes", {
-        state: { newArticles: selected },
-      });
     }}
   >
     ➕ 기존 노트에 추가
   </button>
+    ):(
+      <button
+    className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+    onClick={() => {
+      const selectedIds = getSelectedArticles();
+      const selected = articles.filter((a) =>
+        selectedIds.includes(a.id)
+      );
+      navigate("/users/notes", {
+        state: { newArticles: selected },
+      });
+    }}
+  ></button>
+    )
+  }
+    
 </div>
               )}
             </div>

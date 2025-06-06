@@ -136,15 +136,14 @@ const handleCreateNotePage = () => {
 };
   return (
     <div className="min-h-screen bg-white">
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
-        <div className="px-2 py -1">
-                  <Header />
-                </div>
-      </header>
+      <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Logo />
+              </div>
+              <div className="px-2 py -1">
+                <Header />
+              </div>
+            </header>
 
       <main className="max-w-4xl mx-auto p-6">
         {cluster ? (
