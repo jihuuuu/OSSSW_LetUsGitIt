@@ -1,5 +1,5 @@
 # clustering/pipeline.py
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from database.connection import SessionLocal
 from models.article import ClusterKeyword, Keyword
 import numpy as np
@@ -8,25 +8,37 @@ from collections import Counter
 from clustering.keyword_extractor import extract_top_keywords
 from clustering.cache import load_embedding_cache, save_embedding_cache
 from clustering.embedder import make_embeddings, preprocess_text
-from collector.rss_collector import fetch_texts_with_ids, fetch_all_texts
+from collector.rss_collector import fetch_texts_with_ids_by_topic, fetch_all_texts
 import time
 from umap import UMAP
+import os
 from clustering.cluster import (
     load_embeddings, run_kmeans, run_dbscan, run_hdbscan,
     save_clusters_to_db, fetch_article_ids
 )
-from collector.rss_collector import fetch_texts_with_ids, fetch_all_texts
+from models.topic import TopicEnum
 
 
 def run_embedding_stage(
-    *, limit: int | None = None, batch_size: int = 32,
-    since_hours: int = 24, id_path: str = "data/article_ids_768.npy",
-    emb_path: str = "data/article_embeddings_768.npy",
-):
+    topic: TopicEnum, since_hours: int = 24,
+    data_dir: str = "data", batch_size: int = 32,
+) -> Tuple[np.ndarray, List[int], List[str], List[str]] | None:
+    """
+    1) 특정 topic 기사 ID와 원문 리스트(fetched within since_hours) 가져오기
+    2) 전처리→캐시 로드→새 임베딩 생성→캐시 업데이트
+    3) 토픽별로 id_path, emb_path를 "data/{topic}_ids.npy", "data/{topic}_embs.npy"로 관리
+    """
+
+    # 1) 토픽별 파일 경로 생성 (토픽 이름에 따라 파일명 동적 지정)
+    # 예: "data/정치_ids.npy", "data/정치_embs.npy"
+    os.makedirs(data_dir, exist_ok=True)
+    id_path = os.path.join(data_dir, f"{topic.value}_ids_768.npy")
+    emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
+
     # 1) 지난 since_hours 기사와 텍스트
-    rows = fetch_texts_with_ids(since_hours=since_hours)
+    rows = fetch_texts_with_ids_by_topic(topic=topic, since_hours=since_hours)
     if not rows:
-        print("⚠️ 분석할 기사 텍스트가 없습니다.")
+        print(f"♨️ [{topic.value}] 기사 없음 → 건너뜀")
         return None
 
     ids_window, raw_texts = zip(*rows)

@@ -56,6 +56,7 @@ export default {
         "single-line-body-base": "var(--single-line-body-base-font-family)",
         subheading: "var(--subheading-font-family)",
         "title-page": "var(--title-page-font-family)",
+        inter: ['Inter', 'sans-serif'],
         sans: [
           "ui-sans-serif",
           "system-ui",
