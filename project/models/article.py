@@ -85,13 +85,13 @@ class TrendKeyword(Base):
     
     keyword = relationship("Keyword", back_populates="trend_keywords")
 
-# 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
-class TodayKeywordHourly(Base):
-    __tablename__ = "today_keyword_hourly"
+#  # 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
+# class TodayKeywordHourly(Base):
+#     __tablename__ = "today_keyword_hourly"
 
-    id = Column(BigInteger, primary_key=True, index=True)
-    time_window_start = Column(DateTime(timezone=True), nullable=False, index=True)
-    count = Column(Integer, nullable=False)  # 지난 24시간 동안안 등장한 횟수
-    keyword_id = Column(BigInteger, ForeignKey("keyword.id"), nullable=False)
+#     id = Column(BigInteger, primary_key=True, index=True)
+#     time_window_start = Column(DateTime(timezone=True), nullable=False, index=True)
+#     count = Column(Integer, nullable=False)  # 지난 24시간 동안안 등장한 횟수
+#     keyword_id = Column(BigInteger, ForeignKey("keyword.id"), nullable=False)
 
-    keyword = relationship("Keyword", back_populates="today_keywords")
+#     keyword = relationship("Keyword", back_populates="today_keywords")

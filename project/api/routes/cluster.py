@@ -8,6 +8,7 @@ from pydantic import BaseModel, HttpUrl
 from operator import attrgetter
 from api.schemas.cluster import *
 from models.topic import TopicEnum
+from api.utils.cluster import fetch_top_clusters
 
 router = APIRouter()
 
@@ -17,31 +18,7 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
-    base_q = db.query(Cluster).filter(Cluster.created_at >= cutoff)
-    # 2) 최신순으로 50개 클러스터만 추출하는 서브쿼리 생성
-    subq = (
-        base_q
-          .order_by(Cluster.created_at.desc())
-          .limit(50)
-          .subquery()
-    )
-
-    # 3) 서브쿼리를 Cluster 엔티티로 다시 매핑(aliased 사용)
-    ClusterAlias = aliased(Cluster, subq)
-
-    # 4) 서브쿼리 결과(최신 50개)에 대해 num_articles 기준으로 정렬 후 최종 20개 조회
-    top_clusters: List[Cluster] = (
-        db.query(ClusterAlias)
-          .options(
-              joinedload(ClusterAlias.cluster_article).joinedload(ClusterArticle.article),
-              joinedload(ClusterAlias.cluster_keyword).joinedload(ClusterKeyword.keyword)
-          )
-          .order_by(ClusterAlias.num_articles.desc())           # num_articles 내림차순
-          .limit(20)
-          .all()
-    )
-
+    top_clusters = fetch_top_clusters(db, hours=1, recent_limit=50, topn_by_num=20, topic=topic)
     if not top_clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
@@ -121,6 +98,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
 
     return {
         "cluster_id": cluster_id,
+        "topic": cl.topic.value,
         "keywords": keyword_list,
         "articles": article_dicts,
     }
@@ -132,27 +110,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
 
 def get_keywords_today(topic: TopicEnum | None = None, db: Session = Depends(get_db)):
 
-    # 1) 시간 필터: 24시간 전
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
-
-    # 2) Cluster → ClusterKeyword → Keyword 한 번에 로드
-    clusters = (
-        db.query(Cluster)
-          .options(
-              joinedload(Cluster.cluster_keyword).joinedload(ClusterKeyword.keyword)
-          )
-          .filter(Cluster.created_at >= cutoff)
-    )
-    if topic is not None:
-        clusters = clusters.filter(Cluster.topic == topic)
-
-    clusters = (
-        clusters
-          .order_by(Cluster.created_at.desc())
-          .limit(20)
-          .all()
-    )
-
+    clusters = fetch_top_clusters(db, hours=1, recent_limit=50, topn_by_num=20, topic=topic)
     result: List[KeywordsTodayOut] = []
     for cl in clusters:
         kws: List[KeywordCount] = []
@@ -173,6 +131,7 @@ def get_keywords_today(topic: TopicEnum | None = None, db: Session = Depends(get
             kws.append(KeywordCount(keyword=name, article_count=cnt))
         result.append(KeywordsTodayOut(
             cluster_id=cl.id,
+            topic=cl.topic.value,
             created_at=cl.created_at,
             keywords=kws
         ))
