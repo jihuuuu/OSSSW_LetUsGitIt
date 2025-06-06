@@ -26,7 +26,10 @@ export default function ScrapbookPage() {
   const mode = location.state?.mode;
   const originNoteId = location.state?.originNoteId;
   const preselected = location.state?.selectedArticles || [];
-
+  {/* 🧠 선택된 기사 배열 */}
+  const selected = articles.filter((a) =>
+    getSelectedArticles().includes(a.id)
+  );
 
   const fetchScrapArticles = async () => {
     try {
@@ -165,54 +168,72 @@ const handleCreateNotePage = () => {
         </div>
 
   {/* Sticky note button */}
-            <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-              {noteMode ? (
-                <button
-                  onClick={handleCreateNotePage}
-                  className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-                  >
-                    {mode === "edit-note" ? "➕ 현재 노트에 추가" : "note"}
-              </button>
-              ) : (
-            <div className="flex items-center">
-            <button
-            onClick={() => setNoteMode(true)}
-            className="w-12 h-12 rounded-full border text-2xl shadow"
-        >
+            {/* 🧩 하단 통합 버튼 영역 */}
+<div className="sticky bottom-4 flex justify-end pr-4 mt-6 space-x-2">
+
+  {/* ✏️ 체크박스 모드 진입 */}
+  {!noteMode && (
+    <button
+      onClick={() => setNoteMode(true)}
+      className="w-12 h-12 rounded-full border text-2xl shadow"
+    >
       ✏️
-      </button>
-  {/* 기존 noteMode와 별도로 새로운 버튼 */}
-    {!noteMode ?(
-      <button
-    className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
-    onClick={() => {
-      const selectedIds = getSelectedArticles();
-      const selected = articles.filter((a) =>
-        selectedIds.includes(a.id)
-      );
-    }}
-  >
-    ➕ 기존 노트에 추가
-  </button>
-    ):(
-      <button
-    className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
-    onClick={() => {
-      const selectedIds = getSelectedArticles();
-      const selected = articles.filter((a) =>
-        selectedIds.includes(a.id)
-      );
-      navigate("/users/notes", {
-        state: { newArticles: selected },
-      });
-    }}
-  ></button>
-    )
-  }
-    
+    </button>
+  )}
+
+  {/* 🆕 새 노트 생성 */}
+  {!noteMode && (
+    <button
+      className="px-4 py-2 bg-blue-500 text-white rounded-full shadow text-sm"
+      onClick={() => {
+        if (selected.length === 0) {
+          alert("기사를 선택해주세요.");
+          return;
+        }
+
+        const defaultText = selected
+          .map((a) => `• ${a.title}\n${a.link}`)
+          .join("\n\n");
+
+        navigate("/note/new", {
+          state: { defaultText, articles: selected },
+        });
+      }}
+    >
+      🆕 새 노트 생성
+    </button>
+  )}
+
+  {/* 📌 기존 노트에 추가 */}
+  {!noteMode && (
+    <button
+      className="px-4 py-2 bg-green-500 text-white rounded-full shadow text-sm"
+      onClick={() => {
+        if (selected.length === 0) {
+          alert("기사를 선택해주세요.");
+          return;
+        }
+
+        navigate("/users/notes", {
+          state: { newArticles: selected },
+        });
+      }}
+    >
+      ➕ 기존 노트에 추가
+    </button>
+  )}
+
+  {/* 🔄 현재 편집 중인 노트에 추가 (edit-note 모드일 때만) */}
+  {noteMode && mode === "edit-note" && (
+    <button
+      onClick={handleCreateNotePage}
+      className="px-4 py-2 bg-sky-500 text-white rounded-full shadow text-sm"
+    >
+      ➕ 현재 노트에 추가
+    </button>
+  )}
+
 </div>
-              )}
-            </div>
       </main>
     </div>
   );

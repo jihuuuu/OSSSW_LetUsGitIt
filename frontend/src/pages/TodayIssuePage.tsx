@@ -121,15 +121,16 @@ const handleAddToExistingNote = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="h-15 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                <Logo />
-              </div>
-              <h1 className="text-white text-3xl font-bold mx-auto">오늘의 이슈 10</h1>
-              <div className="px-2 py -1">
-                <Header />
-              </div>
-            </header>
+      {/* 헤더 */}
+      <header className="relative bg-sky-400 h-20 flex items-center px-6">
+        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
+          <Logo />
+        </div>
+        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
+        <div className="px-2 py -1">
+           <Header />
+        </div>
+      </header>
 
       {/* 본문 */}
       <main className="px-6 py-8 space-y-6">
@@ -210,4 +211,3 @@ const handleAddToExistingNote = () => {
 function setNoteMode(arg0: boolean) {
   throw new Error("Function not implemented.");
 }
-
