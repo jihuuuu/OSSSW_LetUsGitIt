@@ -52,3 +52,6 @@ htmlcov/
 data/article_embeddings.npy
 data/article_ids.npy
 project/data/*.npy
+
+# Temporary files
+node_modules/
