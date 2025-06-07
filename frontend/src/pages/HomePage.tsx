@@ -4,8 +4,10 @@ import WeeklyIssuePreview from "@/components/card/WeeklyIssueCard";
 import {TodayKeywordPreview} from "@/components/card/TodayKeywordCard"; // ★ 추가
 import Logo from "@/components/ui/logo";
 import Header from "@/components/Header";
-
+import useLogoutWatcher from "@/hooks/useLogoutWatcher"; // 로그아웃 감지 훅
 export default function HomePage() {
+
+  useLogoutWatcher();
   return (
 
     <div className="min-h-screen flex flex-col justify-start">
@@ -23,18 +25,16 @@ export default function HomePage() {
       </div>
 
       {/* 오늘의 키워드 + 뉴스 트렌드 나란히 */}
-      <div className="px-10"> {/* 양쪽 padding */}
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* 왼쪽 */}
-        <div className="flex-1 bg-white shadow-md rounded-xl p-6">
-          <TodayKeywordPreview />
-        </div>
-        {/* 오른쪽 */}
-        <div className="flex-1">
-          <WeeklyIssuePreview />
-      </div>
+      <main className="w-full max-w-8xl mx-auto px-6">
+  <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex-1 min-w-0 bg-white shadow-md rounded-xl p-6">
+      <TodayKeywordPreview />
     </div>
-      </div>
+    <div className="flex-1 min-w-0 bg-white shadow-md rounded-xl p-6">
+      <WeeklyIssuePreview />
+    </div>
+  </div>
+</main>
       </div>
     );
 }

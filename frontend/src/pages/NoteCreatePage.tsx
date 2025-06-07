@@ -2,8 +2,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { Article } from "@/types/article";
 import { clearSelectedArticles } from "@/utils/selectedArticles";
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 
 export default function NoteCreatePage() {
+  useLogoutWatcher();
   const location = useLocation();
   const navigate = useNavigate();
 

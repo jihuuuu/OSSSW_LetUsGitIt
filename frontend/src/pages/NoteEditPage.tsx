@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getArticlesByNoteId } from "@/services/note";
 import type { Article } from "@/types/article";
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 
 export default function NoteEditPage() {
+  useLogoutWatcher
   const { noteId } = useParams();
   const id=Number(noteId);
   const navigate = useNavigate();
