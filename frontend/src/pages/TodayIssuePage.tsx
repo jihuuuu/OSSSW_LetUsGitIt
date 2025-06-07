@@ -177,33 +177,9 @@ const handleAddToExistingNote = () => {
             </div>
           </section>
         ))}
-      </main>
-      <div className="sticky bottom-4 right-4 flex justify-end mt-6 pr-4">
-  {noteMode ? (
-    <div className="flex gap-2">
-      <button
-        onClick={handleCreateNote}
-        className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-      >
-        ✏️ 새 노트 작성
-      </button>
-      <button
-        onClick={handleAddToExistingNote}
-        className="px-4 py-2 bg-green-500 text-white rounded-full shadow"
-      >
-        ➕ 기존 노트에 추가
-      </button>
-    </div>
-  ) : (
-    <button
-      onClick={() => setNoteMode(true)}
-      className="w-12 h-12 rounded-full border text-2xl shadow"
-    >
-      ✏️
-    </button>
-  )}
-</div>
-    </div>
-  );
-}
-
+            </main>
+          </div>
+        );
+      }
+      
+ 

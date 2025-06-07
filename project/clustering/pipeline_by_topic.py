@@ -20,10 +20,26 @@ def run_all_topics_pipeline(
     since_hours: Optional[int] = 24,
     data_dir: str = "data"
 ):
+    # 토픽별 커스텀 파라미터 맵 (필요한 만큼 추가/수정)
+    topic_params: Dict[TopicEnum, Dict[str, float]] = {
+        TopicEnum.정치:   {"k": 12},
+        TopicEnum.경제: {"k": 10},
+        TopicEnum.스포츠:   {"k": 24},
+        TopicEnum.국제: {"k": 7},
+        TopicEnum.문화:   {"k": 28},
+        TopicEnum.사회: {"k": 18}
+        # 나머지 토픽은 args 기본값 사용
+    }
+
     """
     모든 토픽 순회하며 순차적으로 임베딩, 클러스터링, 키워드 추출 단계를 실행합니다.
     """
     for topic in TopicEnum:
+        # 기본값과 오버라이드를 합침
+        base = {"k": k, "eps": eps, "min_samples": min_samples}
+        override = topic_params.get(topic, {})
+        params = {**base, **override}
+        
         print(f"\n===== [{topic.value}] 파이프라인 시작 =====")
 
         # 1) 임베딩 단계
@@ -42,16 +58,15 @@ def run_all_topics_pipeline(
         # emb_path 생성 (토픽별 .npy 임베딩 파일 경로)
         emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
 
-        # 2) 클러스터링 단계
         labels, cluster_to_docs, label_to_cluster_id = run_clustering_stage(
             emb_path=emb_path,
             ids_window=ids_window,
             raw_texts=raw_texts,
             cleaned_texts=cleaned_texts,
             method=clustering_method,
-            n_clusters=k,
-            eps=eps,
-            min_samples=min_samples,
+            n_clusters=params["k"],
+            eps=params["eps"],
+            min_samples=params["min_samples"],
             topic=topic,
             save_db=True
         )

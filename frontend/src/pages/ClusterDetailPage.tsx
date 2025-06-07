@@ -10,7 +10,7 @@ import type { Article } from "@/types/article";
 // import needed functions or objects from articleUtils, e.g.:
 import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
-
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
@@ -31,7 +31,12 @@ export default function ClusterDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const accessToken = localStorage.getItem("accessToken");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [accessToken, setAcessToken] = useState<string | null>(null);
+
+
+  useLogoutWatcher();
+
 
   useEffect(() => {
     axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
@@ -42,7 +47,7 @@ export default function ClusterDetailPage() {
     try {
       const res = await axios.get("http://localhost:8000/users/scraps", {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${isLoggedIn}`,
         },
       });
 
@@ -135,7 +140,7 @@ const handleCreateNotePage = () => {
   });
 };
   return (
-     <div className="min-h-screen flex flex-col justify-start">
+     <div className="min-h-screen flex flex-col  justify-start">
            <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
               <div className="flex items-center">
                 <Logo />
@@ -144,7 +149,7 @@ const handleCreateNotePage = () => {
                 <Header />
               </div>
             </header>
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
             <h2 className="text-center text-2xl font-bold my-6">
@@ -158,29 +163,31 @@ const handleCreateNotePage = () => {
                   <li key={article.id} className="py-4 flex justify-between items-start gap-4">
                     <div className="flex flex-col text-left flex-1">
                       {noteMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedArticles.has(article.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              addSelectedArticle(article.id);
-                            } else {
-                            removeSelectedArticle(article.id);
-                      }
-                            setSelectedArticles((prev) => {
-                              const updated = new Set(prev);
-                              e.target.checked
-                                ? updated.add(article.id)
-                                : updated.delete(article.id);
-                              return updated;
-                            });
-                          }}
-                          className="mb-1"
-                        />
+                        <label className="flex items-center mb-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedArticles.has(article.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                addSelectedArticle(article.id);
+                              } else {
+                                removeSelectedArticle(article.id);
+                              }
+                              setSelectedArticles((prev) => {
+                                const updated = new Set(prev);
+                                e.target.checked
+                                  ? updated.add(article.id)
+                                  : updated.delete(article.id);
+                                return updated;
+                              });
+                            }}
+                            className="w-5 h-5 mb-1"
+                          />
+                        </label>
                       )}
                       <p
                         onClick={() => window.open(article.link, "_blank")}
-                        className="text-sm font-medium text-blue-700 hover:underline cursor-pointer mb-1"
+                        className="text-base font-medium text-blue-700 hover:underline cursor-pointer mb-1"
                       >
                         • {article.title}
                       </p>
@@ -233,40 +240,65 @@ const handleCreateNotePage = () => {
 
             {/* Sticky note button */}
             <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-{noteMode ? (
-  <div className="flex items-center">
-    <button
-      onClick={handleCreateNotePage}
-      className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-    >
-      note
-    </button>
-    <button
-      className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
-      onClick={() => {
-        const selectedIds = getSelectedArticles();
-        const selected = cluster?.articles.filter((a) =>
-          selectedIds.includes(a.id)
-        );
-        navigate("/users/notes", {
-          state: { mode: "select-note", newArticles: selected },
-        });
-      }}
-    >
-      ➕ 기존 노트에 추가
-    </button>
+{isLoggedIn && (
+  <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+    {noteMode ? (
+      <div className="flex items-center">
+        <button
+          onClick={handleCreateNotePage}
+          className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
+        >
+          🆕 새 노트 생성
+        </button>
+        <button
+          className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+          onClick={() => {
+            const selectedIds = getSelectedArticles();
+            const selected = cluster?.articles.filter((a) =>
+              selectedIds.includes(a.id)
+            );
+            navigate("/users/notes", {
+              state: { mode: "select-note", newArticles: selected },
+            });
+          }}
+        >
+          ➕ 기존 노트에 추가
+        </button>
+        <button
+          className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
+          onClick={() => {
+            setNoteMode(false);
+            setSelectedArticles(new Set());
+            getSelectedArticles().forEach((id) => removeSelectedArticle(id));
+          }}
+        >
+          ❌ 취소
+        </button>
+      </div>
+    ) : (
+      <div className="flex items-center">
+        <button
+          onClick={() => setNoteMode(true)}
+          className="w-12 h-12 rounded-full border text-2xl shadow"
+        >
+          ✏️
+        </button>
+      </div>
+    )}
   </div>
-) : (
+)}
+{!isLoggedIn && (
   <div className="flex items-center">
     <button
-      onClick={() => setNoteMode(true)}
-      className="w-12 h-12 rounded-full border text-2xl shadow"
+      onClick={() => navigate("/login")}
+      className="px-4 py-2 bg-blue-500 text-white rounded-full shadow"
     >
-      ✏️
+      📝 로그인 후 사용가능
     </button>
   </div>
 )}
             </div>
+            
           </>
         ) : (
           <p className="text-center text-gray-500 mt-20">불러오는 중...</p>

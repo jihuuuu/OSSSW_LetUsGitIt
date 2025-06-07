@@ -97,18 +97,18 @@ const handleCreateNotePage = () => {
   return (
     <div>
       {/* 상단 헤더 */}
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="px-2 py-1">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">SCRAPBOOK</h1>
-        <div className="px-2 py-1">
-          <Header />
-        </div>
-      </header>
+      <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-5">
+                    <div className="flex items-center">
+                      <Logo />
+                    </div>
+                    <h1 className="font-bold text-3xl">SCRAP BOOK</h1>
+                    <div className="px-2 py-1">
+                      <Header />
+                    </div>
+                  </header>
 
       {/*  본문 */}
-      <main className="px-6 py-10 flex flex-col items-center">
+      <main className="w-[80%]  mx-auto flex flex-col items-center">
         <div className="w-full max-w-4xl bg-[#ebf2ff] rounded-lg p-10 flex flex-col items-center gap-6">
           <p className="text-gray-500 text-center text-[16px]">
             기사 제목을 입력하세요
@@ -144,6 +144,7 @@ const handleCreateNotePage = () => {
             return updated;
           });
         }}
+        className="w-5 h-5 mb-1"
       />
     )}
 
@@ -151,7 +152,7 @@ const handleCreateNotePage = () => {
       href={a.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 hover:underline"
+      className="text-blue-600 text-lg hover:underline"
     >
       {a.title}
     </a>
@@ -182,7 +183,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 🆕 새 노트 생성 */}
-  {!noteMode && (
+  {noteMode && (
     <button
       className="px-4 py-2 bg-blue-500 text-white rounded-full shadow text-sm"
       onClick={() => {
@@ -205,7 +206,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 📌 기존 노트에 추가 */}
-  {!noteMode && (
+  {noteMode && (
     <button
       className="px-4 py-2 bg-green-500 text-white rounded-full shadow text-sm"
       onClick={() => {
@@ -220,6 +221,21 @@ const handleCreateNotePage = () => {
       }}
     >
       ➕ 기존 노트에 추가
+    </button>
+  )}
+
+  {/* ❌ 체크박스 모드 종료 */}
+   {noteMode && (
+    <button
+      className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
+      onClick={() => {
+        setNoteMode(false);
+        setSelectedArticles(new Set()); // 선택 해제
+        // 모든 선택된 기사 id를 로컬 저장소에서 제거
+        getSelectedArticles().forEach((id) => removeSelectedArticle(id));
+      }}
+    >
+      ❌ 취소
     </button>
   )}
 
