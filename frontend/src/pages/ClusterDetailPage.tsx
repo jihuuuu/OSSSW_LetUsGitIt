@@ -10,7 +10,7 @@ import type { Article } from "@/types/article";
 // import needed functions or objects from articleUtils, e.g.:
 import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
-
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
@@ -34,11 +34,8 @@ export default function ClusterDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accessToken, setAcessToken] = useState<string | null>(null);
 
-useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-  setAcessToken(token);
-  setIsLoggedIn(!!token);
-}, []);
+
+  useLogoutWatcher();
 
 
   useEffect(() => {

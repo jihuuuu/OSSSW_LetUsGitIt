@@ -59,6 +59,9 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <Logo />
             </div>
+            <h1 className="text-white text-4xl font-bold">
+              MY PAGE
+            </h1>
             <div className="px-2 py -1">
               <Header />
             </div>
@@ -118,7 +121,7 @@ export default function DashboardPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/users/notes")}
+              onClick={() => navigate("/users/notes",{ state: { mode: "view" } })}
               className="text-xs text-blue-600 px-2 py-1"
             >
               more+
@@ -126,7 +129,9 @@ export default function DashboardPage() {
           </div>
           <div className="bg-gray-50 border rounded px-4 py-3">
             {notes.length > 0 ? (
-              <NoteAccordionList notes={notes} onSelect={() => {}} />
+              <NoteAccordionList notes={notes} onSelect={() => {}} onDelete={(id) => { const confirmed = window.confirm("삭제하시겠습니까?");
+    if (!confirmed) return;
+    alert("삭제는 노트 페이지에서 가능합니다."); }} />
             ) : (
               <p className="text-sm text-gray-500">작성된 노트가 없습니다.</p>
             )}

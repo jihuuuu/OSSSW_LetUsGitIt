@@ -71,12 +71,16 @@ export default function NotePage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await api.put(`/users/notes/${noteId}`, {
-        state: false, // 소프트 삭제
+      const res = await api.put(`/users/notes/${noteId}/delete`, {
+         title: "",       // or 원래 값
+  text: "",        // or 원래 값
+  article_ids: [], // or 기존 값
+  state: false,    // 추가로 삭제 처리
       });
 
       if (res.data.isSuccess) {
         alert("삭제되었습니다.");
+        setNotes((prev) => prev.filter((n) => n.id !== noteId)); // 즉시 반영
         loadNotes();
       } else {
         alert("삭제 실패: " + (res.data.message || "알 수 없는 오류"));
