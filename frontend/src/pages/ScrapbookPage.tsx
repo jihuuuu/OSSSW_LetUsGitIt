@@ -183,7 +183,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 🆕 새 노트 생성 */}
-  {noteMode && (
+  {noteMode && mode !== "edit-note" && (
     <button
       className="px-4 py-2 bg-blue-500 text-white rounded-full shadow text-sm"
       onClick={() => {
@@ -206,7 +206,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* 📌 기존 노트에 추가 */}
-  {noteMode && (
+  {noteMode && mode!=="edit-note" &&(
     <button
       className="px-4 py-2 bg-green-500 text-white rounded-full shadow text-sm"
       onClick={() => {
@@ -216,7 +216,7 @@ const handleCreateNotePage = () => {
         }
 
         navigate("/users/notes", {
-          state: { newArticles: selected },
+          state: { mode: "select-note", newArticles: selected },
         });
       }}
     >
@@ -225,7 +225,7 @@ const handleCreateNotePage = () => {
   )}
 
   {/* ❌ 체크박스 모드 종료 */}
-   {noteMode && (
+   {noteMode && mode !== "edit-note" && (
     <button
       className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
       onClick={() => {
