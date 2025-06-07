@@ -144,7 +144,7 @@ const handleCreateNotePage = () => {
                 <Header />
               </div>
             </header>
-      <main className="max-w-none mx-auto p-6">
+      <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
             <h2 className="text-center text-2xl font-bold my-6">
@@ -158,29 +158,31 @@ const handleCreateNotePage = () => {
                   <li key={article.id} className="py-4 flex justify-between items-start gap-4">
                     <div className="flex flex-col text-left flex-1">
                       {noteMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedArticles.has(article.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              addSelectedArticle(article.id);
-                            } else {
-                            removeSelectedArticle(article.id);
-                      }
-                            setSelectedArticles((prev) => {
-                              const updated = new Set(prev);
-                              e.target.checked
-                                ? updated.add(article.id)
-                                : updated.delete(article.id);
-                              return updated;
-                            });
-                          }}
-                          className="mb-1"
-                        />
+                        <label className="flex items-center mb-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedArticles.has(article.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                addSelectedArticle(article.id);
+                              } else {
+                                removeSelectedArticle(article.id);
+                              }
+                              setSelectedArticles((prev) => {
+                                const updated = new Set(prev);
+                                e.target.checked
+                                  ? updated.add(article.id)
+                                  : updated.delete(article.id);
+                                return updated;
+                              });
+                            }}
+                            className="w-5 h-5 mb-1"
+                          />
+                        </label>
                       )}
                       <p
                         onClick={() => window.open(article.link, "_blank")}
-                        className="text-sm font-medium text-blue-700 hover:underline cursor-pointer mb-1"
+                        className="text-base font-medium text-blue-700 hover:underline cursor-pointer mb-1"
                       >
                         • {article.title}
                       </p>
@@ -239,7 +241,7 @@ const handleCreateNotePage = () => {
       onClick={handleCreateNotePage}
       className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
     >
-      note
+      🆕 새 노트 생성
     </button>
     <button
       className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
@@ -255,6 +257,18 @@ const handleCreateNotePage = () => {
     >
       ➕ 기존 노트에 추가
     </button>
+    <button
+      className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
+      onClick={() => {
+        setNoteMode(false);
+        setSelectedArticles(new Set()); // 선택 해제
+        // 모든 선택된 기사 id를 로컬 저장소에서 제거
+        getSelectedArticles().forEach((id) => removeSelectedArticle(id));
+      }}
+    >
+      ❌ 취소
+    </button>
+
   </div>
 ) : (
   <div className="flex items-center">

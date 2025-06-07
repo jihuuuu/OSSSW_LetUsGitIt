@@ -43,12 +43,20 @@ export default function Header() {
           </button>
         </>
       ) : (
+        <>
         <button
           onClick={() => navigate("/login")}
           className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
         >
           로그인
         </button>
+        <button
+          onClick={() => navigate("/signup")}
+          className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
+        >
+          회원가입
+        </button>
+        </>
       )}
     </div>
   );
