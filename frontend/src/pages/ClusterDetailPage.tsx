@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 
 import type { Article } from "@/types/article";
+import { useAuth } from "@/context/AuthContext";
 // import needed functions or objects from articleUtils, e.g.:
 import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
@@ -31,8 +32,7 @@ export default function ClusterDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [accessToken, setAcessToken] = useState<string | null>(null);
+  const { isLoggedIn, accessToken } = useAuth();
 
 useEffect(() => {
   const token = localStorage.getItem("accessToken");

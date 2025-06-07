@@ -10,6 +10,7 @@ from database.deps import get_db
 from models.user import User
 from api.schemas.user import UserCreate, UserLogin
 from api.utils.auth import verify_password, get_current_user
+from api.utils.token import create_access_token, create_refresh_token
 from api.config import SECRET_KEY, ALGORITHM
 import re
 
@@ -59,23 +60,6 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
         }
     }
 
-def create_access_token(user_id: int, expires_delta: timedelta):
-    payload = {
-        "sub": str(user_id),
-        "type": "access",
-        "exp": datetime.utcnow() + expires_delta
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-def create_refresh_token(user_id: int):
-    payload = {
-        "sub": str(user_id),
-        "type": "refresh",
-        "exp": datetime.utcnow() + timedelta(days=7)
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-
 @router.post("/login")
 def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
     # username 기준으로 사용자 조회
@@ -92,8 +76,9 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
         )
 
     # 로그인 성공 → 토큰 생성
-    access_token = create_access_token(user_id=db_user.id, expires_delta=timedelta(minutes=15))
-    refresh_token = create_refresh_token(user_id=db_user.id)
+    
+    access_token = create_access_token({"sub": str(db_user.id), "type": "access"})
+    refresh_token = create_refresh_token({"sub": str(db_user.id), "type": "refresh"})
 
     # refresh_token을 httpOnly 쿠키로 저장
     response.set_cookie(
@@ -131,10 +116,15 @@ def refresh_token(request: Request):
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="유효하지 않은 토큰 타입입니다")
         user_id = payload.get("sub")
     except JWTError:
         raise HTTPException(status_code=401, detail="토큰 유효하지 않음")
 
     # user.py의 /refresh 라우트 내부
-    access_token = create_access_token(user_id=int(user_id), expires_delta=timedelta(minutes=15))   
+    access_token = create_access_token({
+        "sub": str(user_id),
+        "type": "access"
+    })
     return {"access_token": access_token}
