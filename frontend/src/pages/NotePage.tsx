@@ -51,16 +51,16 @@ export default function NotePage() {
   const handleSelect = (note: Note) => {
   // 👇 모드에 따라 다르게 처리
   if (mode === "select-note") {
-    navigate(`/notes/${note.id}/edit`, {
+    navigate(`/note/${note.id}/edit`, {
       state: {
         note,
         newArticles: incomingArticles,
       },
     });
   } else {
-    navigate(`/notes/${note.id}/edit`, {
+    navigate(`/note/${note.id}/edit`, {
       state: {
-        note,
+        note
       },
     });
   }
