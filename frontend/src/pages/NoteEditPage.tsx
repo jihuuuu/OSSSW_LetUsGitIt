@@ -12,42 +12,45 @@ export default function NoteEditPage() {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
-//1. 노트 로딩
 useEffect(() => {
   const loadNote = async () => {
     if (!noteId) return;
 
-      const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
+    const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!data?.result) return;
+
+    setTitle(data.result.title || "");
+    setText(data.result.text || "");
+
+    const related = await getArticlesByNoteId(Number(noteId));
+
+    // ✅ 여기서 병합
+    let finalArticles = related;
+    if (location.state?.newArticles) {
+      const incoming = location.state.newArticles as Article[];
+      const merged = [...related];
+      incoming.forEach((article) => {
+        if (!merged.some((a) => a.id === article.id)) {
+          merged.push(article);
+        }
       });
+      finalArticles = merged;
+    }
 
-      const data = await res.json();
-      if (!data?.result) return;
-
-      setTitle(data.result.title || "");
-      setText(data.result.text || "");
-
-      const related = await getArticlesByNoteId(Number(noteId));
-      setArticles(related);
+    setArticles(finalArticles);
   };
 
   loadNote();
-}, [noteId]);
-//2. 새 기사 병합
-useEffect(() => {
-  const incoming = location.state?.newArticles;
-  if (!incoming || !Array.isArray(incoming)) return;
+}, [noteId, location.state?.newArticles]); // newArticles도 의존성에 포함
 
-  setArticles((prev) => {
-    const map = new Map<number, Article>();
-    prev.forEach((a) => map.set(a.id, a));
-    incoming.forEach((a: Article) => map.set(a.id, a));
-    return Array.from(map.values());
-  });
-},  [location.key]);
-  const handleSave = async () => {
+  
+const handleSave = async () => {
     const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       method: "PUT",
       headers: { 

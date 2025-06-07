@@ -1,5 +1,5 @@
 # 📄 tasks/user_scrap_pipeline.py
-from sqlalchemy.orm import Session
+"""from sqlalchemy.orm import Session
 from models.article import Article, Keyword
 from models.scrap import Scrap
 from models.user import User
@@ -92,4 +92,4 @@ def run_user_scrap_knowledge_map(user: User, db: Session):
 def generate_user_scrap_knowledge_maps(db: Session):
     users = db.query(User).all()
     for user in users:
-        run_user_scrap_knowledge_map(user, db)
+        run_user_scrap_knowledge_map(user, db)"""
