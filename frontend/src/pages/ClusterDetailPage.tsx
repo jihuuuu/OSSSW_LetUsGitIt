@@ -31,7 +31,15 @@ export default function ClusterDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const accessToken = localStorage.getItem("accessToken");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [accessToken, setAcessToken] = useState<string | null>(null);
+
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  setAcessToken(token);
+  setIsLoggedIn(!!token);
+}, []);
+
 
   useEffect(() => {
     axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
@@ -42,7 +50,7 @@ export default function ClusterDetailPage() {
     try {
       const res = await axios.get("http://localhost:8000/users/scraps", {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${isLoggedIn}`,
         },
       });
 
@@ -235,52 +243,65 @@ const handleCreateNotePage = () => {
 
             {/* Sticky note button */}
             <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-{noteMode ? (
-  <div className="flex items-center">
-    <button
-      onClick={handleCreateNotePage}
-      className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-    >
-      🆕 새 노트 생성
-    </button>
-    <button
-      className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
-      onClick={() => {
-        const selectedIds = getSelectedArticles();
-        const selected = cluster?.articles.filter((a) =>
-          selectedIds.includes(a.id)
-        );
-        navigate("/users/notes", {
-          state: { mode: "select-note", newArticles: selected },
-        });
-      }}
-    >
-      ➕ 기존 노트에 추가
-    </button>
-    <button
-      className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
-      onClick={() => {
-        setNoteMode(false);
-        setSelectedArticles(new Set()); // 선택 해제
-        // 모든 선택된 기사 id를 로컬 저장소에서 제거
-        getSelectedArticles().forEach((id) => removeSelectedArticle(id));
-      }}
-    >
-      ❌ 취소
-    </button>
-
+{isLoggedIn && (
+  <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+    {noteMode ? (
+      <div className="flex items-center">
+        <button
+          onClick={handleCreateNotePage}
+          className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
+        >
+          🆕 새 노트 생성
+        </button>
+        <button
+          className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+          onClick={() => {
+            const selectedIds = getSelectedArticles();
+            const selected = cluster?.articles.filter((a) =>
+              selectedIds.includes(a.id)
+            );
+            navigate("/users/notes", {
+              state: { mode: "select-note", newArticles: selected },
+            });
+          }}
+        >
+          ➕ 기존 노트에 추가
+        </button>
+        <button
+          className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
+          onClick={() => {
+            setNoteMode(false);
+            setSelectedArticles(new Set());
+            getSelectedArticles().forEach((id) => removeSelectedArticle(id));
+          }}
+        >
+          ❌ 취소
+        </button>
+      </div>
+    ) : (
+      <div className="flex items-center">
+        <button
+          onClick={() => setNoteMode(true)}
+          className="w-12 h-12 rounded-full border text-2xl shadow"
+        >
+          ✏️
+        </button>
+      </div>
+    )}
   </div>
-) : (
+)}
+{!isLoggedIn && (
   <div className="flex items-center">
     <button
-      onClick={() => setNoteMode(true)}
-      className="w-12 h-12 rounded-full border text-2xl shadow"
+      onClick={() => navigate("/login")}
+      className="px-4 py-2 bg-blue-500 text-white rounded-full shadow"
     >
-      ✏️
+      📝 로그인 후 사용가능
     </button>
   </div>
 )}
             </div>
+            
           </>
         ) : (
           <p className="text-center text-gray-500 mt-20">불러오는 중...</p>

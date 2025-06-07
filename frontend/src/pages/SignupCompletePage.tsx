@@ -10,7 +10,7 @@ export default function SignupCompletePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate("/"); // 👉 이동할 경로로 수정
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 제거
   }, [navigate]);
