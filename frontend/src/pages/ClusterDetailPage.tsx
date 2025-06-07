@@ -34,6 +34,11 @@ export default function ClusterDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accessToken, setAcessToken] = useState<string | null>(null);
 
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  setAcessToken(token);
+  setIsLoggedIn(!!token); // 이걸 안 하면 계속 false임!
+}, []);
 
   useLogoutWatcher();
 
@@ -47,7 +52,7 @@ export default function ClusterDetailPage() {
     try {
       const res = await axios.get("http://localhost:8000/users/scraps", {
         headers: {
-          Authorization: `Bearer ${isLoggedIn}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
