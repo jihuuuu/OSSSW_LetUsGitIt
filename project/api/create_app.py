@@ -54,11 +54,6 @@ def hourly_clustering():
 def create_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     # 매시간 정각에 실행되도록 cron 트리거만 등록 (next_run_time 제거)
-    scheduler.add_job(
-        lambda: run_in_threadpool(parse_and_store),
-        trigger="cron",
-        minute=0
-    )  
     scheduler.add_job(hourly_clustering, trigger="cron", minute=0)
     return scheduler
 

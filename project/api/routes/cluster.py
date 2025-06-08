@@ -18,7 +18,7 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
-    top_clusters = fetch_top_clusters(db, hours=1, recent_limit=50, topn_by_num=20, topic=topic)
+    top_clusters = fetch_top_clusters(db, hours=1, recent_limit=99, topn_by_num=20, topic=topic)
     if not top_clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
@@ -110,7 +110,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
 
 def get_keywords_today(topic: TopicEnum | None = None, db: Session = Depends(get_db)):
 
-    clusters = fetch_top_clusters(db, hours=1, recent_limit=50, topn_by_num=20, topic=topic)
+    clusters = fetch_top_clusters(db, hours=1, recent_limit=99, topn_by_num=20, topic=topic)
     result: List[KeywordsTodayOut] = []
     for cl in clusters:
         kws: List[KeywordCount] = []
