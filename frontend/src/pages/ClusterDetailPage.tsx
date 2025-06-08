@@ -32,13 +32,12 @@ export default function ClusterDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const { isLoggedIn, accessToken } = useAuth();
+  const { isLoggedIn, accessToken, login } = useAuth();
 
-useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-  setAcessToken(token);
-  setIsLoggedIn(!!token); // 이걸 안 하면 계속 false임!
-}, []);
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) login(token);
+  }, []);
 
   useLogoutWatcher();
 
@@ -192,9 +191,9 @@ const handleCreateNotePage = () => {
                       )}
                       <p
                         onClick={() => window.open(article.link, "_blank")}
-                        className="text-base font-medium text-blue-700 hover:underline cursor-pointer mb-1"
+                        className="text-base font-medium text-black-700 hover:underline cursor-pointer mb-1"
                       >
-                        • {article.title}
+                        {article.title}
                       </p>
 
                       <a
