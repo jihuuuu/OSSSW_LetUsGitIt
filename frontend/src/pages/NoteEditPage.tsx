@@ -15,8 +15,15 @@ export default function NoteEditPage() {
   const [text, setText] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
 useEffect(() => {
+  console.log("noteId:", noteId);
+  console.log("location.state:", location.state);
+
   const loadNote = async () => {
-    if (!noteId) return;
+    const noteFromState = location.state?.note;
+    if (noteFromState) {
+      setTitle(noteFromState.title || "");
+      setText(noteFromState.text || "");
+    }
 
     const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       headers: {
@@ -31,11 +38,10 @@ useEffect(() => {
     setText(data.result.text || "");
 
     const related = await getArticlesByNoteId(Number(noteId));
-
+    const incoming = location.state?.newArticles as Article[];
     // ✅ 여기서 병합
     let finalArticles = related;
-    if (location.state?.newArticles) {
-      const incoming = location.state.newArticles as Article[];
+    if (incoming?.length) {
       const merged = [...related];
       incoming.forEach((article) => {
         if (!merged.some((a) => a.id === article.id)) {

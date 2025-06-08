@@ -43,13 +43,7 @@ export function NoteAccordionList({ notes, onSelect, onDelete, mode }: NoteAccor
                 onClick={async () => {
                   console.log("편집하려는 note id:", note.id); // ← 이거 찍어보세요
                   await onSelect(note);               // ✅ 노트 선택 처리 먼저
-                  navigate(`/note/${note.id}/edit`, {
-                state: {
-                  note,
-                newArticles: [], // ✅ 최소한 빈 배열이라도 넘겨야 병합 useEffect가 안전하게 동작함
-  },
-});  // ✅ 그 후에 이동
-          }}
+                }}
             className="text-sm text-blue-500 hover:underline"
             >
            편집
