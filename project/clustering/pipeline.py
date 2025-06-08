@@ -35,71 +35,70 @@ def run_embedding_stage(
     id_path = os.path.join(data_dir, f"{topic.value}_ids_768.npy")
     emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
 
-    # 1) 지난 since_hours 기사와 텍스트
+    # 2) 지난 24시간 동안 발행된 topic별 기사 가져오기
     rows = fetch_texts_with_ids_by_topic(topic=topic, since_hours=since_hours)
     if not rows:
-        print(f"♨️ [{topic.value}] 기사 없음 → 건너뜀")
+        print(f"♨️ [{topic.value}] 기사 없음 → 임베딩 단계 스킵")
         return None
 
     ids_window, raw_texts = zip(*rows)
     ids_window = list(ids_window)
     raw_texts = list(raw_texts)
 
-    # 1-1) 전처리 (한 번만!)
+    # 3) 전처리 (한 번만!)
     cleaned_texts = [preprocess_text(t) for t in raw_texts]
     # cleaned_texts[i] 는 ids_window[i] 에 대한 전처리 결과
 
-    # 2) 기존 캐시 로드
+    # 4) 기존 캐시 로드
     cached_ids, cached_embs = load_embedding_cache(id_path, emb_path)
 
-    # 3) 최신 윈도우 내에서 재사용 가능한 인덱스
+    # 5) 캐시와 비교해서 신규로 생성해야 할 ID & 텍스트 추리기
     reused_embs = []
     new_texts = []
     new_ids = []
-    for aid, txt in zip(ids_window, raw_texts):
+    for idx, aid in enumerate(ids_window):
+        # 기존 캐시에 있으면, 그 위치의 embedding을 reused_embs에 담기
         if aid in cached_ids:
             idx = int(np.where(cached_ids == aid)[0][0])
             reused_embs.append(cached_embs[idx])
         else:
             new_ids.append(aid)
-            new_texts.append(txt)
+            new_texts.append(cleaned_texts[idx])
 
-    # 4) 새로운 임베딩 생성: 이미 전처리된 cleaned_texts 중 새로 필요한 부분만
+    # 6) 새로운 임베딩 생성: 이미 전처리된 cleaned_texts 중 새로 필요한 부분만
     if new_texts:
-        # new_ids 와 new_texts 순서에 맞춰 인덱스 뽑기
-        idxs = [ids_window.index(aid) for aid in new_ids]
-        new_cleaned = [cleaned_texts[i] for i in idxs]
-        new_embs = make_embeddings(new_cleaned, batch_size=batch_size)
-        print(f"✅ 신규 {len(new_ids)}개 임베딩 생성")
+        new_embs = make_embeddings(new_texts, batch_size=batch_size)
+        print(f"✅ [{topic.value}] 신규 {len(new_ids)}개 임베딩 생성")
     else:
         new_embs = np.zeros((0, cached_embs.shape[1] if cached_embs.size else new_embs.shape[1]))
-        print("✅ 신규 임베딩 없음, 모두 캐시 재사용")
+        print(f"✅ [{topic.value}] 신규 임베딩 없음, 모두 캐시 재사용")
 
-    # 5) 최종 윈도우 임베딩 배열 재조합
-    final_embs = []
+    # 7) 최종 윈도우 임베딩 배열 재조합
+    final_embs_list = []
     new_idx = 0
     for aid in ids_window:
         if aid in cached_ids:
             idx = int(np.where(cached_ids == aid)[0][0])
-            final_embs.append(cached_embs[idx])
+            final_embs_list.append(cached_embs[idx])
         else:
-            final_embs.append(new_embs[new_idx])
+            final_embs_list.append(new_embs[new_idx])
             new_idx += 1
-    final_embs = np.vstack(final_embs)
+    final_embs = np.vstack(final_embs_list)
     final_ids = np.array(ids_window, dtype=int)
 
-    # 6) 캐시에 덮어쓰기
+    # 8) 캐시에 덮어쓰기
     save_embedding_cache(final_ids, final_embs, id_path, emb_path)
-    print(f"✅ 캐시가 지난 {since_hours}시간 윈도우({len(final_ids)}개)로 갱신되었습니다")
+    print(f"✅ [{topic.value}] 캐시 갱신됨 (since {since_hours}시간) : {len(final_ids)}개")
 
+    # 9) 결과 리턴: (임베딩 배열, ID 리스트, 원문 리스트, 전처리된 텍스트 리스트)
     return final_embs, ids_window, raw_texts, cleaned_texts
 
 
 def run_clustering_stage(
-    emb_path: str, method: str, n_clusters: int | None,
-    eps: float | None, min_samples: int | None, 
-    limit: int | None, save_db: bool, clean_map: Dict[int, str],
-    top_kws : int = 3, model_name: str = 'jhgan/ko-sbert-sts'
+    emb_array: np.ndarray, ids_window: List[int], raw_texts: List[str],
+    cleaned_texts: List[str], emb_path: str, method: str, 
+    n_clusters: int | None, eps: float | None, min_samples: int | None, 
+    save_db: bool, top_kws : int = 3, model_name: str = 'jhgan/ko-sbert-sts'
 ):
     # 1) 임베딩 로드
     embeddings = load_embeddings(emb_path)
@@ -117,13 +116,12 @@ def run_clustering_stage(
     else:  # hdbscan
         labels = run_hdbscan(embeddings, min_cluster_size=n_clusters, min_samples=min_samples)
 
-    # 3) 클러스터 요약 출력
     counts = Counter(labels)
     print("클러스터 요약:")
     for lbl, cnt in counts.items():
         print(f"  - Cluster {lbl}: {cnt} articles")
 
-    # 4) DB에 저장
+    # 3) DB에 저장
     label_to_cluster_id : Dict[int, int] = {}
     if save_db:
         article_ids = fetch_article_ids(limit=limit)
@@ -134,9 +132,12 @@ def run_clustering_stage(
     # 클러스터별 문서 묶음 생성 (키워드 추출용)
     t1 = time.time()
     cluster_to_docs: Dict[int, List[str]] = {}
-    article_ids = fetch_article_ids(limit=limit)
-    for aid, lbl in zip(article_ids, labels):
-        doc = clean_map.get(aid)
+    id_to_raw = dict(zip(ids_window, raw_texts))
+    id_to_clean = dict(zip(ids_window, cleaned_texts))
+    for idx, lbl in enumerate(labels):
+        aid = ids_window[idx]
+        # 전처리된 텍스트가 None이거나 빈 문자열이라면 스킵
+        doc = id_to_clean.get(aid)
         if not doc:   # None 이거나 빈 문자열인 경우
             # 아예 스킵 (None 이 추가되는 걸 방지)
             continue        

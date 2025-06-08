@@ -85,7 +85,7 @@ class TrendKeyword(Base):
     
     keyword = relationship("Keyword", back_populates="trend_keywords")
 
-# 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
+  # 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
 class TodayKeywordHourly(Base):
     __tablename__ = "today_keyword_hourly"
 

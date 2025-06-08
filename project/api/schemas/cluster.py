@@ -11,6 +11,7 @@ class KeywordCount(BaseModel):
 
 class KeywordsTodayOut(BaseModel):
     cluster_id: int
+    topic: str 
     created_at: datetime
     keywords: List[KeywordCount]
 
@@ -35,3 +36,4 @@ class ClusterOut(BaseModel):
     articles: List[ArticleOut]
 
     model_config = ConfigDict(from_attributes=True)
+
