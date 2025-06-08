@@ -34,6 +34,11 @@ export default function ClusterDetailPage() {
 
   const { isLoggedIn, accessToken } = useAuth();
 
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  setAcessToken(token);
+  setIsLoggedIn(!!token); // 이걸 안 하면 계속 false임!
+}, []);
 
   useLogoutWatcher();
 
