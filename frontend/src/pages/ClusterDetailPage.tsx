@@ -242,11 +242,10 @@ const handleCreateNotePage = () => {
               )}
             </div>
 
-            {/* Sticky note button */}
-            <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-{isLoggedIn && (
-  <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-    {noteMode ? (
+{/* Sticky note button */}
+<div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+  {isLoggedIn ? (
+    noteMode ? (
       <div className="flex items-center">
         <button
           onClick={handleCreateNotePage}
@@ -273,35 +272,32 @@ const handleCreateNotePage = () => {
           onClick={() => {
             setNoteMode(false);
             setSelectedArticles(new Set());
-            getSelectedArticles().forEach((id) => removeSelectedArticle(id));
+            getSelectedArticles().forEach((id) =>
+              removeSelectedArticle(id)
+            );
           }}
         >
           ❌ 취소
         </button>
       </div>
     ) : (
-      <div className="flex items-center">
-        <button
-          onClick={() => setNoteMode(true)}
-          className="w-12 h-12 rounded-full border text-2xl shadow"
-        >
-          ✏️
-        </button>
-      </div>
-    )}
-  </div>
-)}
-{!isLoggedIn && (
-  <div className="flex items-center">
+      <button
+        onClick={() => setNoteMode(true)}
+        className="w-12 h-12 rounded-full border text-2xl shadow"
+      >
+        ✏️
+      </button>
+    )
+  ) : (
     <button
       onClick={() => navigate("/login")}
       className="px-4 py-2 bg-blue-500 text-white rounded-full shadow"
     >
       📝 로그인 후 사용가능
     </button>
-  </div>
-)}
-            </div>
+  )}
+</div>
+
             
           </>
         ) : (
