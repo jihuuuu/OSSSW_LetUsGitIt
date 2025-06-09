@@ -13,6 +13,16 @@ from scipy import sparse
 # 기본 data 디렉토리
 DATA_DIR = 'data'
 
+# 토픽별 클러스터링 파라미터 오버라이드
+topic_params = {
+    TopicEnum.정치: {"n_clusters": 12},
+    TopicEnum.경제: {"n_clusters": 10},
+    TopicEnum.스포츠: {"n_clusters": 24},
+    TopicEnum.국제: {"n_clusters": 7},
+    TopicEnum.문화: {"n_clusters": 28},
+    TopicEnum.사회: {"n_clusters": 18}
+}
+
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
@@ -87,6 +97,13 @@ def main():
 
     all_results = {}
     for topic in TopicEnum:
+
+        # 토픽별 파라미터 오버라이드 병합
+        override = topic_params.get(topic, {})
+        n_clusters = override.get('n_clusters', args.n_clusters)
+        eps = override.get('eps', args.eps)
+        min_samples = override.get('min_samples', args.min_samples)
+
         # 1) 임베딩 생성/로딩 + 전처리
         emb_res = run_embedding_stage(
             topic=topic, since_hours=24,
@@ -105,9 +122,9 @@ def main():
             raw_texts=raw_texts,
             cleaned_texts=cleaned_texts,
             method=args.method,
-            n_clusters=args.n_clusters,
-            eps=args.eps,
-            min_samples=args.min_samples,
+            n_clusters=n_clusters,
+            eps=eps,
+            min_samples=min_samples,
             topic=topic,
             save_db=False,
             umap_n_neighbors=args.umap_n_neighbors,
@@ -131,12 +148,13 @@ def main():
         # 4) 클러스터별 로컬 TF × 글로벌 IDF 및 키워드 추출
         for lbl in np.unique(labels):
             docs = [d for d in cluster_to_docs[lbl] if d and isinstance(d, str)]
+            print(f"[{topic.value}] Cluster {lbl}")
             if not docs:
                 metrics = {'HHI':0.0, 'Entropy':0.0, 'Gini':0.0, f'Top{args.top_n}_Ratio':0.0}
                 print(json.dumps({topic.value: {int(lbl): {'keywords':'','metrics':metrics}}}, ensure_ascii=False))
                 continue
             # 키워드 추출
-            kws = extract_top_keywords(documents=docs, cluster_id=lbl, top_n=args.top_n)
+            kws = extract_top_keywords(documents=docs, cluster_id=lbl, top_n=args.top_n, max_features=args.max_features, global_vectorizer=global_vec)
             # 로컬 TF × 글로벌 IDF
             tfidf_local = global_vec.transform(docs)
             X_local = tfidf_local.toarray() if sparse.issparse(tfidf_local) else tfidf_local
