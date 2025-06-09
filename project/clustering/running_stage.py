@@ -131,7 +131,6 @@ def run_clustering_stage(
         label_to_cluster_id = {}
 
     # 클러스터별 문서 묶음 생성 (키워드 추출용)
-    t1 = time.time()
     cluster_to_docs: Dict[int, List[str]] = {}
     for idx, lbl in enumerate(labels):
         aid = ids_window[idx]
@@ -140,7 +139,6 @@ def run_clustering_stage(
             # 아예 스킵 (None 이 추가되는 걸 방지)
             continue        
         cluster_to_docs.setdefault(lbl, []).append(doc)
-    print(f"문서 묶음 생성 시간: {time.time() - t1:.2f}s")
 
     # 6) 리턴: labels, docs 묶음, label→cluster_id 매핑
     return labels, cluster_to_docs, label_to_cluster_id
