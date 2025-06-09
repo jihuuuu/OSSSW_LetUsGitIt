@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+**/__pycache__/
+*.pyc
 
 # Environments
 .venv/
@@ -52,3 +54,4 @@ htmlcov/
 data/article_embeddings.npy
 data/article_ids.npy
 data/*.npy
+project/data/*.npy
