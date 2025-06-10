@@ -5,6 +5,8 @@ import numpy as np
 from typing import Dict, List, Optional
 from models.topic import TopicEnum
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
+from clustering.embedder import STOPWORDS_KO
 from clustering.running_stage import (
     run_embedding_stage,
     run_clustering_stage,
@@ -58,6 +60,19 @@ def run_all_topics_pipeline(
         # emb_path 생성 (토픽별 .npy 임베딩 파일 경로)
         emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
 
+        # --- 글로벌 IDF 학습 (전체 말뭉치) ---
+        global_vec = TfidfVectorizer(
+            stop_words=list(STOPWORDS_KO),
+            max_features=300,      # 필요에 따라 조정
+            min_df=0.02,
+            max_df=1.0,
+            use_idf=True,
+            smooth_idf=True,
+            sublinear_tf=True,
+            norm='l2'
+        )
+        global_vec.fit(cleaned_texts)
+
         labels, cluster_to_docs, label_to_cluster_id = run_clustering_stage(
             emb_path=emb_path,
             ids_window=ids_window,
@@ -75,7 +90,9 @@ def run_all_topics_pipeline(
         kw_map = run_keyword_extraction(
             cluster_to_docs=cluster_to_docs,
             label_to_cluster_id=label_to_cluster_id,
-            top_n=3
+            top_n=3,
+            save_db=True,
+            global_vectorizer=global_vec
         )
         for lbl, kws in kw_map.items():
             print(f"  Cluster {lbl} 키워드: {', '.join(kws)}")
