@@ -82,7 +82,7 @@ async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
             "id": a.id,
             "title": a.title,
             "summary": a.summary,
-            "url": a.link,
+            "link": a.link,
             "cluster_id": cluster_id,
             "fetched_at": a.fetched_at.isoformat(),
         })

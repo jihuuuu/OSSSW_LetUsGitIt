@@ -1,77 +1,25 @@
-###########################
-# 🔧 General OS / Editor #
-###########################
-.DS_Store
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.swp
-*~
+# Logs
+logs
 *.log
-
-######################
-# 🐍 Python Backend  #
-######################
-__pycache__/
-*.py[cod]
-*$py.class
-**/__pycache__/
-*.pyc
-
-# Environments
-.venv/
-.env
-project/.env
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Python eggs, builds, coverage
-*.egg-info/
-dist/
-build/
-htmlcov/
-.coverage
-
-# DB
-*.sqlite3
-*.mysql-workbench
-
-# Env files
-.env
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Project-specific data files
-data/*.npy
-project/data/*.npy
-project/data/article_embeddings.npy
-project/data/article_ids.npy
-
-######################
-# 🌐 Frontend        #
-######################
-node_modules/
-frontend/node_modules/
-frontend/dist/
-dist/
-dist-ssr/
-*.local
-
-#########################
-# 🚧 Logs (general)     #
-#########################
-logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-*.log
+
+node_modules/
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
