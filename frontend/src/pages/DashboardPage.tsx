@@ -59,7 +59,7 @@ export default function DashboardPage() {
             <div className="flex items-center">
               <Logo />
             </div>
-            <h1 className="text-white text-4xl font-bold">
+            <h1 className="text-white text-4xl font-bmjua">
               MY PAGE
             </h1>
             <div className="px-2 py -1">

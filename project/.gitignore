@@ -54,4 +54,4 @@ htmlcov/
 data/article_embeddings.npy
 data/article_ids.npy
 data/*.npy
-project/data/*.npy
+

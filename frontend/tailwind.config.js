@@ -57,6 +57,7 @@ export default {
         subheading: "var(--subheading-font-family)",
         "title-page": "var(--title-page-font-family)",
         inter: ['Inter', 'sans-serif'],
+        bmjua: ['BMJua', 'sans-serif'],
         sans: [
           "ui-sans-serif",
           "system-ui",

@@ -14,28 +14,36 @@ export default function NoteEditPage() {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
+  const[tempTitle, setTempTitle] = useState("");
 useEffect(() => {
   console.log("noteId:", noteId);
   console.log("location.state:", location.state);
 
   const loadNote = async () => {
-    const noteFromState = location.state?.note;
-    if (noteFromState) {
-      setTitle(noteFromState.title || "");
-      setText(noteFromState.text || "");
-    }
 
     const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
-
     const data = await res.json();
-    if (!data?.result) return;
+    const tempTitle = location.state?.tempTitle ?? localStorage.getItem("tempNoteTitle");
+const tempText = location.state?.tempText ?? localStorage.getItem("tempNoteText");
 
-    setTitle(data.result.title || "");
-    setText(data.result.text || "");
+if (tempTitle !== null) {
+  setTitle(tempTitle);
+} else {
+  setTitle(data.result.title || "");
+}
+
+if (tempText !== null) {
+  setText(tempText);
+} else {
+  setText(data.result.text || "");
+}
+
+localStorage.removeItem("tempNoteTitle");
+localStorage.removeItem("tempNoteText");
 
     const related = await getArticlesByNoteId(Number(noteId));
     const incoming = location.state?.newArticles as Article[];
@@ -93,7 +101,9 @@ const handleSave = async () => {
 
       <button
     className="text-lg underline text-blue-600 mb-4"
-    onClick={() =>
+    onClick={() =>{
+       localStorage.setItem("tempNoteTitle", title);
+       localStorage.setItem("tempNoteText", text);
       navigate("/users/scraps", {
         state: {
           mode: "edit-note",
@@ -101,6 +111,7 @@ const handleSave = async () => {
           selectedArticles: articles,
         },
       })
+       }
     }
   >
     기사 추가하기+

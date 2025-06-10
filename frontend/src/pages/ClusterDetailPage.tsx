@@ -31,7 +31,6 @@ export default function ClusterDetailPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
-
   const { isLoggedIn, accessToken, login } = useAuth();
 
   useEffect(() => {
