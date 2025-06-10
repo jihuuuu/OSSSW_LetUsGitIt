@@ -32,12 +32,11 @@ export default function ClusterDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const { isLoggedIn, accessToken } = useAuth();
+const { isLoggedIn, accessToken, login } = useAuth();
 
 useEffect(() => {
   const token = localStorage.getItem("accessToken");
-  setAcessToken(token);
-  setIsLoggedIn(!!token); // 이걸 안 하면 계속 false임!
+  if (token) login(token);
 }, []);
 
   useLogoutWatcher();

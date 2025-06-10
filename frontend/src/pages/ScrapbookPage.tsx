@@ -77,6 +77,8 @@ const handleCreateNotePage = () => {
     navigate(`/note/${location.state.originNoteId}/edit`, {
       state: {
         newArticles: selected,
+        tempTitle: localStorage.getItem("tempNoteTitle"),
+        tempText: localStorage.getItem("tempNoteText"),
       },
     });
     return;
@@ -101,7 +103,7 @@ const handleCreateNotePage = () => {
                     <div className="flex items-center">
                       <Logo />
                     </div>
-                    <h1 className="font-bold text-3xl">SCRAP BOOK</h1>
+                    <h1 className="font-bmjua text-3xl">SCRAP BOOK</h1>
                     <div className="px-2 py-1">
                       <Header />
                     </div>
