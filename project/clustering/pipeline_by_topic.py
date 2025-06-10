@@ -20,7 +20,8 @@ def run_all_topics_pipeline(
     eps: Optional[float] = None,
     min_samples: Optional[int] = None,
     since_hours: Optional[int] = 24,
-    data_dir: str = "data"
+    data_dir: str = "data",
+    save_db : bool = False,
 ):
     # 토픽별 커스텀 파라미터 맵 (필요한 만큼 추가/수정)
     topic_params: Dict[TopicEnum, Dict[str, float]] = {
@@ -83,7 +84,7 @@ def run_all_topics_pipeline(
             eps=params["eps"],
             min_samples=params["min_samples"],
             topic=topic,
-            save_db=True
+            save_db=save_db
         )
 
         # 3) 키워드 추출 단계
@@ -91,7 +92,7 @@ def run_all_topics_pipeline(
             cluster_to_docs=cluster_to_docs,
             label_to_cluster_id=label_to_cluster_id,
             top_n=3,
-            save_db=True,
+            save_db=save_db,
             global_vectorizer=global_vec
         )
         for lbl, kws in kw_map.items():
@@ -114,6 +115,8 @@ def main():
                         help="최근 N시간 내 기사만 처리 (default: 24)")
     parser.add_argument("--data-dir", type=str, default="data",
                         help="임베딩 캐시 저장 디렉토리 (default: data)")
+    parser.add_argument("--save-db", action="store_true", default=False,
+                        help="DB에 저장하려면 이 옵션을 추가")
     args = parser.parse_args()
 
     run_all_topics_pipeline(
@@ -122,7 +125,8 @@ def main():
         eps=args.eps,
         min_samples=args.min_samples,
         since_hours=args.since_hours,
-        data_dir=args.data_dir
+        data_dir=args.data_dir,
+        save_db=args.save_db
     )
 
 

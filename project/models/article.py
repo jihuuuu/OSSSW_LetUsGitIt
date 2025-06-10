@@ -2,7 +2,7 @@
 # 역할: 기사 관련 모델 정의
 # article, cluster, cluster_article, cluster_keyword, keyword
 
-from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, CHAR, Enum as SQLEnum
+from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, CHAR, UniqueConstraint, Enum as SQLEnum
 from datetime import datetime, timezone
 from models.base import Base
 from sqlalchemy.orm import relationship
@@ -61,6 +61,7 @@ class ClusterKeyword(Base):
     # 관계
     cluster = relationship("Cluster", back_populates="cluster_keyword")
     keyword = relationship("Keyword", back_populates="cluster_keyword")
+    trend_keyword = relationship("TrendKeyword", back_populates="cluster_keyword", cascade="all, delete-orphan")
 
 class Keyword(Base):
     __tablename__ = "keyword"
@@ -71,27 +72,29 @@ class Keyword(Base):
     # 관계
     cluster_keyword = relationship("ClusterKeyword", back_populates="keyword")
     pcluster_keyword = relationship("PClusterKeyword", back_populates="keyword")
-    trend_keywords = relationship("TrendKeyword", back_populates="keyword")
-    today_keywords = relationship("TodayKeywordHourly", back_populates="keyword")
+    # trend_keywords = relationship("TrendKeyword", back_populates="keyword")
+    # today_keywords = relationship("TodayKeywordHourly", back_populates="keyword")
 
 # 트렌드 페이지 - 하루마다 업데이트 되는 top n개 키워드 저장하는 테이블
 class TrendKeyword(Base):
     __tablename__ = "trend_keyword"
-
-    id = Column(BigInteger, primary_key=True, index=True)
-    date = Column(Date, nullable=False, index=True)   # 예: 2025-05-30
-    count = Column(Integer, nullable=False)  # 해당 날짜에 등장한 횟수
-    keyword_id = Column(BigInteger, ForeignKey("keyword.id"), nullable=False)
+    __table_args__ = (UniqueConstraint("cluster_keyword_id", "date", name="uq_trend_cluster_date"),)
     
-    keyword = relationship("Keyword", back_populates="trend_keywords")
-
-  # 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
-class TodayKeywordHourly(Base):
-    __tablename__ = "today_keyword_hourly"
-
     id = Column(BigInteger, primary_key=True, index=True)
-    time_window_start = Column(DateTime(timezone=True), nullable=False, index=True)
-    count = Column(Integer, nullable=False)  # 지난 24시간 동안안 등장한 횟수
-    keyword_id = Column(BigInteger, ForeignKey("keyword.id"), nullable=False)
+    cluster_keyword_id = Column(BigInteger, ForeignKey("cluster_keyword.id", ondelete="CASCADE"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)  # 예: 2025-05-30
+    count = Column(Integer, nullable=False)              # 해당 날짜에 등장한 횟수
 
-    keyword = relationship("Keyword", back_populates="today_keywords")
+    # 관계 설정
+    cluster_keyword = relationship("ClusterKeyword", back_populates="trend_keyword", cascade="save-update", passive_deletes=True)
+
+#   # 오늘의 키워드 - 시간별로 업데이트 되는 클러스터 키워드 저장하는 테이블
+# class TodayKeywordHourly(Base):
+#     __tablename__ = "today_keyword_hourly"
+
+#     id = Column(BigInteger, primary_key=True, index=True)
+#     time_window_start = Column(DateTime(timezone=True), nullable=False, index=True)
+#     count = Column(Integer, nullable=False)  # 지난 24시간 동안안 등장한 횟수
+#     keyword_id = Column(BigInteger, ForeignKey("keyword.id"), nullable=False)
+
+#     keyword = relationship("Keyword", back_populates="today_keywords")
