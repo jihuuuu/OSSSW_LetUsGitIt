@@ -45,3 +45,9 @@ class WeeklyTrendResponse(BaseModel):
     trend_data: List[KeywordTrend]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SuggestedKeywordsResponse(BaseModel):
+    keywords: List[str]
+
+    model_config = ConfigDict(from_attributes=True)
