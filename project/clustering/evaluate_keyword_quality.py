@@ -8,7 +8,7 @@ from clustering.running_stage import run_embedding_stage, run_clustering_stage
 from clustering.keyword_extractor import extract_top_keywords
 from models.topic import TopicEnum
 from scipy import sparse
-
+from clustering.embedder import STOPWORDS_KO
 
 # 기본 data 디렉토리
 DATA_DIR = 'data'
@@ -135,6 +135,7 @@ def main():
 
         # 3) 글로벌 IDF 학습
         global_vec = TfidfVectorizer(
+            stop_words=list(STOPWORDS_KO),
             max_features=args.max_features,
             min_df=args.min_df,
             max_df=args.max_df,
