@@ -95,16 +95,7 @@ export default function NotePage() {
     <>
       <div className="min-h-screen flex flex-col justify-start">
             <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
-              <div className="flex items-center">
-                <Logo />
-              </div>
-              <div className="flex-1 text-center text-4xl font-bmjua">
-                NOTE
-              </div>
-              <div className="px-2 py -1">
-                <Header />
-              </div>
-
+              <Header />
             </header>
 
       <main className="min-h-screen flex flex-col items-center">
