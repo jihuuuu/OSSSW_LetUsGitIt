@@ -121,14 +121,7 @@ const handleAddToExistingNote = () => {
 
   return (
      <div className="min-h-screen flex flex-col justify-start">
-          <header className="h-15 bg-blue-500 text-white px-6 flex items-center justify-between">
-            <div className="flex items-center">
-              <Logo />
-            </div>
-            <div className="px-2 py -1">
-              <Header />
-            </div>
-          </header>
+         <Header />
 
       {/* 본문 */}
       <main className="px-6 py-8 space-y-6">
