@@ -144,14 +144,7 @@ const handleCreateNotePage = () => {
 };
   return (
      <div className="min-h-screen flex flex-col  justify-start">
-           <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
-              <div className="flex items-center">
-                <Logo />
-              </div>
-              <div className="px-2 py-1">
-                <Header />
-              </div>
-            </header>
+              <Header />
       <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
