@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { topicColorMap } from "@/utils/topicColorMap";
 
 interface Article {
   article_id: number;
@@ -14,6 +15,7 @@ interface Cluster {
   cluster_id: number;
   keywords: string[];
   articles: Article[];
+  topic: string; // 토픽 라벨링 추가
 }
 
 export default function TodayIssuePreview() {
@@ -26,15 +28,19 @@ export default function TodayIssuePreview() {
       .then(res => setClusters(res.data.slice(0, 10))) // 상위 3개만 표시
       .catch(err => console.error(err));
   }, []);
- // 🔁 10초마다 index 변경
+  
+  // 🔁 5초마다 index 변경 (정확한 그룹 수 기준으로)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % Math.ceil(clusters.length / 3));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [clusters]);
+    if (clusterGroups.length === 0) return;
 
-  // 🔢 클러스터를 3개씩 묶기
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % clusterGroups.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [clusters]); // clusters 변경 시마다 새 interval 설정
+
+  // 🔢 클러스터를 5개씩 묶기
   const clusterGroups: Cluster[][] = [];
   for (let i = 0; i < clusters.length; i += 5) {
     clusterGroups.push(clusters.slice(i, i + 5));
@@ -84,9 +90,18 @@ export default function TodayIssuePreview() {
                 <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold">
                   {index * 5 + i + 1}
                 </span>
-                <span className="text-gray-800 text-lg font-medium truncate">
-                  {cluster.keywords.join(", ")}
-                </span>
+                <div className="flex items-center flex-wrap gap-2">
+                  <span className="text-gray-800 text-lg font-medium truncate">
+                    {cluster.keywords.join(", ")}
+                  </span>
+                  <span
+                    className={`inline-block text-xs px-2 py-0.5 rounded font-medium ml-2 ${
+                      topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    #{cluster.topic}
+                  </span>
+                </div>
               </li>
             ))}
           </ol>

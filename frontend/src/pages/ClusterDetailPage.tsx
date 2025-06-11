@@ -12,10 +12,12 @@ import { useAuth } from "@/context/AuthContext";
 import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
 import useLogoutWatcher from "@/hooks/useLogoutWatcher";
+import { topicColorMap } from "@/utils/topicColorMap";
 interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
   articles: Article[];
+  topic: string; // 토픽 라벨링 추가
 }
 
 export default function ClusterDetailPage() {
@@ -148,8 +150,15 @@ const handleCreateNotePage = () => {
       <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
-            <h2 className="text-center text-2xl font-bold my-6">
+            <h2 className="text-center text-2xl font-bold my-6 flex justify-center items-center gap-3 flex-wrap">
               {cluster.keywords.join(" ")}
+              <span
+                className={`inline-block text-xs px-2 py-0.5 rounded font-medium ${
+                  topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                }`}
+              >
+                #{cluster.topic}
+              </span>
             </h2>
 
             <div className="bg-gray-50 border rounded-md p-4 shadow">
