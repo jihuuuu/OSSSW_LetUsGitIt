@@ -58,6 +58,8 @@ export default {
         "title-page": "var(--title-page-font-family)",
         inter: ['Inter', 'sans-serif'],
         bmjua: ['BMJua', 'sans-serif'],
+        pretendard:['Pretendard', 'sans-serif'],
+        "pretendard-bold": ['Pretendard-Bold', 'sans-serif'],
         sans: [
           "ui-sans-serif",
           "system-ui",
