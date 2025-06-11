@@ -33,6 +33,54 @@ export default function TodayIssuePage() {
   const mode = location.state?.mode;
   const originNoteId = location.state?.originNoteId;
   const preselected = location.state?.selectedArticles || [];
+  const [noteMode, setNoteMode] = useState(false);
+
+  const handleArticleSelect = (articleId: number, checked: boolean) => {
+  setSelectedArticles((prev) => {
+    const updated = new Set(prev);
+    checked ? updated.add(articleId) : updated.delete(articleId);
+    return updated;
+  });
+};
+const handleCreateNote = () => {
+  const selected = clusters
+    .flatMap((cluster) => cluster.articles)
+    .filter((a) => selectedArticles.has(a.article_id));
+
+  if (selected.length === 0) {
+    alert("기사를 선택해주세요.");
+    return;
+  }
+
+  const defaultText = selected
+    .map((a) => `• ${a.title}\n${a.link}`)
+    .join("\n\n");
+
+  navigate("/note/new", {
+    state: {
+      defaultText,
+      articles: selected,
+    },
+  });
+};
+
+const handleAddToExistingNote = () => {
+  const selected = clusters
+    .flatMap((cluster) => cluster.articles)
+    .filter((a) => selectedArticles.has(a.article_id));
+
+  if (selected.length === 0) {
+    alert("기사를 선택해주세요.");
+    return;
+  }
+
+  navigate("/notes", {
+    state: {
+      newArticles: selected,
+    },
+  });
+};
+
 
   useEffect(() => {
     const fetchClusters = async () => {
@@ -72,17 +120,15 @@ export default function TodayIssuePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* 헤더 */}
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
-        <div className="px-2 py -1">
-           <Header />
-        </div>
-      </header>
+     <div className="min-h-screen flex flex-col justify-start">
+          <header className="h-15 bg-blue-500 text-white px-6 flex items-center justify-between">
+            <div className="flex items-center">
+              <Logo />
+            </div>
+            <div className="px-2 py -1">
+              <Header />
+            </div>
+          </header>
 
       {/* 본문 */}
       <main className="px-6 py-8 space-y-6">
@@ -105,28 +151,35 @@ export default function TodayIssuePage() {
               <p className="font-semibold mb-2">관련기사</p>
               <ul className="list-disc list-inside text-sm space-y-1">
                 {cluster.articles.map((article) => (
-                  <li key={article.article_id}>
-                    <a
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: '#000000', textDecoration: 'none' /* hover 효과는 아래 예시 참고 */ }}
-                      onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
-                      onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
-                    >
-                      {article.title}
-                    </a>
-                  </li>
-                ))}
+  <li key={article.article_id} className="flex items-start gap-2">
+    {noteMode && (
+      <input
+        type="checkbox"
+        checked={selectedArticles.has(article.article_id)}
+        onChange={(e) =>
+          handleArticleSelect(article.article_id, e.target.checked)
+        }
+      />
+    )}
+    <a
+      href={article.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: '#000', textDecoration: 'none' }}
+      onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+      onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+    >
+      {article.title}
+    </a>
+  </li>
+))}
               </ul>
             </div>
           </section>
         ))}
-      </main>
-    </div>
-  );
-}
-function setNoteMode(arg0: boolean) {
-  throw new Error("Function not implemented.");
-}
-
+            </main>
+          </div>
+        );
+      }
+      
+ 

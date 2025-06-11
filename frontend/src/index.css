@@ -164,3 +164,10 @@ You can apply the theme on any DOM node, not just the `body`
     @apply font-inter text-gray-900;
   }
 }
+
+@font-face {
+  font-family: 'BMJUA';
+  src: url('/fonts/BMJUA.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}

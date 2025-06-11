@@ -5,6 +5,8 @@ import numpy as np
 from typing import Dict, List, Optional
 from models.topic import TopicEnum
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
+from clustering.embedder import STOPWORDS_KO
 from clustering.running_stage import (
     run_embedding_stage,
     run_clustering_stage,
@@ -18,12 +20,29 @@ def run_all_topics_pipeline(
     eps: Optional[float] = None,
     min_samples: Optional[int] = None,
     since_hours: Optional[int] = 24,
-    data_dir: str = "data"
+    data_dir: str = "data",
+    save_db : bool = False,
 ):
+    # 토픽별 커스텀 파라미터 맵 (필요한 만큼 추가/수정)
+    topic_params: Dict[TopicEnum, Dict[str, float]] = {
+        TopicEnum.정치:   {"k": 12},
+        TopicEnum.경제: {"k": 10},
+        TopicEnum.스포츠:   {"k": 24},
+        TopicEnum.국제: {"k": 7},
+        TopicEnum.문화:   {"k": 28},
+        TopicEnum.사회: {"k": 18}
+        # 나머지 토픽은 args 기본값 사용
+    }
+
     """
     모든 토픽 순회하며 순차적으로 임베딩, 클러스터링, 키워드 추출 단계를 실행합니다.
     """
     for topic in TopicEnum:
+        # 기본값과 오버라이드를 합침
+        base = {"k": k, "eps": eps, "min_samples": min_samples}
+        override = topic_params.get(topic, {})
+        params = {**base, **override}
+        
         print(f"\n===== [{topic.value}] 파이프라인 시작 =====")
 
         # 1) 임베딩 단계
@@ -42,25 +61,39 @@ def run_all_topics_pipeline(
         # emb_path 생성 (토픽별 .npy 임베딩 파일 경로)
         emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
 
-        # 2) 클러스터링 단계
+        # --- 글로벌 IDF 학습 (전체 말뭉치) ---
+        global_vec = TfidfVectorizer(
+            stop_words=list(STOPWORDS_KO),
+            max_features=300,      # 필요에 따라 조정
+            min_df=0.02,
+            max_df=1.0,
+            use_idf=True,
+            smooth_idf=True,
+            sublinear_tf=True,
+            norm='l2'
+        )
+        global_vec.fit(cleaned_texts)
+
         labels, cluster_to_docs, label_to_cluster_id = run_clustering_stage(
             emb_path=emb_path,
             ids_window=ids_window,
             raw_texts=raw_texts,
             cleaned_texts=cleaned_texts,
             method=clustering_method,
-            n_clusters=k,
-            eps=eps,
-            min_samples=min_samples,
+            n_clusters=params["k"],
+            eps=params["eps"],
+            min_samples=params["min_samples"],
             topic=topic,
-            save_db=True
+            save_db=save_db
         )
 
         # 3) 키워드 추출 단계
         kw_map = run_keyword_extraction(
             cluster_to_docs=cluster_to_docs,
             label_to_cluster_id=label_to_cluster_id,
-            top_n=3
+            top_n=3,
+            save_db=save_db,
+            global_vectorizer=global_vec
         )
         for lbl, kws in kw_map.items():
             print(f"  Cluster {lbl} 키워드: {', '.join(kws)}")
@@ -82,6 +115,8 @@ def main():
                         help="최근 N시간 내 기사만 처리 (default: 24)")
     parser.add_argument("--data-dir", type=str, default="data",
                         help="임베딩 캐시 저장 디렉토리 (default: data)")
+    parser.add_argument("--save-db", action="store_true", default=False,
+                        help="DB에 저장하려면 이 옵션을 추가")
     args = parser.parse_args()
 
     run_all_topics_pipeline(
@@ -90,7 +125,8 @@ def main():
         eps=args.eps,
         min_samples=args.min_samples,
         since_hours=args.since_hours,
-        data_dir=args.data_dir
+        data_dir=args.data_dir,
+        save_db=args.save_db
     )
 
 

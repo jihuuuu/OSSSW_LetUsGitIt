@@ -13,7 +13,7 @@ export async function getNotesByPage(page: number, size: number): Promise<{ note
 
   return {
     notes: result.notes.map((n: any) => ({
-      id: Number(n.id),
+      id: Number(n.note_id),
       title: n.title,
       text: n.text ?? "",
       createdAt: n.created_at,

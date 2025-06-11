@@ -12,6 +12,7 @@ type NoteAccordionListProps = {
   notes: Note[];
   onSelect: (note: Note) => void | Promise<void>;
   onDelete?: (id: Note["id"]) => void | Promise<void>;
+  mode?: "view" | "edit" | "select-note";
 };
 
 function formatDate(isoString: string) {
@@ -22,7 +23,8 @@ function formatDate(isoString: string) {
     day: "2-digit",
   });
 }
-export function NoteAccordionList({ notes, onSelect, onDelete }: NoteAccordionListProps) {
+export function NoteAccordionList({ notes, onSelect, onDelete, mode }: NoteAccordionListProps) {
+  const navigate = useNavigate();
   return (
     <div className="w-full max-w-3xl mx-auto font-sans text-base"> {/* ✅ 통일된 너비 + 폰트 */}
       <Accordion type="single" collapsible className="w-full">
@@ -37,13 +39,16 @@ export function NoteAccordionList({ notes, onSelect, onDelete }: NoteAccordionLi
       <AccordionContent>
         <p className="whitespace-pre-wrap mb-4">{note.text}</p>
         <div className="flex gap-2 justify-end">
-          <button
-            className="px-3 py-1 rounded bg-blue-500 text-white text-sm"
-            onClick={() => onSelect(note)}
-          >
-            편집
+           <button
+                onClick={async () => {
+                  console.log("편집하려는 note id:", note.id); // ← 이거 찍어보세요
+                  await onSelect(note);               // ✅ 노트 선택 처리 먼저
+                }}
+            className="text-sm text-blue-500 hover:underline"
+            >
+           편집
           </button>
-          {onDelete && (
+          {mode !=="select-note" && onDelete && (
             <button
               className="px-3 py-1 rounded bg-red-500 text-white text-sm"
               onClick={() => onDelete(note.id)}

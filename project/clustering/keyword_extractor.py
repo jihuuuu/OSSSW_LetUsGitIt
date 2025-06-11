@@ -11,7 +11,8 @@ from konlpy.tag import Okt
 
 def extract_top_keywords(
     documents: List[str], cluster_id : int,
-    top_n: int = 3, max_features: int = 300
+    top_n: int = 3, max_features: int = 300,
+    global_vectorizer: TfidfVectorizer = None
 ) -> List[str]:
     """
     주어진 문서 리스트에 대해 TF-IDF를 계산하고,
@@ -22,22 +23,21 @@ def extract_top_keywords(
         print(f"⚠️ cluster_id={cluster_id}: 전처리된 문서가 모두 공백입니다. 키워드 추출 생략.")
         return ["no_keyword"]
     
-    # 1) TF-IDF 행렬 생성
-    vectorizer = TfidfVectorizer(
-        stop_words=list(STOPWORDS_KO),
-        max_features=max_features,
-        min_df=0.02
-    )
-    tfidf_matrix = vectorizer.fit_transform(documents)
-    feature_names = vectorizer.get_feature_names_out()
+    if global_vectorizer is None:
+        raise ValueError("글로벌 IDF를 반영하려면 'global_vectorizer' 인자를 반드시 제공해야 합니다.")
+    
+    # 1) 로컬 TF × 글로벌 IDF
+    tfidf_matrix = global_vectorizer.transform(documents)
+    feature_names = global_vectorizer.get_feature_names_out()
 
     # 2) 각 단어별 평균 TF-IDF 계산
+    #    (docs 수만큼 normalize 된 로컬 TF × 글로벌 IDF 스코어)
     mean_tfidf = tfidf_matrix.mean(axis=0).A1  # (n_features,)
 
     # 3) 상위 top_n 인덱스 추출
     top_indices = mean_tfidf.argsort()[::-1][:top_n]
     top_terms   = [feature_names[i] for i in top_indices]
-    
+
     return top_terms
 
 

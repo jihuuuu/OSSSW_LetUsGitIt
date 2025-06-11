@@ -11,6 +11,7 @@ import time
 from clustering.keyword_extractor import extract_top_keywords
 from models.article import ClusterKeyword, Keyword
 from database.connection import SessionLocal
+from sklearn.feature_extraction.text import TfidfVectorizer
 from clustering.cluster import (
     load_embeddings, run_kmeans, run_dbscan, run_hdbscan,
     save_clusters_to_db, fetch_article_ids
@@ -131,7 +132,6 @@ def run_clustering_stage(
         label_to_cluster_id = {}
 
     # 클러스터별 문서 묶음 생성 (키워드 추출용)
-    t1 = time.time()
     cluster_to_docs: Dict[int, List[str]] = {}
     for idx, lbl in enumerate(labels):
         aid = ids_window[idx]
@@ -140,7 +140,6 @@ def run_clustering_stage(
             # 아예 스킵 (None 이 추가되는 걸 방지)
             continue        
         cluster_to_docs.setdefault(lbl, []).append(doc)
-    print(f"문서 묶음 생성 시간: {time.time() - t1:.2f}s")
 
     # 6) 리턴: labels, docs 묶음, label→cluster_id 매핑
     return labels, cluster_to_docs, label_to_cluster_id
@@ -149,7 +148,8 @@ def run_clustering_stage(
 def run_keyword_extraction(
     cluster_to_docs: Dict[int, List[str]],
     label_to_cluster_id : Dict[int, int],
-    top_n: int = 3, save_db: bool = True
+    top_n: int = 3, save_db: bool = True,
+    global_vectorizer: TfidfVectorizer = None
 ) -> Dict[int, List[str]]:
     # TF-IDF 기반
     # 또는 SBERT 병렬 추출: parallel_extract_keywords
@@ -167,8 +167,11 @@ def run_keyword_extraction(
             print(f"⚠️ label {label}에 매핑된 Cluster ID가 없어 스킵합니다.")
             continue
 
-        # TF-IDF 기반으로 top_n 키워드 추출 + DB 저장
-        kws = extract_top_keywords(documents=docs, cluster_id=cid, top_n=top_n)
+        # 글로벌 벡터라이저를 넘겨줍니다
+        kws = extract_top_keywords(
+            documents=docs, cluster_id=cid, top_n=top_n,
+            global_vectorizer=global_vectorizer
+        )
         kw_map[label] = kws
 
         if save_db:

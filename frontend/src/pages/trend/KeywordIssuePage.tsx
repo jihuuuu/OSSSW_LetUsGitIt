@@ -13,29 +13,29 @@ export default function KeywordIssuePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // fetch("http://localhost:8000/trends/suggested_keywords")
-    // .then((res) => {
-    //   if (!res.ok) throw new Error("추천 키워드 요청 실패");
-    //   return res.json();
-    // })
-    // .then((data) => {
-    //   setKeywords(data.keywords);
-    // })
-    // .catch((err) => {
-    //   console.error("추천 키워드 로딩 실패:", err);
-    //   setKeywords([]); // 실패해도 화면 깨지지 않도록 초기화
-    // });
-    setKeywords([
-      "국민의 힘", "고급", "금리", "기업",
-      "나혼아", "나이스", "나이지리아", "네거티브", "나고야", "낭떠러지",
-      "더불어민주당", "두산", "대선",
-      "로봇", "러시아",
-      "모비스", "무리",
-      "ㅂㅂㅂ", "ㅇㅇㅇ", "ㅇㅇㅇㅇㅇ", "ㅇㅇㅇㅇ", "ㅇㅇ", "ㅇㅇㅇ",
-      "사과", "소수", "사이다", "사이다", "숭례문",
-      "이준석", "율용도",
-      "트럼프"
-    ]);
+    fetch("http://localhost:8000/trends/suggested_keywords")
+    .then((res) => {
+      if (!res.ok) throw new Error("추천 키워드 요청 실패");
+      return res.json();
+    })
+    .then((data) => {
+      setKeywords(data.keywords);
+    })
+    .catch((err) => {
+      console.error("추천 키워드 로딩 실패:", err);
+      setKeywords([]); // 실패해도 화면 깨지지 않도록 초기화
+    });
+    // setKeywords([
+    //   "국민의 힘", "고급", "금리", "기업",
+    //   "나혼아", "나이스", "나이지리아", "네거티브", "나고야", "낭떠러지",
+    //   "더불어민주당", "두산", "대선", "대통령",
+    //   "로봇", "러시아",
+    //   "모비스", "무리",
+    //   "ㅂㅂㅂ", "ㅇㅇㅇ", "ㅇㅇㅇㅇㅇ", "ㅇㅇㅇㅇ", "ㅇㅇ", "ㅇㅇㅇ",
+    //   "사과", "소수", "사이다", "사이다", "숭례문",
+    //   "이준석", "율용도",
+    //   "트럼프", "서울", "이재명"
+    // ]);
   }, []);
 
   const getInitialSound = (str: string): string => {

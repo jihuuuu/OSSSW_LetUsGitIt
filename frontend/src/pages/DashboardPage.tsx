@@ -54,22 +54,23 @@ export default function DashboardPage() {
 
   return (
     
-    <div className="min-h-screen bg-white">
-      {/* ✅ 상단 헤더 */}
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">DASHBOARD</h1>
-        <div className="px-2 py -1">
-          <Header />
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col justify-start">
+          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-10">
+            <div className="flex items-center">
+              <Logo />
+            </div>
+            <h1 className="text-white text-4xl font-bmjua">
+              MY PAGE
+            </h1>
+            <div className="px-2 py -1">
+              <Header />
+            </div>
+          </header>
 
       {/* ✅ 본문 (세로 정렬) */}
-      <main className="px-6 py-10 flex flex-col items-center gap-10">
+      <main className="px-6 flex flex-col items-center gap-10">
         {/* ✅ 지식맵 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">MY KNOWLEDGE-MAP</h2>
           </div>
@@ -83,7 +84,7 @@ export default function DashboardPage() {
         </section>
 
         {/* ✅ 스크랩 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">SCRAP</h2>
             <Button
@@ -114,13 +115,13 @@ export default function DashboardPage() {
         </section>
 
         {/* ✅ 노트 */}
-        <section className="w-full max-w-4xl">
+        <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-bold text-lg">NOTE</h2>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/users/notes")}
+              onClick={() => navigate("/users/notes",{ state: { mode: "view" } })}
               className="text-xs text-blue-600 px-2 py-1"
             >
               more+
@@ -128,7 +129,9 @@ export default function DashboardPage() {
           </div>
           <div className="bg-gray-50 border rounded px-4 py-3">
             {notes.length > 0 ? (
-              <NoteAccordionList notes={notes} onSelect={() => {}} />
+              <NoteAccordionList notes={notes} onSelect={() => {}} onDelete={(id) => { const confirmed = window.confirm("삭제하시겠습니까?");
+    if (!confirmed) return;
+    alert("삭제는 노트 페이지에서 가능합니다."); }} />
             ) : (
               <p className="text-sm text-gray-500">작성된 노트가 없습니다.</p>
             )}

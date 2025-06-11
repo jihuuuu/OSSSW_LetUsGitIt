@@ -16,3 +16,4 @@ konlpy
 faker
 umap-learn
 hdbscan
+scipy

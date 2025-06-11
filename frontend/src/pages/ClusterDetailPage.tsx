@@ -7,9 +7,11 @@ import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 
 import type { Article } from "@/types/article";
+import { useAuth } from "@/context/AuthContext";
 // import needed functions or objects from articleUtils, e.g.:
-import { getSelectedArticles, clearSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
-
+import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
+import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
@@ -29,28 +31,45 @@ export default function ClusterDetailPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
+  const { isLoggedIn, accessToken, login } = useAuth();
 
-  const accessToken = localStorage.getItem("accessToken");
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) login(token);
+  }, []);
+
+  useLogoutWatcher();
+
 
   useEffect(() => {
     axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
       setCluster(res.data);
     });
 
-    axios
-      .get("http://localhost:8000/users/scraps", {
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/users/scraps", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      })
-      .then((res) => {
-        const ids = res.data.articles.map((a: any) => Number(a.article_id || a.id));
-        setFavorites(new Set(ids));
-      })
-      .catch((err) => {
-        console.error("스크랩 기사 로딩 실패:", err);
       });
-  }, [clusterId]);
+
+      const ids = res.data.articles.map((a: any) =>
+        Number(a.article_id || a.id)
+      );
+
+      const localScraps = getScrappedArticles();
+      const merged = new Set([...ids, ...localScraps]);
+
+      setFavorites(merged);
+    } catch (err) {
+      console.error("스크랩 기사 로딩 실패:", err);
+    }
+  };
+
+  fetchData();
+}, [clusterId]);
+
 
   const handleScrap = async (articleId: number) => {
     if (loadingIds.has(articleId)) return;
@@ -72,7 +91,13 @@ export default function ClusterDetailPage() {
       if (res.data?.isSuccess) {
         setFavorites((prev) => {
           const updated = new Set(prev);
-          isScrapped ? updated.delete(articleId) : updated.add(articleId);
+          if (isScrapped) {
+          updated.delete(articleId);
+          removeScrappedArticle(articleId);
+          } else {
+          updated.add(articleId);
+          addScrappedArticle(articleId);
+    }
           return updated;
         });
       } else {
@@ -116,22 +141,18 @@ const handleCreateNotePage = () => {
       articles: selected,
     },
   });
-
-  clearSelectedArticles(); // 이동 후 초기화
 };
   return (
-    <div className="min-h-screen bg-white">
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
-        <div className="px-2 py -1">
-                  <Header />
-                </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto p-6">
+     <div className="min-h-screen flex flex-col  justify-start">
+           <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Logo />
+              </div>
+              <div className="px-2 py-1">
+                <Header />
+              </div>
+            </header>
+      <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
             <h2 className="text-center text-2xl font-bold my-6">
@@ -145,31 +166,33 @@ const handleCreateNotePage = () => {
                   <li key={article.id} className="py-4 flex justify-between items-start gap-4">
                     <div className="flex flex-col text-left flex-1">
                       {noteMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedArticles.has(article.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              addSelectedArticle(article.id);
-                            } else {
-                            removeSelectedArticle(article.id);
-                      }
-                            setSelectedArticles((prev) => {
-                              const updated = new Set(prev);
-                              e.target.checked
-                                ? updated.add(article.id)
-                                : updated.delete(article.id);
-                              return updated;
-                            });
-                          }}
-                          className="mb-1"
-                        />
+                        <label className="flex items-center mb-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedArticles.has(article.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                addSelectedArticle(article.id);
+                              } else {
+                                removeSelectedArticle(article.id);
+                              }
+                              setSelectedArticles((prev) => {
+                                const updated = new Set(prev);
+                                e.target.checked
+                                  ? updated.add(article.id)
+                                  : updated.delete(article.id);
+                                return updated;
+                              });
+                            }}
+                            className="w-5 h-5 mb-1"
+                          />
+                        </label>
                       )}
                       <p
                         onClick={() => window.open(article.link, "_blank")}
-                        className="text-sm font-medium text-blue-700 hover:underline cursor-pointer mb-1"
+                        className="text-base font-medium text-black-700 hover:underline cursor-pointer mb-1"
                       >
-                        • {article.title}
+                        {article.title}
                       </p>
 
                       <a
@@ -218,24 +241,63 @@ const handleCreateNotePage = () => {
               )}
             </div>
 
-            {/* Sticky note button */}
-            <div className="sticky bottom-4 flex justify-end pr-4 mt-6">
-              {noteMode ? (
-                <button
-                  onClick={handleCreateNotePage}
-                  className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-                  >
-                  note
-              </button>
-              ) : (
-                <button
-                  onClick={() => setNoteMode(true)}
-                  className="w-12 h-12 rounded-full border text-2xl shadow"
-                >
-                  ✏️
-                </button>
-              )}
-            </div>
+{/* Sticky note button */}
+<div className="sticky bottom-4 flex justify-end pr-4 mt-6">
+  {isLoggedIn ? (
+    noteMode ? (
+      <div className="flex items-center">
+        <button
+          onClick={handleCreateNotePage}
+          className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
+        >
+          🆕 새 노트 생성
+        </button>
+        <button
+          className="ml-2 px-3 py-2 rounded bg-green-500 text-white text-sm"
+          onClick={() => {
+            const selectedIds = getSelectedArticles();
+            const selected = cluster?.articles.filter((a) =>
+              selectedIds.includes(a.id)
+            );
+            navigate("/users/notes", {
+              state: { mode: "select-note", newArticles: selected },
+            });
+          }}
+        >
+          ➕ 기존 노트에 추가
+        </button>
+        <button
+          className="px-4 py-2 bg-yellow-300 text-white rounded-full shadow text-sm"
+          onClick={() => {
+            setNoteMode(false);
+            setSelectedArticles(new Set());
+            getSelectedArticles().forEach((id) =>
+              removeSelectedArticle(id)
+            );
+          }}
+        >
+          ❌ 취소
+        </button>
+      </div>
+    ) : (
+      <button
+        onClick={() => setNoteMode(true)}
+        className="w-12 h-12 rounded-full border text-2xl shadow"
+      >
+        ✏️
+      </button>
+    )
+  ) : (
+    <button
+      onClick={() => navigate("/login")}
+      className="px-4 py-2 bg-blue-500 text-white rounded-full shadow"
+    >
+      📝 로그인 후 사용가능
+    </button>
+  )}
+</div>
+
+            
           </>
         ) : (
           <p className="text-center text-gray-500 mt-20">불러오는 중...</p>
