@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getSelectedArticles, addSelectedArticle, removeSelectedArticle } from "@/utils/selectedArticles";
 import { getScrappedArticles, addScrappedArticle, removeScrappedArticle } from "@/utils/scrapArticles";
 import useLogoutWatcher from "@/hooks/useLogoutWatcher";
+import { topicColorMap } from "@/utils/topicColorMap";
 interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
@@ -151,7 +152,11 @@ const handleCreateNotePage = () => {
           <>
             <h2 className="text-center text-2xl font-bold my-6 flex justify-center items-center gap-3 flex-wrap">
               {cluster.keywords.join(" ")}
-              <span className="inline-block text-sm px-2 py-0.5 border border-indigo-400 text-indigo-600 rounded-md font-medium">
+              <span
+                className={`inline-block text-xs px-2 py-0.5 rounded font-medium ${
+                  topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                }`}
+              >
                 #{cluster.topic}
               </span>
             </h2>

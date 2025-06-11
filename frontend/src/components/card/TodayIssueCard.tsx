@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { topicColorMap } from "@/utils/topicColorMap";
 
 interface Article {
   article_id: number;
@@ -93,7 +94,11 @@ export default function TodayIssuePreview() {
                   <span className="text-gray-800 text-lg font-medium truncate">
                     {cluster.keywords.join(", ")}
                   </span>
-                  <span className="inline-block text-sm px-2 py-0.5 border border-indigo-300 text-indigo-500 rounded-md font-medium ml-2">
+                  <span
+                    className={`inline-block text-xs px-2 py-0.5 rounded font-medium ml-2 ${
+                      topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                    }`}
+                  >
                     #{cluster.topic}
                   </span>
                 </div>

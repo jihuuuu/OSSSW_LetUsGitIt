@@ -5,6 +5,7 @@ import axios from "axios";
 import Logo from "@/components/ui/logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
+import { topicColorMap } from "@/utils/topicColorMap";
 
 interface Article {
   article_id: number;
@@ -132,7 +133,11 @@ const handleAddToExistingNote = () => {
             <div className="flex justify-between items-center">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 {index + 1}. {cluster.keywords.join(" ")}
-                <span className="inline-block text-sm px-2 py-0.5 border border-indigo-400 text-indigo-600 rounded-md font-medium">
+                <span
+                  className={`inline-block text-xs px-2 py-0.5 rounded font-medium ${
+                    topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                  }`}
+                >
                   #{cluster.topic}
                 </span>
               </h2>
