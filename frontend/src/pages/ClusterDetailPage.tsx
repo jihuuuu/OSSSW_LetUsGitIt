@@ -16,6 +16,7 @@ interface ClusterDetail {
   cluster_id: number;
   keywords: string[];
   articles: Article[];
+  topic: string; // 토픽 라벨링 추가
 }
 
 export default function ClusterDetailPage() {
@@ -148,8 +149,11 @@ const handleCreateNotePage = () => {
       <main className="w-[90%] mx-auto p-6">
         {cluster ? (
           <>
-            <h2 className="text-center text-2xl font-bold my-6">
+            <h2 className="text-center text-2xl font-bold my-6 flex justify-center items-center gap-3 flex-wrap">
               {cluster.keywords.join(" ")}
+              <span className="inline-block text-sm px-2 py-0.5 border border-indigo-400 text-indigo-600 rounded-md font-medium">
+                #{cluster.topic}
+              </span>
             </h2>
 
             <div className="bg-gray-50 border rounded-md p-4 shadow">

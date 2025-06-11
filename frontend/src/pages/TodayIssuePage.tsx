@@ -21,6 +21,7 @@ interface Cluster {
   num_articles: number;
   keywords: string[];
   articles: Article[];
+  topic: string; // 토픽 라벨링 추가
 }
 
 export default function TodayIssuePage() {
@@ -129,8 +130,11 @@ const handleAddToExistingNote = () => {
           <section key={cluster.cluster_id}>
             {/* 키워드 + (+) 버튼 */}
             <div className="flex justify-between items-center">
-              <h2 className="font-bold text-lg">
+              <h2 className="font-bold text-lg flex items-center gap-2">
                 {index + 1}. {cluster.keywords.join(" ")}
+                <span className="inline-block text-sm px-2 py-0.5 border border-indigo-400 text-indigo-600 rounded-md font-medium">
+                  #{cluster.topic}
+                </span>
               </h2>
               <button
                 onClick={() => navigate(`/clusters/${cluster.cluster_id}`)}
