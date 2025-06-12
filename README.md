@@ -1,4 +1,4 @@
-# 📰 뉴스 트렌드 클러스터링 서비스
+# 📰 뉴스 트렌드 클러스터링 서비스 - HOT ISUUE
 
 최신 뉴스 기사를 **주제별로 클러스터링하고**, **키워드 시각화**, **스크랩 기반 개인화 추천** 기능을 제공하는 AI 기반 웹 서비스입니다.
 
@@ -77,7 +77,7 @@ localhost:5173 에서 웹 애플리케이션이 실행됩니다.
 <details>
 <summary> 프로젝트 구조 </summary>
 
-```plaintext
+<pre>
 project/
 ├─ api/                   # api 목록 (필요시 확장)
 │   ├─ create_app.py      # FastAPI 앱 팩토리(환경 로드, 라우터 등록) 생성
@@ -108,8 +108,8 @@ project/
 ├─ requirements.txt       # 패키지 설치 및 의존성 주입
 └─ Dockerfile             # 선택 (필요시 확장)
 </details>
-
-```
+</pre>
+<br>
 
 ---
 ## 📈 향후 개선 사항
