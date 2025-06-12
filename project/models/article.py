@@ -71,7 +71,7 @@ class Keyword(Base):
 
     # 관계
     cluster_keyword = relationship("ClusterKeyword", back_populates="keyword")
-    pcluster_keyword = relationship("PClusterKeyword", back_populates="keyword")
+    #pcluster_keyword = relationship("PClusterKeyword", back_populates="keyword")
     # trend_keywords = relationship("TrendKeyword", back_populates="keyword")
     # today_keywords = relationship("TodayKeywordHourly", back_populates="keyword")
 
