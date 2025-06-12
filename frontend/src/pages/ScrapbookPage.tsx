@@ -99,15 +99,9 @@ const handleCreateNotePage = () => {
   return (
     <div>
       {/* 상단 헤더 */}
-      <header className="h-17 bg-blue-500 text-white px-6 flex items-center justify-between mb-5">
-                    <div className="flex items-center">
-                      <Logo />
-                    </div>
-                    <h1 className="font-bmjua text-3xl">SCRAP BOOK</h1>
-                    <div className="px-2 py-1">
-                      <Header />
-                    </div>
-                  </header>
+      <header className="mb-10">
+                    <Header />
+      </header>
 
       {/*  본문 */}
       <main className="w-[80%]  mx-auto flex flex-col items-center">
@@ -117,7 +111,7 @@ const handleCreateNotePage = () => {
           </p>
           <div className="flex w-full max-w-sm items-center gap-2">
             <Input
-              placeholder="예: 남지수"
+              placeholder="예: AI"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}

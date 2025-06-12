@@ -94,7 +94,7 @@ export default function NotePage() {
   return (
     <>
       <div className="min-h-screen flex flex-col justify-start">
-            <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-20">
+            <header className="mb-10">
               <Header />
             </header>
 
