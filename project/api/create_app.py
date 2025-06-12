@@ -12,6 +12,11 @@ from fastapi.openapi.utils import get_openapi
 from database.connection import SessionLocal
 from collector.rss_collector import parse_and_store
 from tasks.daily_trend import generate_daily_trend
+from fastapi_cache import FastAPICache            # 캐시 초기화
+from fastapi_cache.backends.redis import RedisBackend
+from redis.asyncio import Redis
+from .config import settings
+
 
 def hourly_clustering():
     """
@@ -94,6 +99,13 @@ def create_app():
 
     @app.on_event("startup")
     async def startup_event():
+        # 1) Redis 연결 및 캐시 초기화
+        redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,
+        encoding="utf-8", decode_responses=True
+        )
+        FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    
+        # 2) 기존 스케줄러·파이프라인
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  
         # 초기 클러스터링 (백그라운드)

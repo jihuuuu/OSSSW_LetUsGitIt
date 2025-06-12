@@ -1,12 +1,21 @@
-version: '3.8'
+version: "3.8"
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: my-redis
+  web:
+    build: .
+    contaioner_name: news_app
+    environment:
+      REDIS_HOST: my-redis
+      REDIS_PORT: "6379"
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+      - "8000:8000"
+    command: >
+      python -m uvicorn app:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    network:
+    - project_default
 
-volumes:
-  redis_data:
+networks:
+  project_default:
+    external: true

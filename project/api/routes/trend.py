@@ -11,6 +11,8 @@ from models.article import Article, ClusterArticle, ClusterKeyword, Keyword, Tre
 from clustering.keyword_extractor import extract_top_keywords
 from clustering.embedder import preprocess_text
 from konlpy.tag import Okt
+from fastapi_cache.decorator import cache
+
 
 router = APIRouter()
 
@@ -18,6 +20,7 @@ router = APIRouter()
 _okt = Okt()
 
 @router.get("/weekly", response_model=WeeklyTrendResponse)
+@cache(expire=86400)  # 하루(24시간) 캐싱
 def get_weekly_trends(db: Session = Depends(get_db)):
     today = date.today() # - timedelta(days=1)
     start = today - timedelta(days=7)
@@ -81,12 +84,13 @@ def get_weekly_trends(db: Session = Depends(get_db)):
 @router.get("/suggested_keywords", response_model=SuggestedKeywordsResponse,
     summary="일주일간 이슈 키워드 조회", description="일주일(오늘 포함) 동안 trend_keyword 테이블을 집계해서 상위 키워드 리스트를 반환합니다."
 )
+@cache(expire=86400)  # 하루(24시간) 캐싱
 def suggested_keywords(
     db: Session = Depends(get_db),
 ):
     # 1) 기간 설정: 오늘 포함 최근 7일
     end_date   = date.today()
-    start_date = end_date - timedelta(days=6)
+    start_date = end_date - timedelta(days=7)
 
     # 2) date 범위 내에서 keyword별 count 합산 후 내림차순 정렬
     rows = (
@@ -107,13 +111,14 @@ def suggested_keywords(
     return {"keywords": keywords}
 
 @router.get("/search", response_model=SearchTrendResponse)
+@cache(expire=86400)  # 하루(24시간) 캐싱
 def search_trends(
     keyword: str,
     db:      Session = Depends(get_db),
 ):
     # 1) 날짜 범위: 오늘 포함 최근 7일
     end_date   = date.today() # - timedelta(days=1)
-    start_date = end_date - timedelta(days=6)
+    start_date = end_date - timedelta(days=7)
     dates      = [start_date + timedelta(days=i) for i in range(7)]
 
     # 2) 키워드 유효성 검사
