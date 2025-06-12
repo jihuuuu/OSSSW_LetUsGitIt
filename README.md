@@ -108,6 +108,7 @@ project/
 ├─ requirements.txt       # 패키지 설치 및 의존성 주입
 └─ Dockerfile             # 선택 (필요시 확장)
 </details>
+
 ```
 
 ---
