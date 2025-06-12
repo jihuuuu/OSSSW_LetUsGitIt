@@ -30,7 +30,39 @@
 ---
 ## 🚀 설치 및 실행
 
-### 0. 클론
+### 🛠️ 0. 클론 및 MySQL 설정
+
+#### 1. MySQL 데이터베이스 생성
+
+- root 계정에서 생성해도 되지만, 별도의 사용자 계정을 생성한 뒤 사용하는 것을 권장합니다.
+
+```sql
+CREATE DATABASE news_app;
+
+#### 2. 환경 변수 설정
+프로젝트 루트에 .env 파일을 생성하고 다음 내용을 입력하세요:
+MYSQL_USER=root
+MYSQL_PASSWORD=1569
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DB=news_app
+⚠️ .env 파일에 주석이나 공백 줄이 포함되면 로딩이 실패할 수 있습니다.
+반드시 KEY=VALUE 형식으로만 작성하세요.
+
+#### 3. 테이블 Schema 자동 생성 (db_init.py)
+아래 명령어를 터미널에 입력하면 DB에 필요한 테이블들이 생성됩니다:
+
+bash
+python db_init.py
+성공 시 출력 메시지:
+
+테이블 생성 완료
+MySQL에서도 다음 명령으로 테이블 생성 여부를 확인할 수 있습니다:
+
+sql
+USE news_app;
+SHOW TABLES;
+테이블 구조는 database/sql_models.py에 정의되어 있습니다.
 
 ### 🔧 1. 백엔드 실행 (FastAPI)
 cd backend
@@ -39,6 +71,7 @@ uvicorn main:app --reload
 localhost:8000 에서 API 서버가 실행됩니다.
 
 API 문서는 http://localhost:8000/docs (Swagger UI)에서 확인 가능합니다.
+원하는 API 항목에서 Try it out → Execute 클릭
 
 ### 🎨 2. 프론트엔드 실행 (React)
 cd frontend
