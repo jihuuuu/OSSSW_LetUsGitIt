@@ -38,6 +38,7 @@
 
 ```sql
 CREATE DATABASE news_app;
+```
 
 #### 2. 환경 변수 설정
 프로젝트 루트에 .env 파일을 생성하고 다음 내용을 입력하세요:
@@ -52,16 +53,18 @@ MYSQL_DB=news_app
 #### 3. 테이블 Schema 자동 생성 (db_init.py)
 아래 명령어를 터미널에 입력하면 DB에 필요한 테이블들이 생성됩니다:
 
-bash
+```bash
 python db_init.py
-성공 시 출력 메시지:
+```
 
+성공 시 출력 메시지:
 테이블 생성 완료
 MySQL에서도 다음 명령으로 테이블 생성 여부를 확인할 수 있습니다:
 
-sql
+```sql
 USE news_app;
 SHOW TABLES;
+```
 테이블 구조는 database/sql_models.py에 정의되어 있습니다.
 
 ### 🔧 1. 백엔드 실행 (FastAPI)
@@ -171,4 +174,4 @@ git checkout -b feat/my-feature
 # 작업 후 커밋 및 푸시
 git commit -m "feat: add my feature"
 git push origin feat/my-feature
-
+```
