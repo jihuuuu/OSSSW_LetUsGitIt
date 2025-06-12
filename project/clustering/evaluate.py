@@ -17,7 +17,6 @@ def evaluate_silhouette(
     각 K 대해 KMeans 클러스터링을 수행한 후 실루엣 점수를 반환.
     """
     print(">>> silhouette 평가 스크립트 시작")
-
     embeddings = load_embeddings(emb_path)
     print(f"▶️ loaded embeddings: {embeddings.shape}")
 

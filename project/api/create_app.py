@@ -8,9 +8,10 @@ from starlette.concurrency import run_in_threadpool
 from clustering.pipeline_by_topic import run_all_topics_pipeline
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
+#from tasks.user_scrap_pipeline import generate_user_scrap_knowledge_maps
 from database.connection import SessionLocal
 from collector.rss_collector import parse_and_store
+from tasks.daily_trend import generate_daily_trend
 
 def hourly_clustering():
     """
@@ -37,28 +38,27 @@ def hourly_clustering():
             eps=0.5,
             min_samples=5,
             since_hours=24,
-            data_dir="data"
+            data_dir="data",
+            save_db=True
         )
         print("✅ [Pipeline] 토픽별 전체 파이프라인 완료.")
     except Exception as e:
         print(f"⚠️ [Pipeline] 토픽별 파이프라인 중 에러 발생: {e}")
 
     # 사용자별 스크랩 기반 지식맵 추가
+    """ 
     db = SessionLocal()
     try:
         generate_user_scrap_knowledge_maps(db)
     finally:
-        db.close()
+        db.close()"""
 
 def create_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     # 매시간 정각에 실행되도록 cron 트리거만 등록 (next_run_time 제거)
     scheduler.add_job(hourly_clustering, trigger="cron", minute=0)
-    scheduler.add_job(
-        lambda: run_in_threadpool(parse_and_store),
-        trigger="cron",
-        minute=0
-    )  
+    # 매일 자정에 이전 24시간 트렌드 집계
+    scheduler.add_job(generate_daily_trend, trigger='cron', hour=0, minute=0, id='daily_trend_job', replace_existing=True)
     return scheduler
 
 def create_app():
@@ -96,8 +96,11 @@ def create_app():
     async def startup_event():
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  
-        # 초기 클러스터링
+        # 초기 클러스터링 (백그라운드)
         await run_in_threadpool(hourly_clustering)
+        # 초기 트렌드 집계 (백그라운드)
+        await run_in_threadpool(generate_daily_trend)
+
 
     @app.on_event("shutdown")
     async def shutdown_event():
@@ -107,6 +110,7 @@ def create_app():
     async def root():
         return {"message": "Hello, world!"}
     
+
     # CORS 설정
     app.add_middleware(
         CORSMiddleware,
@@ -117,7 +121,7 @@ def create_app():
     )
 
 
-    app.include_router(news.router,    prefix="/news",    tags=["news"])
+    # app.include_router(news.router,    prefix="/news",    tags=["news"])
     app.include_router(cluster.router, prefix="/clusters", tags=["cluster"])
     app.include_router(user.router,    prefix="/users",    tags=["user"])
     app.include_router(scrap.router,    prefix="/users",    tags=["scrap"])

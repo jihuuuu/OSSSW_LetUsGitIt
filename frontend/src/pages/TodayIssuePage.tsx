@@ -5,6 +5,7 @@ import axios from "axios";
 import Logo from "@/components/ui/logo";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
+import { topicColorMap } from "@/utils/topicColorMap";
 
 interface Article {
   article_id: number;
@@ -21,6 +22,7 @@ interface Cluster {
   num_articles: number;
   keywords: string[];
   articles: Article[];
+  topic: string; // 토픽 라벨링 추가
 }
 
 export default function TodayIssuePage() {
@@ -120,17 +122,8 @@ const handleAddToExistingNote = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* 헤더 */}
-      <header className="relative bg-sky-400 h-20 flex items-center px-6">
-        <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
-          <Logo />
-        </div>
-        <h1 className="text-white text-xl font-bold mx-auto">오늘의 이슈 10</h1>
-        <div className="px-2 py -1">
-           <Header />
-        </div>
-      </header>
+     <div className="min-h-screen flex flex-col justify-start">
+         <Header />
 
       {/* 본문 */}
       <main className="px-6 py-8 space-y-6">
@@ -138,8 +131,15 @@ const handleAddToExistingNote = () => {
           <section key={cluster.cluster_id}>
             {/* 키워드 + (+) 버튼 */}
             <div className="flex justify-between items-center">
-              <h2 className="font-bold text-lg">
+              <h2 className="font-bold text-lg flex items-center gap-2">
                 {index + 1}. {cluster.keywords.join(" ")}
+                <span
+                  className={`inline-block text-xs px-2 py-0.5 rounded font-medium ${
+                    topicColorMap[cluster.topic] || "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  #{cluster.topic}
+                </span>
               </h2>
               <button
                 onClick={() => navigate(`/clusters/${cluster.cluster_id}`)}
@@ -179,36 +179,9 @@ const handleAddToExistingNote = () => {
             </div>
           </section>
         ))}
-      </main>
-      <div className="sticky bottom-4 right-4 flex justify-end mt-6 pr-4">
-  {noteMode ? (
-    <div className="flex gap-2">
-      <button
-        onClick={handleCreateNote}
-        className="px-4 py-2 bg-sky-500 text-white rounded-full shadow"
-      >
-        ✏️ 새 노트 작성
-      </button>
-      <button
-        onClick={handleAddToExistingNote}
-        className="px-4 py-2 bg-green-500 text-white rounded-full shadow"
-      >
-        ➕ 기존 노트에 추가
-      </button>
-    </div>
-  ) : (
-    <button
-      onClick={() => setNoteMode(true)}
-      className="w-12 h-12 rounded-full border text-2xl shadow"
-    >
-      ✏️
-    </button>
-  )}
-</div>
-    </div>
-  );
-}
-function setNoteMode(arg0: boolean) {
-  throw new Error("Function not implemented.");
-}
-
+            </main>
+          </div>
+        );
+      }
+      
+ 

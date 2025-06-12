@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { TodayKeywordGraph } from "@/components/TodayKeywordGraph";
-
+import { motion } from "framer-motion";
 type ClusterOut = {
   cluster_id: number;
   keywords: string[];
@@ -51,17 +51,22 @@ export const TodayKeywordPreview: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-center mb-4">
-        오늘의 키워드
-      </h1>
+    <div className="w-full overflow-hidden">
+    <h1 className="text-2xl font-bold text-center mb-4">오늘의 키워드</h1>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      viewport={{ once: true, amount: 0.2 }}
+    >
       <TodayKeywordGraph
         clusters={clusters.map((cl) => ({
           cluster_id: cl.cluster_id,
           keywords: cl.keywords,
-          num_articles: cl.num_articles, // num_articles 추가
+          num_articles: cl.num_articles,
         }))}
       />
-    </div>
+    </motion.div>
+  </div>
   );
 };

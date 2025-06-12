@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getArticlesByNoteId } from "@/services/note";
 import type { Article } from "@/types/article";
+import useLogoutWatcher from "@/hooks/useLogoutWatcher";
 
 export default function NoteEditPage() {
+  useLogoutWatcher
   const { noteId } = useParams();
   const id=Number(noteId);
   const navigate = useNavigate();
@@ -12,42 +14,59 @@ export default function NoteEditPage() {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [articles, setArticles] = useState<Article[]>([]);
-//1. 노트 로딩
+  const[tempTitle, setTempTitle] = useState("");
 useEffect(() => {
+  console.log("noteId:", noteId);
+  console.log("location.state:", location.state);
+
   const loadNote = async () => {
-    if (!noteId) return;
 
-      const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
+    const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    const data = await res.json();
+    const tempTitle = location.state?.tempTitle ?? localStorage.getItem("tempNoteTitle");
+const tempText = location.state?.tempText ?? localStorage.getItem("tempNoteText");
+
+if (tempTitle !== null) {
+  setTitle(tempTitle);
+} else {
+  setTitle(data.result.title || "");
+}
+
+if (tempText !== null) {
+  setText(tempText);
+} else {
+  setText(data.result.text || "");
+}
+
+localStorage.removeItem("tempNoteTitle");
+localStorage.removeItem("tempNoteText");
+
+    const related = await getArticlesByNoteId(Number(noteId));
+    const incoming = location.state?.newArticles as Article[];
+    // ✅ 여기서 병합
+    let finalArticles = related;
+    if (incoming?.length) {
+      const merged = [...related];
+      incoming.forEach((article) => {
+        if (!merged.some((a) => a.id === article.id)) {
+          merged.push(article);
+        }
       });
+      finalArticles = merged;
+    }
 
-      const data = await res.json();
-      if (!data?.result) return;
-
-      setTitle(data.result.title || "");
-      setText(data.result.text || "");
-
-      const related = await getArticlesByNoteId(Number(noteId));
-      setArticles(related);
+    setArticles(finalArticles);
   };
 
   loadNote();
-}, [noteId]);
-//2. 새 기사 병합
-useEffect(() => {
-  const incoming = location.state?.newArticles;
-  if (!incoming || !Array.isArray(incoming)) return;
+}, [noteId, location.state?.newArticles]); // newArticles도 의존성에 포함
 
-  setArticles((prev) => {
-    const map = new Map<number, Article>();
-    prev.forEach((a) => map.set(a.id, a));
-    incoming.forEach((a: Article) => map.set(a.id, a));
-    return Array.from(map.values());
-  });
-},  [location.key]);
-  const handleSave = async () => {
+  
+const handleSave = async () => {
     const res = await fetch(`http://localhost:8000/users/notes/${noteId}`, {
       method: "PUT",
       headers: { 
@@ -82,7 +101,9 @@ useEffect(() => {
 
       <button
     className="text-lg underline text-blue-600 mb-4"
-    onClick={() =>
+    onClick={() =>{
+       localStorage.setItem("tempNoteTitle", title);
+       localStorage.setItem("tempNoteText", text);
       navigate("/users/scraps", {
         state: {
           mode: "edit-note",
@@ -90,6 +111,7 @@ useEffect(() => {
           selectedArticles: articles,
         },
       })
+       }
     }
   >
     기사 추가하기+

@@ -1,24 +1,26 @@
+// 📁 src/components/Header.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { checkAuth } from "../services/auth";
+import Logo from "@/components/ui/logo";
 
 export default function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-  const validate = async () => {
-    const user = await checkAuth();  // 실패 시 null
-    setIsLoggedIn(!!user);
-  };
-  validate();
-}, []);
+    const validate = async () => {
+      const user = await checkAuth();
+      setIsLoggedIn(!!user);
+    };
+    validate();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     fetch("http://localhost:8000/users/logout", {
       method: "POST",
-      credentials: "include", // refresh_token 쿠키 삭제
+      credentials: "include",
     });
     alert("로그아웃되었습니다.");
     navigate("/");
@@ -26,30 +28,23 @@ export default function Header() {
   };
 
   return (
-    <div className="flex gap-3 items-center">
-      {isLoggedIn ? (
-        <>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
-          >
-            마이페이지
-          </button>
-          <button
-            onClick={handleLogout}
-            className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
-          > 
-            로그아웃
-          </button>
-        </>
-      ) : (
-        <button
-          onClick={() => navigate("/login")}
-          className="text-sm font-medium text-black border border-gray-300 bg-gray-100 px-3 py-1 rounded shadow-sm hover:shadow-md hover:bg-gray-200 transition"
-        >
-          로그인
-        </button>
-      )}
-    </div>
+     <header className="w-full bg-black text-white px-10 py-10 flex items-center justify-between shadow-md z-50 sticky top-0 h-28">
+      <Logo />
+      <nav className="flex items-center gap-6 text-lg font-medium">
+        <Link to="/today/issue" className="hover:text-orange-300 transition">오늘의 이슈</Link>
+        <Link to="/trend/weekly" className="hover:text-orange-300 transition">트렌드</Link>
+        {isLoggedIn ? (
+          <>
+            <Link to="/dashboard" className="hover:text-orange-300 transition">마이페이지</Link>
+            <button onClick={handleLogout} className="hover:text-orange-300 transition">로그아웃</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="hover:text-orange-300 transition">로그인</Link>
+            <Link to="/signup" className="hover:text-orange-300 transition">회원가입</Link>
+          </>
+        )}
+      </nav>
+    </header>
   );
 }

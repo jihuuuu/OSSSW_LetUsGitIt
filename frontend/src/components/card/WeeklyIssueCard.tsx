@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // ✅ 추가
 import LineChart from '@/components/LineChart';
-
+import { motion } from "framer-motion";
 type DailyCount = { date: string; count: number };
 type TrendItem = {
   keyword: string;
@@ -35,11 +35,17 @@ export default function WeeklyIssuePreview() {
   }, []);
 
   return (
-    <div className="bg-white shadow-md rounded-xl p-4">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      viewport={{ once: true, amount: 0.2 }}
+      className="bg-white shadow-md rounded-xl p-4"
+    >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-blue-500">뉴스 트렌드</h2>
         <button
-          onClick={() => navigate("/trend")} // ✅ 이동
+          onClick={() => navigate("/trend")}
           className="text-sm text-blue-500 hover:underline"
         >
           더보기
@@ -48,6 +54,6 @@ export default function WeeklyIssuePreview() {
       <div className="h-[400px]">
         <LineChart data={trendData} />
       </div>
-    </div>
+    </motion.div>
   );
 }

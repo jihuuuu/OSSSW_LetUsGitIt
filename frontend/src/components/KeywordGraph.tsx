@@ -130,5 +130,12 @@ export function KeywordGraph({ clusters }: Props) {
     };
   }, [clusters, navigate]);
 
-  return <svg ref={svgRef} width={600} height={400} className="mx-auto my-4" />;
+  return (
+  <svg
+    ref={svgRef}
+    viewBox="0 0 600 400"
+    preserveAspectRatio="xMidYMid meet"
+    className="w-full h-auto mx-auto my-4"
+  />
+);
 }
