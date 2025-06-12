@@ -1,65 +1,29 @@
-// src/services/knowledgeMap.ts
-import api from "./api";
-import type { PCluster } from "@/types/cluster";
-import type { KnowledgeMap } from "@/types/knowledgeMap";
+// 📄 /src/services/knowledgeMap.ts
+import api from "@/services/api";
+// ✅ 토큰 가져오는 함수 (예: localStorage 사용)
+function getAuthHeader() {
+  const token = localStorage.getItem("access_token"); // 혹은 "token"
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+}
 
-export async function fetchArticlesByKeywordCluster(keyword: string, page = 1, size = 10) {
-  const res = await api.get(`/keywords/${keyword}/clusters/articles`, {
-    params: { page, size }
-  });
+export async function fetchLatestKnowledgeMap() {
+  const res = await api.get("/users/knowledge_map/graph", getAuthHeader());
+  console.log("📦 지식맵 응답 전체:", res);
   return res.data;
 }
-export async function fetchKeywordName(keywordId: number) {
-  const res = await api.get(`/keywords/${keywordId}`);
-  return res.data.result; // { name: "..." } 형태로 오는 경우
+
+// 키워드 이름 조회
+export async function fetchKeywordName(id: number) {
+  const res = await api.get(`/users/keywords/${id}`);
+  return res.data;
 }
-export async function fetchLatestKnowledgeMap(): Promise<KnowledgeMap | null> {
-  try {
-    const res = await api.get("/users/knowledge_maps/graph");
-    const { result } = res.data;
 
-    const clusterMap = new Map<number, PCluster>();
-
-    for (const node of result.nodes) {
-      if (node.type === "cluster") {
-        const clusterId = parseInt(node.id.replace("cl-", ""));
-        clusterMap.set(clusterId, {
-          id: clusterId,
-          label: node.label,
-          keywords: [],
-        });
-      }
-    }
-
-    for (const edge of result.edges) {
-      const source = edge.source;
-      const target = edge.target;
-
-      // keyword 연결만 처리 (source가 cl-, target이 kw-)
-      const clusterId = parseInt((source as string).replace("cl-", ""));
-      const keywordId = parseInt((target as string).replace("kw-", ""));
-      const keywordNode = result.nodes.find((n: any) => n.id === target);
-      if (!keywordNode) continue;
-
-      const keyword = {
-        id: keywordId,
-        name: keywordNode.label,
-        count: 1,
-        clusterId,
-      };
-
-      const cluster = clusterMap.get(clusterId);
-      if (cluster) {
-        cluster.keywords.push(keyword);
-      }
-    }
-
-    return {
-      id: Date.now(), // fake ID
-      clusters: Array.from(clusterMap.values()),
-    };
-  } catch (err) {
-    console.error("지식맵 불러오기 실패", err);
-    return null;
-  }
+// 특정 키워드 관련 기사 조회
+export async function fetchArticlesByKeywordCluster(keywordId: number) {
+  const res = await api.get(`/users/keywords/${keywordId}/articles`);
+  return res.data;
 }

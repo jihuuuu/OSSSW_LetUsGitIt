@@ -127,7 +127,7 @@ def create_app():
     app.include_router(scrap.router,    prefix="/users",    tags=["scrap"])
     app.include_router(trend.router,    prefix="/trends",    tags=["trend"])
     app.include_router(notes.router, prefix="/users", tags=["notes"])
-    app.include_router(knowledge_map.router, prefix="/users", tags=["knowledge-map"])
+    app.include_router(knowledge_map.router, prefix="/users", tags=["knowledge_map"])
 
 
     return app

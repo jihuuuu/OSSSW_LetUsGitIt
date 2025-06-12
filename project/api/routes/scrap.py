@@ -1,5 +1,5 @@
 # api/routes/scrap.py
-# 역할: 기사 스크랩랩 관련 엔드포인트 모음
+# 역할: 기사 스크랩 관련 엔드포인트 모음
 
 from math import ceil
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -7,10 +7,12 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
+from tasks.user_scrap_pipeline import build_knowledge_map
 from database.deps import get_db
 from api.schemas.scrap import *
 
-from models.scrap import Scrap        # 스크랩 모델
+from models.scrap import Scrap, PKeyword, PKeywordArticle        # 스크랩 모델
+from models.user import KnowledgeMap
 from models.article import Article    # 기사 모델
 from models.note import NoteArticle, Note  # 노트-기사 매핑 및 노트 모델
 
@@ -18,8 +20,13 @@ from models.note import NoteArticle, Note  # 노트-기사 매핑 및 노트 모
 from api.utils.auth import get_current_user
 from models.user import User
 
-router = APIRouter()
+# 스크랩 시 pkeyword, knowledgemap db 업데이트
+from clustering.keyword_extractor import extract_keywords_per_article, get_top_keywords
+from clustering.embedder import preprocess_text
 
+from redis import Redis
+
+router = APIRouter()
 
 # --- 1) 기사 스크랩 ---
 @router.post(
@@ -32,16 +39,24 @@ def scrap_article(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1) 기사 존재 확인
+    # 기존 유효한 지식맵 비활성화
+    db.query(KnowledgeMap).filter_by(user_id=current_user.id, is_valid=True).update({"is_valid": False})
+
+    # Redis 캐시 삭제
+    redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    cache_key = f"user:{current_user.id}:knowledge_map"
+    redis_client.delete(cache_key)
+    
+    # 1. 기사 존재 확인
     article = db.query(Article).get(article_id)
     if not article:
         raise HTTPException(404, "Article not found")
 
-    # 2) 기존 스크랩 조회
+    # 2. 기존 스크랩 확인 및 상태 변경
     scrap = (
         db.query(Scrap)
-          .filter_by(article_id=article_id, user_id=current_user.id)
-          .first()
+        .filter_by(article_id=article_id, user_id=current_user.id)
+        .first()
     )
     if scrap:
         if scrap.state:
@@ -52,10 +67,38 @@ def scrap_article(
         scrap = Scrap(article_id=article_id, user_id=current_user.id)
         db.add(scrap)
 
+    # 3. 키워드 추출
+    preprocessed = preprocess_text(article.title + " " + (article.summary or ""))
+    keywords_list = extract_keywords_per_article([preprocessed])
+    keywords = keywords_list[0]
+    # 디버깅용 출력
+    print(f"Extracted keywords: {keywords}")
+
+     # 4. 기존 PKeyword 불러오기
+    pkeyword_dict = {pk.name: pk for pk in db.query(PKeyword).filter_by(user_id=current_user.id).all()}
+
+    for keyword in keywords:
+        if keyword in pkeyword_dict:
+            pk = pkeyword_dict[keyword]
+            pk.count += 1
+        else:
+            pk = PKeyword(user_id=current_user.id, name=keyword, count=1)
+            db.add(pk)
+            db.flush()
+            pkeyword_dict[keyword] = pk
+
+        # 중간테이블 연결
+        existing_link = db.query(PKeywordArticle).filter_by(pkeyword_id=pk.id, article_id=article.id).first()
+        if not existing_link:
+            db.add(PKeywordArticle(pkeyword_id=pk.id, article_id=article.id))
+
+    # 5. 커밋
     db.commit()
     db.refresh(scrap)
 
-    # 2) wrapper 객체로 리턴
+    # 6. 지식맵 생성(celery task 실행)
+    build_knowledge_map(current_user.id)
+    
     return ScrapCreateResponse(
         isSuccess=True,
         code="SCRAP_CREATED",

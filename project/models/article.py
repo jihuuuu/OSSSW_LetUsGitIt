@@ -25,7 +25,7 @@ class Article(Base):
     scrap = relationship("Scrap", back_populates="article")
     note_article = relationship("NoteArticle", back_populates="article")
     cluster_article = relationship("ClusterArticle", back_populates="article")
-    pcluster_article = relationship("PClusterArticle", back_populates="article")
+    pkeyword_articles = relationship("PKeywordArticle", back_populates="article")
 
 class Cluster(Base):
     __tablename__ = "cluster"

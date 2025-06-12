@@ -8,7 +8,6 @@ import { getScrappedArticles } from "@/services/scrap";
 import { fetchLatestKnowledgeMap } from "@/services/knowledgeMap";
 import type { Note } from "@/types/note";
 import type { ScrappedArticle } from "@/types/scrap";
-import type { KnowledgeMap } from "@/types/knowledgeMap";
 import { KeywordGraph } from "@/components/KeywordGraph";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
@@ -18,32 +17,18 @@ export default function DashboardPage() {
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [scraps, setScraps] = useState<ScrappedArticle[]>([]);
-  const [map, setMap] = useState<KnowledgeMap | null>(null);
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       getNotesByPage(1, 3).then((res) => setNotes(res.notes)),
       getScrappedArticles({ page: 1, size: 5 }).then((res) => setScraps(res.articles)),
-      fetchLatestKnowledgeMap().then((res) => {
-        if (res && 'keywords' in res) {
-          setMap({
-            id: res.id,
-            clusters: [
-              {
-                id: 0,
-                label: 1,
-                keywords: (res.keywords as Array<{ id: number; name: string }>).map((k) => ({
-                  ...k,
-                  count: 1,
-                  clusterId: 0,
-                })),
-              },
-            ],
-          });
-        } else {
-          setMap(res);
-        }
+      fetchLatestKnowledgeMap().then((res: any) => {
+        console.log("📦 지식맵 응답:", res); 
+        setNodes(res.nodes || []);
+        setEdges(res.edges || []);
       }),
     ]).finally(() => setIsLoading(false));
   }, []);
@@ -54,10 +39,19 @@ export default function DashboardPage() {
 
   return (
     
-    <div >
-      <div className="mb-5">
-            <Header />
-      </div>
+    <div className="min-h-screen flex flex-col justify-start">
+          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-10">
+            <div className="flex items-center">
+              <Logo />
+            </div>
+            <h1 className="text-white text-4xl font-bmjua">
+              MY PAGE
+            </h1>
+            <div className="px-2 py -1">
+              <Header />
+            </div>
+          </header>
+
       {/* ✅ 본문 (세로 정렬) */}
       <main className="px-6 flex flex-col items-center gap-10">
         {/* ✅ 지식맵 */}
@@ -66,8 +60,8 @@ export default function DashboardPage() {
             <h2 className="font-bold text-lg">MY KNOWLEDGE-MAP</h2>
           </div>
           <div className="bg-gray-50 border rounded px-4 py-3">
-            {map?.clusters?.length && map.clusters.length > 0 ? (
-              <KeywordGraph clusters={map.clusters} />
+            {nodes.length > 0 ? (
+              <KeywordGraph nodes={nodes} edges={edges} />
             ) : (
               <p className="text-sm text-gray-500">지식맵이 없습니다.</p>
             )}
