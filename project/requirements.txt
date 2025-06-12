@@ -17,3 +17,5 @@ faker
 umap-learn
 hdbscan
 scipy
+redis
+pydantic-settings

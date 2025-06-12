@@ -12,6 +12,7 @@ from clustering.keyword_extractor import extract_top_keywords
 from models.article import ClusterKeyword, Keyword
 from database.connection import SessionLocal
 from sklearn.feature_extraction.text import TfidfVectorizer
+from clustering.cache_redis import load_embedding_cache, save_embedding_cache
 from clustering.cluster import (
     load_embeddings, run_kmeans, run_dbscan, run_hdbscan,
     save_clusters_to_db, fetch_article_ids
@@ -25,16 +26,8 @@ def run_embedding_stage(
     """
     1) 특정 topic 기사 ID와 원문 리스트(fetched within since_hours) 가져오기
     2) 전처리→캐시 로드→새 임베딩 생성→캐시 업데이트
-    3) 토픽별로 id_path, emb_path를 "data/{topic}_ids.npy", "data/{topic}_embs.npy"로 관리
     """
-
-    # 1) 토픽별 파일 경로 생성 (토픽 이름에 따라 파일명 동적 지정)
-    # 예: "data/정치_ids_768.npy", "data/정치_embs_768.npy"
-    os.makedirs(data_dir, exist_ok=True)
-    id_path = os.path.join(data_dir, f"{topic.value}_ids_768.npy")
-    emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
-
-    # 2) 지난 24시간 동안 발행된 topic별 기사 가져오기
+    # 1) 최근 since_hours 시간 동안 발행된 topic별 기사 가져오기
     rows = fetch_texts_with_ids_by_topic(topic=topic, since_hours=since_hours)
     if not rows:
         print(f"♨️ [{topic.value}] 기사 없음 → 임베딩 단계 스킵")
@@ -44,37 +37,32 @@ def run_embedding_stage(
     ids_window = list(ids_window)
     raw_texts = list(raw_texts)
 
-    # 3) 전처리 (한 번만!)
+    # 2) 전처리
     cleaned_texts = [preprocess_text(t) for t in raw_texts]
-    # cleaned_texts[i] 는 ids_window[i] 에 대한 전처리 결과
 
-    # 4) 기존 캐시 로드
-    cached_ids, cached_embs = load_embedding_cache(id_path, emb_path)
+    # 3) Redis 캐시 로드 (TTL 기반 자동 만료)
+    cached_ids, cached_embs = load_embedding_cache(topic.value)
 
-    # 5) 캐시와 비교해서 신규로 생성해야 할 ID & 텍스트 추리기
-    reused_embs = []
-    new_texts = []
-    new_ids = []
-    for idx, aid in enumerate(ids_window):
-        # 기존 캐시에 있으면, 그 위치의 embedding을 reused_embs에 담기
+    # 4) 캐시된 임베딩과 신규 텍스트 분리
+    new_ids, new_texts, reused_embs = [], [], []
+    for aid, text in zip(ids_window, cleaned_texts):
         if aid in cached_ids:
             idx = int(np.where(cached_ids == aid)[0][0])
             reused_embs.append(cached_embs[idx])
         else:
             new_ids.append(aid)
-            new_texts.append(cleaned_texts[idx])
+            new_texts.append(text)
 
-    # 6) 새로운 임베딩 생성: 이미 전처리된 cleaned_texts 중 새로 필요한 부분만
+    # 5) 신규 임베딩 생성
     if new_texts:
         new_embs = make_embeddings(new_texts, batch_size=batch_size)
         print(f"✅ [{topic.value}] 신규 {len(new_ids)}개 임베딩 생성")
     else:
-        new_embs = np.zeros((0, cached_embs.shape[1] if cached_embs.size else new_embs.shape[1]))
-        print(f"✅ [{topic.value}] 신규 임베딩 없음, 모두 캐시 재사용")
+        new_embs = np.zeros((0, cached_embs.shape[1] if cached_embs.size else 0))
+        print(f"✅ [{topic.value}] 신규 임베딩 없음 → 캐시 재사용만")
 
-    # 7) 최종 윈도우 임베딩 배열 재조합
-    final_embs_list = []
-    new_idx = 0
+    # 6) 최종 임베딩 재조합
+    final_embs_list, new_idx = [], 0
     for aid in ids_window:
         if aid in cached_ids:
             idx = int(np.where(cached_ids == aid)[0][0])
@@ -85,11 +73,11 @@ def run_embedding_stage(
     final_embs = np.vstack(final_embs_list)
     final_ids = np.array(ids_window, dtype=int)
 
-    # 8) 캐시에 덮어쓰기
-    save_embedding_cache(final_ids, final_embs, id_path, emb_path)
-    print(f"✅ [{topic.value}] 캐시 갱신됨 (since {since_hours}시간) : {len(final_ids)}개")
+    # 7) Redis 캐시 업데이트 (TTL = since_hours * 3600초)
+    ttl_seconds = since_hours * 3600
+    save_embedding_cache(final_ids, final_embs, topic.value, ttl=ttl_seconds)
+    print(f"✅ [{topic.value}] Redis 캐시 갱신 (TTL={ttl_seconds}s): {len(final_ids)}개")
 
-    # 9) 결과 리턴: (임베딩 배열, ID 리스트, 원문 리스트, 전처리된 텍스트 리스트)
     return final_embs, ids_window, raw_texts, cleaned_texts
 
 
