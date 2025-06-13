@@ -1,95 +1,103 @@
-# 📄 tasks/user_scrap_pipeline.py
-"""from sqlalchemy.orm import Session
-from models.article import Article, Keyword
-from models.scrap import Scrap
-from models.user import User
-from models.user import KnowledgeMap
-from models.scrap import PCluster, PClusterKeyword, PClusterArticle
-from clustering.embedder import make_embeddings, preprocess_text
-from clustering.cluster import run_kmeans
-from clustering.keyword_extractor import extract_keywords_per_cluster
+# tasks/user_scrap_pipeline.py
+from sqlalchemy.orm import Session
+from database.connection import SessionLocal
+from models.user import KnowledgeMap, User
+from models.scrap import PKeyword, PKeywordArticle
+from clustering.embedder import make_embeddings
+from clustering.keyword_extractor import get_top_keywords
+from sklearn.metrics.pairwise import cosine_similarity
+from redis import Redis
+import json
 
-def run_user_scrap_knowledge_map(user: User, db: Session):
-    # 1. 해당 유저의 스크랩 기사 불러오기
-    articles = (
-        db.query(Article)
-        .join(Scrap, Scrap.article_id == Article.id)
-        .filter(Scrap.user_id == user.id)
-        .all()
-    )
+def build_knowledge_map(user_id: int):
+    db: Session = SessionLocal()
 
-    if not articles:
-        print(f"❌ 사용자 {user.id} 스크랩 없음. 건너뜀.")
-        return
+    try:
+        print(f"🧠 Task called with user_id={user_id}")
+        # 1. 유저의 모든 PKeyword 가져오기
+        print("📍 Step 1: 유저 PKeyword 조회 시작")
+        pkeywords = db.query(PKeyword).filter_by(user_id=user_id).all()
+        if not pkeywords:
+            return "NO_PKEYWORDS"
 
-    # 2. 전처리 + 빈 텍스트 필터링
-    texts = [f"{a.title} {a.summary or ''}".strip() for a in articles]
-    preprocessed = [preprocess_text(t) for t in texts]
+        # 2. 연결 정보 설정
+        print("📍 Step 2: connections 설정")
+        for pk in pkeywords:
+            pk.connections = db.query(PKeywordArticle).filter_by(pkeyword_id=pk.id).all()
 
-    texts_filtered = []
-    articles_filtered = []
-    for i, p in enumerate(preprocessed):
-        if p.strip():
-            texts_filtered.append(p)
-            articles_filtered.append(articles[i])
+        # 3. 상위 20개 키워드 선정
+        print("📍 Step 3: top_keywords 계산")
+        top_keywords = get_top_keywords(pkeywords, alpha=0.75, limit=20)
+        if not top_keywords:
+            print("⚠️ top_keywords가 비어 있어 knowledge_map을 생성하지 않습니다.")
+            return "NO_TOP_KEYWORDS"
+        print(f"📍 top_keywords 개수: {len(top_keywords)}")
 
-    if not texts_filtered:
-        print(f"❌ 사용자 {user.id} 스크랩 기사 중 유효한 텍스트 없음. 건너뜀.")
-        return
+        # 4. KnowledgeMap 생성 및 연결
+        print("📍 Step 4: KnowledgeMap 생성")
+        knowledge_map = KnowledgeMap(user_id=user_id, is_valid=True)
+        db.add(knowledge_map)
+        db.flush()  # knowledge_map.id 확보
+        created_at = knowledge_map.created_at
 
-    # 3. 임베딩 & 클러스터링
-    embeddings = make_embeddings(texts_filtered)
-    num_samples = len(embeddings)
-    
-    # 샘플이 2건 미만이면 클러스터링 스킵
-    if num_samples < 2:
-        print(f"⚠️ 사용자 {user.id} 임베딩 수({num_samples}) < 2, 클러스터링 건너뜀")
-        return
-    
-    # 클러스터 수는 너무 많지 않게 조절 (최소 2, 최대 5)
-    n_clusters = min(max(2, num_samples // 2), num_samples)
-    labels = run_kmeans(embeddings, n_clusters=n_clusters)
+        for pk in top_keywords:
+            pk.knowledge_map_id = knowledge_map.id
 
-    # 4. KnowledgeMap 생성
-    knowledge_map = KnowledgeMap(user_id=user.id)
-    db.add(knowledge_map)
-    db.commit()
-    db.refresh(knowledge_map)
+        # 5. 임베딩 및 유사도 계산
+        print("📍 Step 5: 임베딩 및 유사도 계산")
+        keyword_texts = [kw.name for kw in top_keywords]
+        embeddings = make_embeddings(keyword_texts)
+        sim_matrix = cosine_similarity(embeddings)
 
-    # 5. 대표 키워드 추출
-    keyword_map = extract_keywords_per_cluster(texts_filtered, labels, db)
+        # 6. 간선 생성 (dict로)
+        print("📍 Step 6: 간선 생성")
+        edges = []
+        threshold = 0.60
+        top_k = 3
+        for i in range(len(top_keywords)):
+            similarities = [(j, sim_matrix[i][j]) for j in range(len(top_keywords)) if i != j]
+            top_similar = sorted(similarities, key=lambda x: x[1], reverse=True)[:top_k]
+            for j, sim in top_similar:
+                if sim >= threshold:
+                    edges.append({
+                        "source": top_keywords[i].id,
+                        "target": top_keywords[j].id,
+                        "weight": round(float(sim), 4)
+                    })
 
-    for cluster_id in set(labels):
-        cluster_articles = [articles_filtered[i] for i, l in enumerate(labels) if l == cluster_id]
-        cluster_keywords = keyword_map.get(cluster_id, [])
+        # 7. 노드 생성 (dict로)
+        print("📍 Step 7: 노드 생성")
+        nodes = [
+            {"id": kw.id, "name": kw.name, "count": kw.count}
+            for kw in top_keywords
+        ]
 
-        pcluster = PCluster(label=cluster_id, knowledge_map_id=knowledge_map.id)
-        db.add(pcluster)
+        # ✅ 디버깅 출력
+        print("\n🧠 [지식맵 노드 목록]")
+        for node in nodes:
+            print(f" - {node['name']} (count: {node['count']})")
+
+        print("\n🔗 [지식맵 간선 목록]")
+        for edge in edges:
+            print(f" - {edge['source']} -> {edge['target']} (weight: {edge['weight']})")
+
+        # 8. Redis에 캐싱
+        redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
+        cache_key = f"user:{user_id}:knowledge_map"
+        cache_value = {"id": knowledge_map.id,
+                       "created_at": created_at.isoformat(),  # datetime은 문자열로
+                       "nodes": nodes,
+                       "edges": edges}
+        redis_client.set(cache_key, json.dumps(cache_value, ensure_ascii=False))  # 문자열로 저장
+        
         db.commit()
-        db.refresh(pcluster)
+        return "SUCCESS"
 
-        for article in cluster_articles:
-            db.add(PClusterArticle(article_id=article.id, pcluster_id=pcluster.id))
-
-        for kw in cluster_keywords:
-            # keyword name(str) -> Keyword 객체
-            keyword_obj = db.query(Keyword).filter_by(name=kw).first()
-            if not keyword_obj:
-                keyword_obj = Keyword(name=kw)
-                db.add(keyword_obj)
-                db.commit()
-                db.refresh(keyword_obj)
-
-            # keyword 관계에 객체로 넣기
-            db.add(PClusterKeyword(keyword=keyword_obj, pcluster_id=pcluster.id))
-
-            db.commit()
-            print(f"✅ 사용자 {user.id} 지식맵 저장 완료")
-
-
-
-# ✅ 이 함수도 같은 파일 아래에 위치
-def generate_user_scrap_knowledge_maps(db: Session):
-    users = db.query(User).all()
-    for user in users:
-        run_user_scrap_knowledge_map(user, db)"""
+    except Exception as e:
+        print(f"\n🔥 Knowledge Map Task 실패: {e.__class__.__name__} - {e}")
+        import traceback
+        traceback.print_exc()
+        return "ERROR"
+        
+    finally:
+        db.close()

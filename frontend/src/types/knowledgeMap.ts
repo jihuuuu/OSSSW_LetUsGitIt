@@ -1,5 +1,18 @@
-import type { Cluster} from '@/types/cluster';
+export type KeywordNode = {
+  id: number;
+  name: string;
+  count: number;
+};
+
+export type KeywordEdge = {
+  source: number;
+  target: number;
+  weight: number;
+};
+
 export type KnowledgeMap = {
   id: number;
-  clusters: Cluster[];
+  created_at: string;
+  nodes: KeywordNode[];
+  edges: KeywordEdge[];
 };
