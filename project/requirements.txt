@@ -17,3 +17,7 @@ faker
 umap-learn
 hdbscan
 scipy
+redis
+pydantic-settings
+fastapi-cache2
+redis

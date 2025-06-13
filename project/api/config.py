@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 from pathlib import Path
+from pydantic_settings import BaseSettings
+from pydantic import Extra
 
 # .env 파일 로딩
 env_path = Path(__file__).parents[1] / ".env"
@@ -25,3 +27,16 @@ DB_PASS = os.getenv("MYSQL_PASSWORD")
 DB_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")
 DB_PORT = os.getenv("MYSQL_PORT", "3306")
 DB_NAME = os.getenv("MYSQL_DB")
+
+class Settings(BaseSettings):
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_DB:   int = int(os.getenv("REDIS_DB",   "0"))
+
+    class Config:
+        env_file = env_path
+        env_file_encoding = "utf-8"
+        extra = Extra.ignore
+
+# 싱글턴으로 쓰기
+settings = Settings()

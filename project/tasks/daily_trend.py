@@ -4,13 +4,17 @@ from database.connection import SessionLocal
 from models.article import Article, ClusterArticle
 from models.article import ClusterKeyword, TrendKeyword, Keyword
 from datetime import timezone
+from zoneinfo import ZoneInfo
+
+KST = ZoneInfo("Asia/Seoul")
+
 
 def generate_daily_trend():
     # 집계 대상: 어제(Asia/Seoul)
-    today = date.today()
+    today = datetime.now(KST).date()
     target = today - timedelta(days=1)
-    start = datetime.combine(target, time.min).replace(tzinfo=timezone.utc)
-    end   = datetime.combine(today, time.min).replace(tzinfo=timezone.utc)
+    start = datetime.combine(target, time.min).replace(tzinfo=KST)
+    end   = datetime.combine(today, time.min).replace(tzinfo=KST)
 
 
     db = SessionLocal()

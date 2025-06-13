@@ -6,7 +6,7 @@ rss_urls_by_topic = {
         # 조선일보
         "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml",   
         # 한겨레신문
-        "https://www.hani.co.kr/rss/politics/",  
+        # "https://www.hani.co.kr/rss/politics/",  
         # 경향신문
         "https://www.khan.co.kr/rss/rssdata/politic_news.xml",  
         # 매일경제
@@ -20,7 +20,7 @@ rss_urls_by_topic = {
         # 조선일보
         "https://www.chosun.com/arc/outboundfeeds/rss/category/economy/?outputType=xml",  
         # 한겨레신문
-        "https://www.hani.co.kr/rss/economy/",  
+        # "https://www.hani.co.kr/rss/economy/",  
         # 경향신문
         "https://www.khan.co.kr/rss/rssdata/economy_news.xml",  
         # 매일경제
@@ -34,7 +34,7 @@ rss_urls_by_topic = {
         # 조선일보
         "https://www.chosun.com/arc/outboundfeeds/rss/category/sports/?outputType=xml",  
         # 한겨레신문
-        "https://www.hani.co.kr/rss/sports/", 
+        # "https://www.hani.co.kr/rss/sports/", 
         # 경향신문
         "http://www.khan.co.kr/rss/rssdata/kh_sports.xml",  
         # 매일경제
@@ -50,7 +50,7 @@ rss_urls_by_topic = {
         # 동아일보
         "http://rss.donga.com/international.xml",
         # 한겨레신문
-        "https://www.hani.co.kr/rss/international/",
+        # "https://www.hani.co.kr/rss/international/",
         # 경향신문
         "https://www.khan.co.kr/rss/rssdata/kh_world.xml",
         # 세계일보

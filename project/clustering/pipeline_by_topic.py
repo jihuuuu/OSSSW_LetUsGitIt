@@ -1,4 +1,4 @@
-# clustering/pipeline_main.py
+# clustering/pipeline_by_topic.py
 
 import argparse
 import numpy as np
@@ -7,6 +7,7 @@ from models.topic import TopicEnum
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from clustering.embedder import STOPWORDS_KO
+from clustering.cache_redis import load_embedding_cache
 from clustering.running_stage import (
     run_embedding_stage,
     run_clustering_stage,
@@ -59,7 +60,7 @@ def run_all_topics_pipeline(
         emb_array, ids_window, raw_texts, cleaned_texts = emb_result
 
         # emb_path 생성 (토픽별 .npy 임베딩 파일 경로)
-        emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
+        # emb_path = os.path.join(data_dir, f"{topic.value}_embs_768.npy")
 
         # --- 글로벌 IDF 학습 (전체 말뭉치) ---
         global_vec = TfidfVectorizer(
@@ -75,7 +76,7 @@ def run_all_topics_pipeline(
         global_vec.fit(cleaned_texts)
 
         labels, cluster_to_docs, label_to_cluster_id = run_clustering_stage(
-            emb_path=emb_path,
+            embeddings=emb_array,
             ids_window=ids_window,
             raw_texts=raw_texts,
             cleaned_texts=cleaned_texts,
