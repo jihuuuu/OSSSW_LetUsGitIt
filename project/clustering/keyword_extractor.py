@@ -35,7 +35,9 @@ def extract_top_keywords(
     mean_tfidf = tfidf_matrix.mean(axis=0).A1  # (n_features,)
 
     # 3) 상위 top_n 인덱스 추출
-    top_indices = mean_tfidf.argsort()[::-1][:top_n]
+    n_feats = len(feature_names)
+    n_pick  = min(top_n, n_feats)
+    top_indices = mean_tfidf.argsort()[::-1][:n_pick]
     top_terms   = [feature_names[i] for i in top_indices]
 
     return top_terms

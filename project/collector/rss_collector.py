@@ -12,6 +12,9 @@ from models.article import Article
 from collector.rss_list import rss_urls_by_topic  # 토픽 이름(key)은 문자열이지만,
 from models.topic import TopicEnum                  # 실제 DB 저장은 Enum 멤버로 변환
 import hashlib
+import requests
+import http.client
+from zoneinfo import ZoneInfo
 
 def parse_and_store():
     session = SessionLocal()
@@ -25,7 +28,19 @@ def parse_and_store():
                 continue
 
             for url in url_list:    
-                feed = feedparser.parse(url)
+                # --- 견고하게 RSS 가져오기 ---
+                try:
+                    resp = requests.get(url, timeout=20)
+                    resp.raise_for_status()
+                    content = resp.content
+                except http.client.IncompleteRead as ir:
+                    print(f"⚠️ IncompleteRead from {url}: {ir}; proceeding with partial data")
+                    content = ir.partial
+                except Exception as e:
+                    print(f"⚠️ RSS fetch error ({url}): {e}")
+                    continue
+                feed = feedparser.parse(content)
+
                 print(f"[{topic}] {url} 피드 아이템 수:", len(feed.entries))
                 for entry in feed.entries:
                     # 1) RSS 엔트리에서 데이터 추출
@@ -33,7 +48,11 @@ def parse_and_store():
                     title     = entry.get("title", "제목 없음")
                     summary   = entry.get("summary", "")
                     publ_pars = entry.get("published_parsed")
-                    published = datetime(*publ_pars[:6]) if publ_pars else None
+                    if publ_pars:
+                        published_utc = datetime(*publ_pars[:6], tzinfo=timezone.utc)
+                        published = published_utc.astimezone(ZoneInfo("Asia/Seoul"))
+                    else:
+                        published = None
 
                     # 2) link_hash 계산 (MD5)
                     link_hash = hashlib.md5(link.encode("utf-8")).hexdigest()

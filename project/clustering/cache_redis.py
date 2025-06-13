@@ -2,9 +2,14 @@ import pickle
 import numpy as np
 import redis
 from clustering.embedder import EMBEDDING_DIM
+import os
 
-# Redis 클라이언트 연결 (호스트/포트는 환경에 맞게 조정)
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
+# 환경변수에서 호스트·포트 읽기 (없으면 로컬 기본값)
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB   = int(os.getenv("REDIS_DB", 0))
+
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 def load_embedding_cache(topic: str):
     """

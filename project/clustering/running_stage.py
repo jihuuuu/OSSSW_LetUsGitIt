@@ -82,14 +82,14 @@ def run_embedding_stage(
 
 
 def run_clustering_stage(
-    emb_path: str, ids_window: List[int], raw_texts: List[str],
+    embeddings: np.ndarray, ids_window: List[int], raw_texts: List[str],
     cleaned_texts: List[str], method: str, n_clusters: Optional[int], 
     eps: Optional[float], min_samples: Optional[int], topic, 
     save_db: bool, umap_n_neighbors: int = 5, umap_min_dist: float = 0.02,
     top_kws: int = 3, model_name: str = 'jhgan/ko-sbert-sts'
 ) -> Tuple[np.ndarray, Dict[int, List[str]], Dict[int, int]]:
     # 1) 임베딩 로드
-    embeddings = load_embeddings(emb_path)
+    # embeddings = load_embeddings(emb_path)
     print(f"▶️ loaded embeddings: {embeddings.shape}")
 
     # 1-1) 차원 축소 (UMAP)
@@ -145,21 +145,25 @@ def run_keyword_extraction(
     kw_map: Dict[int, List[str]] = {}
 
     for label, docs in cluster_to_docs.items():
-        # 0) None 혹은 빈 문자열 제거
-        docs = [d for d in docs if d and isinstance(d, str)]
-        if not docs:
-            print(f"⚠️ Cluster {label}: 전처리된 문서가 없어서 스킵합니다.")
-            continue        
-        cid = label_to_cluster_id.get(label)
-        if cid is None:
-            print(f"⚠️ label {label}에 매핑된 Cluster ID가 없어 스킵합니다.")
-            continue
+        try:
+            # 0) None 혹은 빈 문자열 제거
+            docs = [d for d in docs if d and isinstance(d, str)]
+            if not docs:
+                print(f"⚠️ Cluster {label}: 전처리된 문서가 없어서 스킵합니다.")
+                continue        
+            cid = label_to_cluster_id.get(label)
+            if cid is None:
+                print(f"⚠️ label {label}에 매핑된 Cluster ID가 없어 스킵합니다.")
+                continue
 
-        # 글로벌 벡터라이저를 넘겨줍니다
-        kws = extract_top_keywords(
-            documents=docs, cluster_id=cid, top_n=top_n,
-            global_vectorizer=global_vectorizer
-        )
+            # 글로벌 벡터라이저를 넘겨줍니다
+            kws = extract_top_keywords(
+                documents=docs, cluster_id=cid, top_n=top_n,
+                global_vectorizer=global_vectorizer
+            )
+        except Exception as e:
+            print(f"Cluster {label} (cid={cid}) 처리 중 에러: {e}")
+
         kw_map[label] = kws
 
         if save_db:
