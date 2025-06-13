@@ -2,11 +2,13 @@
 # 역할: 기사 관련 모델 정의
 # article, cluster, cluster_article, cluster_keyword, keyword
 
-from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, CHAR, UniqueConstraint, Enum as SQLEnum
-from datetime import datetime, timezone
+from sqlalchemy import Column, BigInteger, Date, Integer, String, DateTime, Text, ForeignKey, CHAR, UniqueConstraint, Index, Enum as SQLEnum
+from datetime import datetime, timezone, timedelta
 from models.base import Base
 from sqlalchemy.orm import relationship
 from models.topic import TopicEnum
+from zoneinfo import ZoneInfo
+KST = ZoneInfo("Asia/Seoul")
 
 class Article(Base):
     __tablename__ = "article"
@@ -16,8 +18,8 @@ class Article(Base):
     link = Column(String(1024), nullable=False)
     link_hash = Column(CHAR(32), nullable=False, unique=True, index=True)
     summary = Column(Text, nullable=True)
-    published = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
-    fetched_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    published = Column(DateTime(timezone=True), default=datetime.now(KST))
+    fetched_at = Column(DateTime(timezone=True), default=datetime.now(KST))
     # Enum으로 토픽을 엄격하게 제한
     topic = Column(SQLEnum(TopicEnum, name="topic_enum"), nullable=False)
 
@@ -31,7 +33,7 @@ class Cluster(Base):
     __tablename__ = "cluster"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), index=True)
     label = Column(Integer, nullable=False)
     num_articles = Column(Integer, nullable=False)
     topic = Column(SQLEnum(TopicEnum, name="topic_enum"), nullable=False)
@@ -53,10 +55,11 @@ class ClusterArticle(Base):
 
 class ClusterKeyword(Base):
     __tablename__ = "cluster_keyword"
+    __table_args__ = (Index("ix_cluster_keyword_cluster_keyword", "cluster_id", "keyword_id"),)
 
     id = Column(BigInteger, primary_key=True, index=True)
-    cluster_id = Column(BigInteger, ForeignKey("cluster.id", ondelete="CASCADE"), nullable=False)
-    keyword_id = Column(BigInteger, ForeignKey("keyword.id", ondelete="CASCADE"), nullable=False)
+    cluster_id = Column(BigInteger, ForeignKey("cluster.id", ondelete="CASCADE"), nullable=False, index=True)
+    keyword_id = Column(BigInteger, ForeignKey("keyword.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # 관계
     cluster = relationship("Cluster", back_populates="cluster_keyword")
@@ -67,7 +70,7 @@ class Keyword(Base):
     __tablename__ = "keyword"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), unique=True, nullable=False, index=True)
 
     # 관계
     cluster_keyword = relationship("ClusterKeyword", back_populates="keyword")
@@ -78,7 +81,9 @@ class Keyword(Base):
 # 트렌드 페이지 - 하루마다 업데이트 되는 top n개 키워드 저장하는 테이블
 class TrendKeyword(Base):
     __tablename__ = "trend_keyword"
-    __table_args__ = (UniqueConstraint("cluster_keyword_id", "date", name="uq_trend_cluster_date"),)
+    __table_args__ = (
+        UniqueConstraint("cluster_keyword_id", "date", name="uq_trend_cluster_date"),
+        Index("ix_trend_date_cluster_keyword", "date", "cluster_keyword_id"))
     
     id = Column(BigInteger, primary_key=True, index=True)
     cluster_keyword_id = Column(BigInteger, ForeignKey("cluster_keyword.id", ondelete="CASCADE"), nullable=False, index=True)
