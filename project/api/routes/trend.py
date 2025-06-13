@@ -20,7 +20,7 @@ router = APIRouter()
 _okt = Okt()
 
 @router.get("/weekly", response_model=WeeklyTrendResponse)
-@cache(expire=60)  # 하루(24시간) = 86400
+@cache(expire=86300)  # 하루(24시간) = 86400
 def get_weekly_trends(db: Session = Depends(get_db)):
     end_date   = date.today() - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
@@ -84,7 +84,7 @@ def get_weekly_trends(db: Session = Depends(get_db)):
 @router.get("/suggested_keywords", response_model=SuggestedKeywordsResponse,
     summary="일주일간 이슈 키워드 조회", description="일주일(오늘 포함) 동안 trend_keyword 테이블을 집계해서 상위 키워드 리스트를 반환합니다."
 )
-@cache(expire=60)  # 하루(24시간) 캐싱
+@cache(expire=86300)  # 하루(24시간) 캐싱
 def suggested_keywords(
     db: Session = Depends(get_db),
 ):
@@ -112,7 +112,7 @@ def suggested_keywords(
 
 
 @router.get("/search", response_model=SearchTrendResponse)
-@cache(expire=60)  # 하루(24시간) 캐싱
+@cache(expire=86300)  # 하루(24시간) 캐싱
 def search_trends(
     keyword: str,
     db:      Session = Depends(get_db),

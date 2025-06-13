@@ -8,6 +8,7 @@ from clustering.keyword_extractor import get_top_keywords
 from sklearn.metrics.pairwise import cosine_similarity
 from redis import Redis
 import json
+from api.utils.cache import set_cache
 
 def build_knowledge_map(user_id: int):
     db: Session = SessionLocal()
@@ -82,13 +83,12 @@ def build_knowledge_map(user_id: int):
             print(f" - {edge['source']} -> {edge['target']} (weight: {edge['weight']})")
 
         # 8. Redis에 캐싱
-        redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
         cache_key = f"user:{user_id}:knowledge_map"
         cache_value = {"id": knowledge_map.id,
                        "created_at": created_at.isoformat(),  # datetime은 문자열로
                        "nodes": nodes,
                        "edges": edges}
-        redis_client.set(cache_key, json.dumps(cache_value, ensure_ascii=False))  # 문자열로 저장
+        set_cache(cache_key, cache_value)
         
         db.commit()
         return "SUCCESS"
