@@ -18,6 +18,7 @@ from redis.asyncio import Redis
 from .config import settings
 import traceback
 import redis
+import asyncio
 
 
 def hourly_clustering():
@@ -63,9 +64,9 @@ def hourly_clustering():
         db.close()"""
 
 def create_scheduler() -> AsyncIOScheduler:
-    scheduler = AsyncIOScheduler()
+    scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
     # 매시간 정각에 실행되도록 cron 트리거만 등록 (next_run_time 제거)
-    scheduler.add_job(hourly_clustering, trigger="cron", minute=0)
+    scheduler.add_job(hourly_clustering, trigger="cron", minute=0, coalesce=True, misfire_grace_time=600)
     # 매일 자정에 이전 24시간 트렌드 집계
     scheduler.add_job(generate_daily_trend, trigger='cron', hour=0, minute=0, id='daily_trend_job', replace_existing=True)
     return scheduler
@@ -104,16 +105,16 @@ def create_app():
     @app.on_event("startup")
     async def startup_event():
         # 1) Redis 연결 및 캐시 초기화
-        redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
+        redis_client = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
         FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
     
         # 2) 기존 스케줄러·파이프라인
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  
         # 초기 클러스터링 (백그라운드)
-        await run_in_threadpool(hourly_clustering)
         # 초기 트렌드 집계 (백그라운드)
-        await run_in_threadpool(generate_daily_trend)
+        asyncio.create_task(run_in_threadpool(hourly_clustering))
+        asyncio.create_task(run_in_threadpool(generate_daily_trend))
 
 
     @app.on_event("shutdown")
