@@ -90,7 +90,8 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
 
     return {
         "message": "로그인에 성공했습니다.",
-        "access_token": access_token
+        "access_token": access_token,
+        "user_id": db_user.id   
     }
 
 # 로그아웃
