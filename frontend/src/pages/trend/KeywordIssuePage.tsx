@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeywordGraph } from "@/components/KeywordGraph";
+import { RelatedKeywordGraph } from "@/components/RelatedKeywordGraph";
 import LineChart from "@/components/LineChart";
 import type { PCluster } from "@/types/cluster";
 import type { TrendItem } from "@/types/trend";
@@ -171,7 +171,7 @@ export default function KeywordIssuePage() {
           {/* 연관 키워드 그래프 */}
           <div className="p-4 border rounded shadow bg-white">
             <h2 className="text-lg font-semibold mb-2">연관 키워드</h2>
-            <KeywordGraph clusters={clusters} />
+            <RelatedKeywordGraph clusters={clusters} />
           </div>
   
           {/* 언급량 추이 */}
