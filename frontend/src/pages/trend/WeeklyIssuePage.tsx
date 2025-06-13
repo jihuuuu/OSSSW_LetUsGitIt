@@ -50,7 +50,7 @@ export default function WeeklyIssuePage() {
   }, []);
 
   return (
-    <div className="grid grid-cols-5 gap-6">
+    <div className="max-w-screen-xl mx-auto px-4 grid grid-cols-5 gap-6">
       {/* 왼쪽 키워드 박스 */}
       <div className="col-span-1">
         <div className="bg-white rounded shadow p-4">
@@ -77,7 +77,7 @@ export default function WeeklyIssuePage() {
           </ul>
         </div>
       </div>
-
+  
       {/* 오른쪽 라인 차트 */}
       <div className="col-span-4">
         <LineChart data={trendData} />

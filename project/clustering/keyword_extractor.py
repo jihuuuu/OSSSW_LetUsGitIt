@@ -3,6 +3,7 @@
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from sklearn.feature_extraction.text import TfidfVectorizer
+from models.scrap import PKeyword
 from clustering.embedder import STOPWORDS_KO
 from models.article import Keyword, ClusterKeyword
 from collections import Counter
@@ -122,3 +123,39 @@ def generate_candidates(
     # 4) 중복 제거 후 반환
     #    (순서는 빈도순 유지하려면 추가 로직 필요)
     return list(dict.fromkeys(candidates))
+
+def extract_keywords_per_article(documents: List[str], top_n: int = 3, max_features: int = 300) -> List[List[str]]:
+    """
+    여러 기사에 대해 각각의 top_n 키워드를 추출해서 리스트로 반환.
+    전체 문서를 기준으로 TF-IDF 모델을 학습한 후, 각 기사에 적용함.
+    """
+    vectorizer = TfidfVectorizer(
+        stop_words=list(STOPWORDS_KO),
+        max_features=max_features,
+        min_df=0.02
+    )
+    tfidf_matrix = vectorizer.fit_transform(documents)
+    feature_names = vectorizer.get_feature_names_out()
+
+    top_keywords_list = []
+    for i in range(tfidf_matrix.shape[0]):
+        tfidf_vector = tfidf_matrix[i].toarray().flatten()
+        top_indices = tfidf_vector.argsort()[::-1][:top_n]
+        top_terms = [feature_names[j] for j in top_indices if tfidf_vector[j] > 0]
+        top_keywords_list.append(top_terms if top_terms else ["no_keyword"])
+
+    return top_keywords_list
+
+# 각 키워드마다 점수 계산: 중요도 점수 = alpha * count + (1 - alpha) * 연결 수
+def get_top_keywords(pkeywords: List[PKeyword], alpha: float = 0.7, limit: int = 20) -> List[PKeyword]:
+    """
+    count (사용자 관심도)와 연결 수 (콘텐츠 연관도)를 조합하여 상위 키워드 선정
+    """
+    def score(pk: PKeyword):
+        count_score = pk.count
+        connection_score = len(pk.connections) if hasattr(pk, "connections") else 0
+        return alpha * count_score + (1 - alpha) * connection_score
+    
+    # 점수 기준 정렬 후 상위 limit개 선택
+    sorted_keywords = sorted(pkeywords, key=score, reverse=True)
+    return sorted_keywords[:limit]

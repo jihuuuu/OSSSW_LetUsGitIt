@@ -5,5 +5,5 @@
 from .user import User, KnowledgeMap
 from .article import Article, Cluster, ClusterKeyword
 from .note import Note, NoteArticle
-from .scrap import Scrap
+from .scrap import Scrap, PKeyword, PKeywordArticle
 from .base import Base

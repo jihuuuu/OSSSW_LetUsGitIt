@@ -23,10 +23,14 @@ export default function KeywordDetailPage() {
   useEffect(() => {
     if (!keywordId) return;
 
-    fetchKeywordName(Number(keywordId)).then((res: { name: string }) => setKeywordName(res.name));
+    fetchKeywordName(Number(keywordId)).then((res) => setKeywordName((res as { name: string }).name));
 
-    fetchArticlesByKeywordCluster(keywordId).then((res) => {
-      setArticles(res);
+    fetchArticlesByKeywordCluster(Number(keywordId)).then((res) => {
+      if (Array.isArray(res)) {
+        setArticles(res);
+      } else if (res && typeof res === "object" && "articles" in res) {
+        setArticles((res as { articles: Article[] }).articles);
+      }
       setNoteTotalPages(1);
       setNotes([]);
       // If you have totalPages info, update this accordingly; otherwise, remove or set to 1
@@ -72,15 +76,20 @@ export default function KeywordDetailPage() {
           </div>
         </section>
 
-        {/* SCAP 영역 */}
+        {/* SCRAP 영역 */}
         <section className="flex-1">
-          <h2 className="text-2xl font-bold mb-6">SCAP</h2>
+          <h2 className="text-2xl font-bold mb-6">SCRAP</h2>
           {articles.length > 0 ? (
-            <ul className="space-y-3 text-sm text-blue-600">
+            <ul className="space-y-3 text-sm text-black">
               {articles.map((article) => (
-                <li key={article.id}>
-                  <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    {article.link}
+                <li key={article.article_id}>
+                  <a
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline text-black"
+                  >
+                    {article.title}
                   </a>
                 </li>
               ))}

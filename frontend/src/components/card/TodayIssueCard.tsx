@@ -29,26 +29,16 @@ export default function TodayIssuePreview() {
       .catch(err => console.error(err));
   }, []);
 
-// 🔁 5초마다 index 변경 (빈 그룹 제외)
-useEffect(() => {
-  const interval = setInterval(() => {
-    setIndex((prev) => {
-      const groupCount = clusterGroups.length;
-      return groupCount === 0 ? 0 : (prev + 1) % groupCount;
-    });
-  }, 5000);
-  return () => clearInterval(interval);
-}, [clusters]);
-  
-  // 🔁 5초마다 index 변경 (정확한 그룹 수 기준으로)
+  // 🔁 5초마다 index 변경 (빈 그룹 제외)
   useEffect(() => {
-
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % clusterGroups.length);
+      setIndex((prev) => {
+        const groupCount = clusterGroups.length;
+        return groupCount === 0 ? 0 : (prev + 1) % groupCount;
+      });
     }, 5000);
-
     return () => clearInterval(interval);
-  }, [clusters]); // clusters 변경 시마다 새 interval 설정
+  }, [clusters]);
 
   // 🔢 클러스터를 5개씩 묶기
   const clusterGroups: Cluster[][] = [];
