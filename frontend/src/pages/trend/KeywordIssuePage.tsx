@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeywordGraph } from "@/components/KeywordGraph";
+import { RelatedKeywordGraph } from "@/components/RelatedKeywordGraph";
 import LineChart from "@/components/LineChart";
 import type { PCluster } from "@/types/cluster";
 import type { TrendItem } from "@/types/trend";
@@ -25,17 +25,6 @@ export default function KeywordIssuePage() {
       console.error("추천 키워드 로딩 실패:", err);
       setKeywords([]); // 실패해도 화면 깨지지 않도록 초기화
     });
-    // setKeywords([
-    //   "국민의 힘", "고급", "금리", "기업",
-    //   "나혼아", "나이스", "나이지리아", "네거티브", "나고야", "낭떠러지",
-    //   "더불어민주당", "두산", "대선", "대통령",
-    //   "로봇", "러시아",
-    //   "모비스", "무리",
-    //   "ㅂㅂㅂ", "ㅇㅇㅇ", "ㅇㅇㅇㅇㅇ", "ㅇㅇㅇㅇ", "ㅇㅇ", "ㅇㅇㅇ",
-    //   "사과", "소수", "사이다", "사이다", "숭례문",
-    //   "이준석", "율용도",
-    //   "트럼프", "서울", "이재명"
-    // ]);
   }, []);
 
   const getInitialSound = (str: string): string => {
@@ -75,14 +64,41 @@ export default function KeywordIssuePage() {
       if (!res.ok) throw new Error("API 요청 실패");
       const data = await res.json();
 
-      const clusters: PCluster[] = data.related_keywords.map((rk: any, idx: number) => ({
-        id: rk.cluster_id,
-        keywords: [
-          ...rk.co_keywords.map((name: string, i: number) => ({ id: idx * 100 + i, name })),
-          ...rk.frequent_keywords.map((name: string, i: number) => ({ id: idx * 100 + rk.co_keywords.length + i, name })),
-          { id: -1, name: data.keyword },
-        ],
-      }));
+      // 중심 키워드 노드 정의
+      const centralKeyword = {
+        id: -999,
+        name: data.keyword,
+        clusterId: -1,
+      };
+
+      // 1️⃣ 관련 클러스터들
+      const clusters: PCluster[] = data.related_keywords.map(
+        (rk: any, idx: number) => ({
+          id: rk.cluster_id,
+          label: rk.co_keywords?.[0]            // 대표 키워드가 있으면 사용
+                ?? rk.frequent_keywords?.[0]    // 없으면 frequent 중 첫 번째
+                ?? `Cluster ${idx + 1}`,        // 전부 없으면 fallback
+          keywords: [
+            ...rk.co_keywords.map((name: string, i: number) => ({
+              id: idx * 100 + i,
+              name,
+              clusterId: rk.cluster_id,
+            })),
+            ...rk.frequent_keywords.map((name: string, i: number) => ({
+              id: idx * 100 + rk.co_keywords.length + i,
+              name,
+              clusterId: rk.cluster_id,
+            })),
+          ],
+        })
+      );
+
+      // 2️⃣ 중심 클러스터 (label 필수!)
+      clusters.unshift({
+        id: -1,
+        label: data.keyword,        // 중심 키워드 자체를 라벨로
+        keywords: [centralKeyword],
+      });
 
       const trend: TrendItem = {
         keyword: data.keyword,
@@ -104,8 +120,9 @@ export default function KeywordIssuePage() {
   const grouped = groupByInitial(keywords);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-[1100px] mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4 text-center">키워드 검색</h1>
+  
       {!selectedKeyword && (
         <>
           <p className="text-center text-gray-600 mb-6">
@@ -131,7 +148,7 @@ export default function KeywordIssuePage() {
           </div>
         </>
       )}
-
+  
       {selectedKeyword && (
         <div className="text-right mb-4">
           <button
@@ -146,26 +163,32 @@ export default function KeywordIssuePage() {
           </button>
         </div>
       )}
-
+  
       {loading && <p className="text-center text-gray-500">불러오는 중...</p>}
-
+  
       {selectedKeyword && !loading && trendData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 border rounded shadow">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6">
+          {/* 연관 키워드 그래프 */}
+          <div className="p-4 border rounded shadow bg-white">
             <h2 className="text-lg font-semibold mb-2">연관 키워드</h2>
-            <KeywordGraph clusters={clusters} />
+            <RelatedKeywordGraph clusters={clusters} />
           </div>
-          <div className="p-4 border rounded shadow">
+  
+          {/* 언급량 추이 */}
+          <div className="p-4 border rounded shadow bg-white overflow-x-auto">
             <h2 className="text-lg font-semibold mb-2">언급량 추이</h2>
-            <LineChart
-              data={trendData.daily_counts.map((d) => ({
-                date: d.date,
-                [trendData.keyword]: d.count,
-              }))}
-            />
+            <div className="min-w-[500px]">
+              <LineChart
+                data={trendData.daily_counts.map((d) => ({
+                  date: d.date,
+                  [trendData.keyword]: d.count,
+                }))}
+              />
+            </div>
           </div>
         </div>
       )}
     </div>
   );
+  
 }

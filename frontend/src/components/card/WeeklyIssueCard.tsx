@@ -40,10 +40,10 @@ export default function WeeklyIssuePreview() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true, amount: 0.2 }}
-      className="bg-white shadow-md rounded-xl p-4"
+      className="bg-white p-4"
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-blue-500">뉴스 트렌드</h2>
+        <h2 className="text-xl font-bold text-blue-500">뉴스 트렌드</h2>
         <button
           onClick={() => navigate("/trend")}
           className="text-sm text-blue-500 hover:underline"

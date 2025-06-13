@@ -52,7 +52,7 @@ export const TodayKeywordPreview: React.FC = () => {
 
   return (
     <div className="w-full overflow-hidden">
-    <h1 className="text-2xl font-bold text-center mb-4">오늘의 키워드</h1>
+    <h1 className="text-xl font-bold text-blue-500 text-center mb-4">오늘의 키워드</h1>
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
