@@ -20,10 +20,10 @@ router = APIRouter()
 _okt = Okt()
 
 @router.get("/weekly", response_model=WeeklyTrendResponse)
-@cache(expire=86400)  # 하루(24시간) 캐싱
+@cache(expire=60)  # 하루(24시간) = 86400
 def get_weekly_trends(db: Session = Depends(get_db)):
-    today = date.today() # - timedelta(days=1)
-    start = today - timedelta(days=7)
+    end_date   = date.today() - timedelta(days=1)
+    start_date = end_date - timedelta(days=6)
     
     # 1) 지난 7일간 cluster_keyword별 합계 집계 → keyword_id로 매핑
     rows = (
@@ -32,7 +32,7 @@ def get_weekly_trends(db: Session = Depends(get_db)):
             func.sum(TrendKeyword.count).label("total")
         )
         .join(TrendKeyword, TrendKeyword.cluster_keyword_id == ClusterKeyword.id)
-        .filter(TrendKeyword.date >= start, TrendKeyword.date <= today)
+        .filter(TrendKeyword.date.between(start_date, end_date))
         .group_by(ClusterKeyword.keyword_id)
         .order_by(desc("total"))
         .limit(5)
@@ -53,7 +53,7 @@ def get_weekly_trends(db: Session = Depends(get_db)):
         # 하루 단위 상세 집계
         daily_counts = []
         for i in range(7):
-            d = start + timedelta(days=i)
+            d = start_date + timedelta(days=i)
             cnt = (
                 db.query(func.sum(TrendKeyword.count))
                   .join(ClusterKeyword, ClusterKeyword.id == TrendKeyword.cluster_keyword_id)
@@ -74,8 +74,8 @@ def get_weekly_trends(db: Session = Depends(get_db)):
         )
 
     return WeeklyTrendResponse(
-        start_date=start,
-        end_date=today - timedelta(days=1),
+        start_date=start_date,
+        end_date=end_date,
         top_keywords=top_keywords,
         trend_data=trend_data
     )
@@ -84,13 +84,13 @@ def get_weekly_trends(db: Session = Depends(get_db)):
 @router.get("/suggested_keywords", response_model=SuggestedKeywordsResponse,
     summary="일주일간 이슈 키워드 조회", description="일주일(오늘 포함) 동안 trend_keyword 테이블을 집계해서 상위 키워드 리스트를 반환합니다."
 )
-@cache(expire=86400)  # 하루(24시간) 캐싱
+@cache(expire=60)  # 하루(24시간) 캐싱
 def suggested_keywords(
     db: Session = Depends(get_db),
 ):
     # 1) 기간 설정: 오늘 포함 최근 7일
-    end_date   = date.today()
-    start_date = end_date - timedelta(days=7)
+    end_date   = date.today() - timedelta(days=1)
+    start_date = end_date - timedelta(days=6)
 
     # 2) date 범위 내에서 keyword별 count 합산 후 내림차순 정렬
     rows = (
@@ -102,7 +102,7 @@ def suggested_keywords(
         .join(Keyword, Keyword.id == ClusterKeyword.keyword_id)
         .filter(TrendKeyword.date.between(start_date, end_date))
         .group_by(Keyword.name)
-        .order_by(desc("total_count"))
+        # .order_by(desc("total_count"))
         .all()
     )
 
@@ -110,15 +110,16 @@ def suggested_keywords(
     keywords: List[str] = [r.keyword for r in rows]
     return {"keywords": keywords}
 
+
 @router.get("/search", response_model=SearchTrendResponse)
-@cache(expire=86400)  # 하루(24시간) 캐싱
+@cache(expire=60)  # 하루(24시간) 캐싱
 def search_trends(
     keyword: str,
     db:      Session = Depends(get_db),
 ):
     # 1) 날짜 범위: 오늘 포함 최근 7일
-    end_date   = date.today() # - timedelta(days=1)
-    start_date = end_date - timedelta(days=7)
+    end_date   = date.today() - timedelta(days=1)
+    start_date = end_date - timedelta(days=6)
     dates      = [start_date + timedelta(days=i) for i in range(7)]
 
     # 2) 키워드 유효성 검사

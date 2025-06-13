@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/today", response_model=List[ClusterOut])
-@cache(expire=300)  # 300초(5분) 캐싱
+@cache(expire=36)  # 1시간 = 3600
 async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(get_db)):
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
@@ -63,7 +63,7 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
 
 
 @router.get("/today/{cluster_id}/articles", response_model=dict)
-@cache(expire=3600)
+@cache(expire=36) # 1시간 = 3600
 async def get_cluster_articles(cluster_id: int, db: Session = Depends(get_db)):
     cl = db.get(Cluster, cluster_id)
     if not cl:

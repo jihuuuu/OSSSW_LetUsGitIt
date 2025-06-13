@@ -1,11 +1,21 @@
-version: "3.8"
 services:
+  my-redis:
+    image: redis:7-alpine
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - project_default
+
   web:
     build: .
-    contaioner_name: news_app
-    environment:
-      REDIS_HOST: my-redis
-      REDIS_PORT: "6379"
+    container_name: news_app
+    volumes:
+      - ./:/app
+    working_dir: /app 
+    env_file:
+      - ./.env
     ports:
       - "8000:8000"
     command: >
@@ -13,8 +23,10 @@ services:
       --host 0.0.0.0
       --port 8000
       --reload
-    network:
-    - project_default
+    depends_on:
+      - my-redis
+    networks:
+      - project_default
 
 networks:
   project_default:

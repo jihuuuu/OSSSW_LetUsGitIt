@@ -1,7 +1,7 @@
 # api/create_app.py
 # 역할: FastAPI 앱 인스턴스를 생성·설정하고, 모든 라우터를 등록하는 “팩토리 함수”를 제공
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .routes import cluster, knowledge_map, news, notes, scrap, trend, user
 from starlette.concurrency import run_in_threadpool
@@ -16,6 +16,8 @@ from fastapi_cache import FastAPICache            # 캐시 초기화
 from fastapi_cache.backends.redis import RedisBackend
 from redis.asyncio import Redis
 from .config import settings
+import traceback
+import redis
 
 
 def hourly_clustering():
@@ -32,6 +34,7 @@ def hourly_clustering():
         print("✅ [Pipeline] RSS 크롤링 완료.")
     except Exception as e:
         print(f"⚠️ [Pipeline] RSS 크롤링 중 에러 발생: {e}")
+        traceback.print_exc()
 
     # 2) 토픽별 전체 파이프라인 실행
     print("⏳ [Pipeline] 토픽별 전체 파이프라인 실행…")
@@ -49,6 +52,7 @@ def hourly_clustering():
         print("✅ [Pipeline] 토픽별 전체 파이프라인 완료.")
     except Exception as e:
         print(f"⚠️ [Pipeline] 토픽별 파이프라인 중 에러 발생: {e}")
+        traceback.print_exc()
 
     # 사용자별 스크랩 기반 지식맵 추가
     """ 
@@ -94,16 +98,14 @@ def create_app():
         return openapi_schema
 
     app.openapi = custom_openapi
-
+    
     scheduler = create_scheduler()
 
     @app.on_event("startup")
     async def startup_event():
         # 1) Redis 연결 및 캐시 초기화
-        redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,
-        encoding="utf-8", decode_responses=True
-        )
-        FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+        redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
+        FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
     
         # 2) 기존 스케줄러·파이프라인
         # 서버 구동 시 한 번만 스케줄러 시작

@@ -31,6 +31,7 @@ DB_NAME = os.getenv("MYSQL_DB")
 class Settings(BaseSettings):
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_DB:   int = int(os.getenv("REDIS_DB",   "0"))
 
     class Config:
         env_file = env_path
