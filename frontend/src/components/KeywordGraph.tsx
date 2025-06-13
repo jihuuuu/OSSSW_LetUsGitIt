@@ -46,16 +46,31 @@ export function KeywordGraph({ clusters }: Props) {
       }))
     );
 
+    const centralNode = nodes.find((n) => n.id === -999);
+
     const edges: Edge[] = clusters.flatMap((cluster) => {
       const keywords = cluster.keywords;
+    
+      if (cluster.id === -1) return []; // 중심 클러스터는 건너뛰기
+    
       const links: Edge[] = [];
+    
+      // 중심 노드와 연결
+      if (centralNode) {
+        for (const k of keywords) {
+          links.push({ source: centralNode.id, target: k.id });
+        }
+      }
+    
+      // 클러스터 내부 키워드 간 연결 (원한다면 유지)
       for (let i = 0; i < keywords.length; i++) {
         for (let j = i + 1; j < keywords.length; j++) {
           links.push({ source: keywords[i].id, target: keywords[j].id });
         }
       }
+    
       return links;
-    });
+    });    
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
@@ -79,8 +94,13 @@ export function KeywordGraph({ clusters }: Props) {
       .selectAll<SVGCircleElement, Node>("circle")
       .data(nodes)
       .join("circle")
-      .attr("r", (d) => 8 + Math.min(d.count || 1, 20)) // ✅ count에 따라 반영됨
-      .attr("fill", (d) => d3.schemeCategory10[d.clusterId % 10])
+      .attr("r", (d) => d.id === -999 ? 20 : 10 + Math.min(d.count || 1, 20))
+      .attr("fill", (d) => {
+        if (d.id === -999) return "#FDD835"; // 중심 노드 고정 색
+        const base = d3.hsl(d3.schemeCategory10[d.clusterId % 10]);
+        base.l = 0.6;
+        return base.toString();
+      })      
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         navigate(`/keywords/${d.id}`);
@@ -110,7 +130,7 @@ export function KeywordGraph({ clusters }: Props) {
       .data(nodes)
       .join("text")
       .text((d) => d.name)
-      .attr("font-size", 12)
+      .attr("font-size", (d) => d.id === -999 ? 16 : 12)
       .attr("text-anchor", "middle")
       .attr("dy", 4);
 

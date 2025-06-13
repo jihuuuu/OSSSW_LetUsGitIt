@@ -64,14 +64,41 @@ export default function KeywordIssuePage() {
       if (!res.ok) throw new Error("API 요청 실패");
       const data = await res.json();
 
-      const clusters: PCluster[] = data.related_keywords.map((rk: any, idx: number) => ({
-        id: rk.cluster_id,
-        keywords: [
-          ...rk.co_keywords.map((name: string, i: number) => ({ id: idx * 100 + i, name })),
-          ...rk.frequent_keywords.map((name: string, i: number) => ({ id: idx * 100 + rk.co_keywords.length + i, name })),
-          { id: -1, name: data.keyword },
-        ],
-      }));
+      // 중심 키워드 노드 정의
+      const centralKeyword = {
+        id: -999,
+        name: data.keyword,
+        clusterId: -1,
+      };
+
+      // 1️⃣ 관련 클러스터들
+      const clusters: PCluster[] = data.related_keywords.map(
+        (rk: any, idx: number) => ({
+          id: rk.cluster_id,
+          label: rk.co_keywords?.[0]            // 대표 키워드가 있으면 사용
+                ?? rk.frequent_keywords?.[0]    // 없으면 frequent 중 첫 번째
+                ?? `Cluster ${idx + 1}`,        // 전부 없으면 fallback
+          keywords: [
+            ...rk.co_keywords.map((name: string, i: number) => ({
+              id: idx * 100 + i,
+              name,
+              clusterId: rk.cluster_id,
+            })),
+            ...rk.frequent_keywords.map((name: string, i: number) => ({
+              id: idx * 100 + rk.co_keywords.length + i,
+              name,
+              clusterId: rk.cluster_id,
+            })),
+          ],
+        })
+      );
+
+      // 2️⃣ 중심 클러스터 (label 필수!)
+      clusters.unshift({
+        id: -1,
+        label: data.keyword,        // 중심 키워드 자체를 라벨로
+        keywords: [centralKeyword],
+      });
 
       const trend: TrendItem = {
         keyword: data.keyword,
