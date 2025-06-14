@@ -11,8 +11,10 @@ from models.user import User
 from api.schemas.user import UserCreate, UserLogin
 from api.utils.auth import verify_password, get_current_user
 from api.utils.token import create_access_token, create_refresh_token
-from api.config import SECRET_KEY, ALGORITHM
+from api.config import SECRET_KEY, ALGORITHM, COOKIE_SECURE, COOKIE_PATH, COOKIE_SAMESITE
 import re
+from uuid import uuid4
+from api.utils.logger import logger
 
 router = APIRouter()
 
@@ -76,16 +78,23 @@ def login(user: UserLogin, response: Response, db: Session = Depends(get_db)):
         )
 
     # 로그인 성공 → 토큰 생성
-    
     access_token = create_access_token({"sub": str(db_user.id), "type": "access"})
-    refresh_token = create_refresh_token({"sub": str(db_user.id), "type": "refresh"})
+    # refrest token rotation을 위한 jti 활용
+    jti = str(uuid4())
+    refresh_token = create_refresh_token({"sub": str(db_user.id), "type": "refresh"}, jti=jti)
+    # DB에 refresh token 저장 (선택적, 보안 고려)
+    db_user.refresh_token_id = jti
+    db.commit()
 
     # refresh_token을 httpOnly 쿠키로 저장
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        max_age=7 * 24 * 3600  # 7일
+        max_age=7 * 24 * 3600,  # 7일
+        secure=COOKIE_SECURE,  # HTTPS 환경에서만 쿠키 전송
+        path=COOKIE_PATH,  
+        samesite=COOKIE_SAMESITE  # CSRF 공격 방지 설정
     )
 
     return {
@@ -110,7 +119,7 @@ def read_current_user(user: User = Depends(get_current_user)):
 
 # 토큰 만료 시 새 access token 발급
 @router.post("/refresh")
-def refresh_token(request: Request):
+def refresh_token(request: Request, response: Response, db: Session = Depends(get_db)):
     token = request.cookies.get("refresh_token")
     if not token:
         raise HTTPException(status_code=401, detail="refresh_token 없음")
@@ -120,12 +129,48 @@ def refresh_token(request: Request):
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="유효하지 않은 토큰 타입입니다")
         user_id = payload.get("sub")
+        jti = payload.get("jti")  # ✅ 기존 토큰의 고유 ID
     except JWTError:
         raise HTTPException(status_code=401, detail="토큰 유효하지 않음")
 
-    # user.py의 /refresh 라우트 내부
-    access_token = create_access_token({
+    # 사용자 조회
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="사용자 없음")
+
+    # jti 재사용 탐지 로깅
+    if user.refresh_token_id != jti:
+        logger.warning(
+            f"[REUSE ATTEMPT] user_id={user_id}, ip={request.client.host}, jti={jti}, expected={user.refresh_token_id}"
+        )
+        raise HTTPException(status_code=401, detail="이미 사용된 refresh token입니다")
+
+    # 짧은 주기 요청 감지 로깅 (현재 기준: 10초 미만)
+    if user.last_token_used_at and datetime.now() - user.last_token_used_at < timedelta(seconds=10):
+        logger.warning(
+            f"[SUSPICIOUS REFRESH] user_id={user_id}, ip={request.client.host}, now={datetime.now().isoformat()}, last={user.last_token_used_at.isoformat()}"
+        )
+        raise HTTPException(status_code=429, detail="refresh 요청이 너무 자주 발생합니다")
+
+    # 새 토큰 발급
+    new_jti = str(uuid4())
+    new_refresh_token = create_refresh_token({"sub": user_id, "type": "refresh"}, jti=new_jti)
+    user.refresh_token_id = new_jti
+    user.last_token_used_at = datetime.now()
+    db.commit()
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        max_age=7 * 24 * 3600,
+        secure=COOKIE_SECURE,
+        path=COOKIE_PATH,
+        samesite=COOKIE_SAMESITE
+    )
+
+    new_access_token = create_access_token({
         "sub": str(user_id),
         "type": "access"
     })
-    return {"access_token": access_token}
+    return {"access_token": new_access_token}

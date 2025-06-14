@@ -17,7 +17,7 @@ from models.article import Article    # 기사 모델
 from models.note import NoteArticle, Note  # 노트-기사 매핑 및 노트 모델
 
 # 인증 유저를 가져오는 의존성 (실제 구현에 따라 변경)
-from api.utils.auth import get_current_user
+from api.utils.auth import get_current_user_flexible as get_current_user
 from models.user import User
 
 # 스크랩 시 pkeyword, knowledgemap db 업데이트

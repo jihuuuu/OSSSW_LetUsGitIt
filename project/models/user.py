@@ -17,7 +17,9 @@ class User(Base):
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
-
+    refresh_token_id = Column(String(255), nullable=True)
+    last_token_used_at = Column(DateTime(timezone=True), nullable=True)
+    
     # 관계: KnowledgeMap과 1:N
     knowledge_maps = relationship("KnowledgeMap", back_populates="user")
     notes = relationship("Note", back_populates="user")
