@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session, joinedload, aliased
-from typing import List, Optional
+from typing import List, Optional, TypeVar, Callable, Any
 from datetime import datetime, timedelta, timezone
 
 from models.article import Cluster, ClusterArticle, ClusterKeyword, Keyword, Article
 from models.topic import TopicEnum
+
+T = TypeVar("T")
 
 def fetch_top_clusters(
     db: Session,
@@ -45,3 +47,28 @@ def fetch_top_clusters(
           .limit(topn_by_num)
     )
     return main_q.all()
+
+
+def dedupe_by_key(
+    items: List[T],
+    key_func: Callable[[T], Any],
+    latest_attr: str = None
+) -> List[T]:
+    """
+    - items: 필터링할 객체 리스트
+    - key_func: 중복 판단용 키 추출 함수
+    - latest_attr: 동일 key일 때 최신 객체 비교용 속성명 (예: 'created_at')
+    """
+    seen: dict[Any, T] = {}
+    for item in items:
+        key = key_func(item)
+        if key not in seen:
+            seen[key] = item
+        else:
+            if latest_attr:
+                prev = seen[key]
+                curr = item
+                # created_at 같은 datetime 속성 비교
+                if getattr(curr, latest_attr) > getattr(prev, latest_attr):
+                    seen[key] = curr
+    return list(seen.values())

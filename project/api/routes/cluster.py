@@ -8,7 +8,7 @@ from pydantic import BaseModel, HttpUrl
 from operator import attrgetter
 from api.schemas.cluster import *
 from models.topic import TopicEnum
-from api.utils.cluster import fetch_top_clusters
+from api.utils.cluster import fetch_top_clusters, dedupe_by_key
 from fastapi_cache.decorator import cache
 from zoneinfo import ZoneInfo
 
@@ -23,12 +23,13 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
-    top_clusters = fetch_top_clusters(db, hours=10, recent_limit=99, topn_by_num=20, topic=topic)
+    top_clusters = fetch_top_clusters(db, hours=1, recent_limit=99, topn_by_num=20, topic=topic)
     if not top_clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 
+    unique_clusters = dedupe_by_key(items=top_clusters, key_func=lambda cl: cl.label, latest_attr="created_at")
     result: List[ClusterOut] = []
-    for cl in top_clusters:
+    for cl in unique_clusters:
         # 최신순으로 정렬 후 최대 2개 기사만 선택
         top2 = sorted(
             cl.cluster_article,
