@@ -42,10 +42,10 @@ def scrap_article(
     # 기존 유효한 지식맵 비활성화
     db.query(KnowledgeMap).filter_by(user_id=current_user.id, is_valid=True).update({"is_valid": False})
 
-    # Redis 캐시 삭제
-    redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
-    cache_key = f"user:{current_user.id}:knowledge_map"
-    redis_client.delete(cache_key)
+    # # Redis 캐시 삭제
+    # redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    # cache_key = f"user:{current_user.id}:knowledge_map"
+    # redis_client.delete(cache_key)
     
     # 1. 기사 존재 확인
     article = db.query(Article).get(article_id)

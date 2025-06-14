@@ -12,9 +12,12 @@ from clustering.keyword_extractor import extract_top_keywords
 from clustering.embedder import preprocess_text
 from konlpy.tag import Okt
 from fastapi_cache.decorator import cache
-
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
+
+KST = ZoneInfo("Asia/Seoul")
+today = datetime.now(KST).date()
 
 # Okt 인스턴스와 불용어는 embedder.py 쪽에 정의돼 있다고 가정
 _okt = Okt()
@@ -22,7 +25,7 @@ _okt = Okt()
 @router.get("/weekly", response_model=WeeklyTrendResponse)
 @cache(expire=86300)  # 하루(24시간) = 86400
 def get_weekly_trends(db: Session = Depends(get_db)):
-    end_date   = date.today() - timedelta(days=1)
+    end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
     
     # 1) 지난 7일간 cluster_keyword별 합계 집계 → keyword_id로 매핑
@@ -89,7 +92,7 @@ def suggested_keywords(
     db: Session = Depends(get_db),
 ):
     # 1) 기간 설정: 오늘 포함 최근 7일
-    end_date   = date.today() - timedelta(days=1)
+    end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
 
     # 2) date 범위 내에서 keyword별 count 합산 후 내림차순 정렬
@@ -118,7 +121,7 @@ def search_trends(
     db:      Session = Depends(get_db),
 ):
     # 1) 날짜 범위: 오늘 포함 최근 7일
-    end_date   = date.today() - timedelta(days=1)
+    end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
     dates      = [start_date + timedelta(days=i) for i in range(7)]
 
