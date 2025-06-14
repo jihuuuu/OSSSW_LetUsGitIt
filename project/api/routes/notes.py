@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from api.utils.auth import get_current_user
+from api.utils.auth import get_current_user_flexible as get_current_user
 from database.deps import get_db
 from models.note import Note, NoteArticle
 from models.user import User

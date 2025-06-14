@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from models.article import Article
 from models.user import User
 from models.scrap import PKeyword, PKeywordArticle
-from api.utils.auth import get_current_user
+from api.utils.auth import get_current_user_flexible as get_current_user
 from api.utils.cache import get_cache
 from tasks.user_scrap_pipeline import build_knowledge_map
 from database.deps import get_db
