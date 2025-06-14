@@ -4,7 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { checkAuth } from "../services/auth";
 import Logo from "@/components/ui/logo";
 
-export default function Header() {
+type HeaderProps = {
+  centerTitle?: string;
+};
+
+export default function Header({ centerTitle }: HeaderProps) {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -28,9 +32,19 @@ export default function Header() {
   };
 
   return (
-     <header className="w-full bg-black text-white px-10 py-10 flex items-center justify-between shadow-md z-50 sticky top-0 h-28">
-      <Logo />
-      <nav className="flex items-center gap-6 text-lg font-medium">
+    <header className="w-full bg-black text-white px-10 py-6 flex items-center justify-between relative shadow-md z-50 sticky top-0 h-28">
+      <div className="z-10">
+        <Logo />
+      </div>
+
+      {/* ✅ 중앙 제목 */}
+      {centerTitle && (
+        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-white">
+          {centerTitle}
+        </h1>
+      )}
+
+      <nav className="flex items-center gap-6 text-lg font-medium z-10">
         <Link to="/today/issue" className="hover:text-orange-300 transition">오늘의 이슈</Link>
         <Link to="/trend/weekly" className="hover:text-orange-300 transition">트렌드</Link>
         {isLoggedIn ? (

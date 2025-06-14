@@ -40,20 +40,11 @@ export default function DashboardPage() {
   return (
     
     <div className="min-h-screen flex flex-col justify-start">
-          <header className="h-25 bg-blue-500 text-white px-6 flex items-center justify-between mb-10">
-            <div className="flex items-center">
-              <Logo />
-            </div>
-            <h1 className="text-white text-4xl font-bmjua">
-              MY PAGE
-            </h1>
-            <div className="px-2 py -1">
-              <Header />
-            </div>
-          </header>
+      {/* ✅ 중앙 제목을 props로 전달 */}
+      <Header centerTitle="MY PAGE" />
 
       {/* ✅ 본문 (세로 정렬) */}
-      <main className="px-6 flex flex-col items-center gap-10">
+      <main className="mt-10 px-6 flex flex-col items-center gap-10">
         {/* ✅ 지식맵 */}
         <section className="w-full max-w-5xl">
           <div className="flex items-center justify-between mb-2">
