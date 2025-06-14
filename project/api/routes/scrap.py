@@ -23,7 +23,7 @@ from models.user import User
 # 스크랩 시 pkeyword, knowledgemap db 업데이트
 from clustering.keyword_extractor import extract_keywords_per_article, get_top_keywords
 from clustering.embedder import preprocess_text
-
+from api.utils.cache import delete_cache
 from redis import Redis
 
 router = APIRouter()
@@ -39,13 +39,12 @@ def scrap_article(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    
+    cache_key = f"user:{current_user.id}:knowledge_map"
+    delete_cache(cache_key)
+    
     # 기존 유효한 지식맵 비활성화
     db.query(KnowledgeMap).filter_by(user_id=current_user.id, is_valid=True).update({"is_valid": False})
-
-    # # Redis 캐시 삭제
-    # redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
-    # cache_key = f"user:{current_user.id}:knowledge_map"
-    # redis_client.delete(cache_key)
     
     # 1. 기사 존재 확인
     article = db.query(Article).get(article_id)
