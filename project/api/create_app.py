@@ -107,7 +107,7 @@ def create_app():
         # 1) Redis 연결 및 캐시 초기화
         redis_client = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
         FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
-    
+        await FastAPICache.clear()
         # 2) 기존 스케줄러·파이프라인
         # 서버 구동 시 한 번만 스케줄러 시작
         scheduler.start()  

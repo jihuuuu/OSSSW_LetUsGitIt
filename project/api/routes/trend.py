@@ -13,11 +13,9 @@ from clustering.embedder import preprocess_text
 from konlpy.tag import Okt
 from fastapi_cache.decorator import cache
 from zoneinfo import ZoneInfo
+from api.utils.cluster import dedupe_by_key
 
 router = APIRouter()
-
-KST = ZoneInfo("Asia/Seoul")
-today = datetime.now(KST).date()
 
 # Okt 인스턴스와 불용어는 embedder.py 쪽에 정의돼 있다고 가정
 _okt = Okt()
@@ -25,6 +23,8 @@ _okt = Okt()
 @router.get("/weekly", response_model=WeeklyTrendResponse)
 @cache(expire=86300)  # 하루(24시간) = 86400
 def get_weekly_trends(db: Session = Depends(get_db)):
+    KST = ZoneInfo("Asia/Seoul")
+    today = datetime.now(KST).date()
     end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
     
@@ -91,6 +91,8 @@ def get_weekly_trends(db: Session = Depends(get_db)):
 def suggested_keywords(
     db: Session = Depends(get_db),
 ):
+    KST = ZoneInfo("Asia/Seoul")
+    today = datetime.now(KST).date()
     # 1) 기간 설정: 오늘 포함 최근 7일
     end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
@@ -120,6 +122,8 @@ def search_trends(
     keyword: str,
     db:      Session = Depends(get_db),
 ):
+    KST = ZoneInfo("Asia/Seoul")
+    today = datetime.now(KST).date()
     # 1) 날짜 범위: 오늘 포함 최근 7일
     end_date   = today - timedelta(days=1)
     start_date = end_date - timedelta(days=6)
@@ -191,24 +195,6 @@ def search_trends(
         rep_kwds = [ck.keyword.name for ck in cl.cluster_keyword]
         co       = [w for w in rep_kwds if w != keyword]
 
-        # 클러스터 내 기사 텍스트 모음
-        # articles  = (
-        #     db.query(Article)
-        #       .join(ClusterArticle, ClusterArticle.article_id == Article.id)
-        #       .filter(ClusterArticle.cluster_id == cl.id)
-        #       .all()
-        # )
-        # raw_texts = [art.title + " " + (art.summary or "") for art in articles]
-        # proc_texts= [preprocess_text(t) for t in raw_texts]
-
-        # # TF-IDF로 비대표 키워드 추출
-        # all_freqs = extract_top_keywords(
-        #     documents=proc_texts,
-        #     cluster_id=cl.id,
-        #     top_n=3
-        # )
-        # nonrep = [w for w in all_freqs if w not in set(co + [keyword])]
-
         # 클러스터별 날짜 트렌드 채우기
         ckid   = cl.cluster_keyword[0].id   # 이 클러스터의 대표 키워드 ID
         cl_tr  = [
@@ -225,6 +211,10 @@ def search_trends(
                 cluster_trend      = cl_tr
             )
         )
+
+    related = dedupe_by_key(items=related, key_func=lambda r: tuple(sorted(r.co_keywords)),
+    latest_attr=None  # co_keywords 중복만 제거
+    )
 
     return SearchTrendResponse(
         keyword          = keyword,
