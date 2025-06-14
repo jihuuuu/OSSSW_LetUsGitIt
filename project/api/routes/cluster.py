@@ -10,9 +10,11 @@ from api.schemas.cluster import *
 from models.topic import TopicEnum
 from api.utils.cluster import fetch_top_clusters
 from fastapi_cache.decorator import cache
+from zoneinfo import ZoneInfo
 
 
 router = APIRouter()
+
 
 
 @router.get("/today", response_model=List[ClusterOut])
@@ -21,7 +23,7 @@ async def list_clusters(topic: TopicEnum | None = None, db: Session = Depends(ge
     """
     시스템 클러스터별로 최신순 2개 기사만 묶어서 배열로 반환합니다.
     """
-    top_clusters = fetch_top_clusters(db, hours=1, recent_limit=99, topn_by_num=20, topic=topic)
+    top_clusters = fetch_top_clusters(db, hours=10, recent_limit=99, topn_by_num=20, topic=topic)
     if not top_clusters:
         raise HTTPException(status_code=404, detail="클러스터된 기사가 없습니다")
 

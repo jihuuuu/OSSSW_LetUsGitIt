@@ -19,7 +19,7 @@ def fetch_top_clusters(
     - topic이 지정되면 추가로 해당 토픽 필터 적용
     """
     # 1) cutoff: 지금으로부터 `hours`시간 전
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    cutoff = datetime.now() - timedelta(hours=hours)
 
     # 2) 서브쿼리: 최근 hours시간 이내 생성된 Cluster 중 최신 recent_limit개
     base_q = (
