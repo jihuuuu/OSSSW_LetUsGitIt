@@ -1,7 +1,8 @@
-ENV TRANSFORMERS_CACHE=/tmp
-ENV HF_HOME=/tmp
 # 1) 베이스 이미지: 가볍고 최신 파이썬
 FROM python:3.12
+
+ENV TRANSFORMERS_CACHE=/tmp
+ENV HF_HOME=/tmp
 
 # JDK 설치 (Debian/Ubuntu 계열 기준)
 RUN apt-get update && \
