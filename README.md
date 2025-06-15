@@ -16,7 +16,15 @@
 ### 🔧 Backend
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-764ABC?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+
+### 🧠 AI/ML
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![Transformers](https://img.shields.io/badge/Transformers-FFBF00?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/docs/transformers/index)
+[![HDBSCAN](https://img.shields.io/badge/HDBSCAN-005571?style=for-the-badge&logo=python&logoColor=white)](https://hdbscan.readthedocs.io/en/latest/)
 
 ---
 ## 주요 기능
@@ -105,10 +113,12 @@ npm run dev
 ## ✍️  팀 소개
 | 이름 | 역할 | 깃허브 |
 |------|------|--------|
-| 강성경 | 프론트/디자인/배포/api명세 | [@sunggyeong](https://github.com/sunggyeong) |
-| 남지후 | 백엔드/DB설계/ai | [@jihuuuu](https://github.com/jihuuuu) |
-| 이채연 | 백엔드/DB설계/배포 | [@chaeyeonlee898](https://github.com/chaeyeonlee898) |
-| 조윤경 |  ai/프론트/디자인/api명세 | [@yvngyeong](https://github.com/yvngyeong) |
+| 강성경 | 프론트/디자인/API명세/배포 | [@sunggyeong](https://github.com/sunggyeong) |
+| 남지후 | 백엔드/DB설계/AI/캐싱 | [@jihuuuu](https://github.com/jihuuuu) |
+| 이채연 | 백엔드/DB설계/캐싱/배포 | [@chaeyeonlee898](https://github.com/chaeyeonlee898) |
+| 조윤경 | 프론트/디자인/API명세/AI | [@yvngyeong](https://github.com/yvngyeong) |
+
+---
 
 ## 🔐 라이선스
 
@@ -194,48 +204,6 @@ frontend/
 
 > 💡 **프로젝트의 메인 코드는 `project/`(백엔드), `frontend/`(프론트엔드)에 분리되어 있고,
 > 공통 문서/설정은 루트(최상위)에 위치합니다.**
->
-> 각 폴더/파일 이름 옆에 설명을 붙여 두면 Wiki/README에서 빠르게 전체 구조 파악이 가능합니다!
-
-<pre>
-OSSSW_LetUsGitIt/
-├─ project/                     # 백엔드(FastAPI, AI, DB, 크롤러 등)
-│  ├─ api/                      # 백엔드 API 관련 파일
-│  │   ├─ create_app.py         # FastAPI 앱 생성 및 라우터 등록
-│  │   ├─ routes/               # 엔드포인트별 라우터
-│  │   └─ schemas/              # pydantic 스키마 정의
-│  ├─ collector/                # RSS 크롤러
-│  │   ├─ rss_list.py           # 크롤링 RSS 피드 목록
-│  │   └─ rss_collector.py      # RSS 파싱/DB 저장
-│  ├─ clustering/               # AI 기반 클러스터링/임베딩
-│  │   ├─ embedder.py           # 임베딩 로직
-│  │   ├─ cluster.py            # 군집화 로직
-│  │   └─ pipeline.py           # 클러스터링 전체 파이프라인
-│  ├─ database/                 # DB 연결 및 ORM
-│  │   ├─ connection.py         # DB 연결 설정
-│  │   ├─ mongo_models.py       # (선택) MongoDB 모델
-│  │   └─ sql_models.py         # SQLAlchemy 모델
-│  ├─ data/                     # (선택) 데이터 파일
-│  │   └─ raw/                  # (선택) 원본 기사 데이터 등
-│  ├─ app.py                    # FastAPI 앱 실행 진입점
-│  ├─ .env                      # 환경 변수 파일
-│  ├─ db_init.py                # DB 초기화 스크립트
-│  ├─ requirements.txt          # 패키지 의존성 명세
-│  └─ Dockerfile                # (선택) 백엔드 컨테이너 빌드 스크립트
-│
-├─ frontend/                    # 프론트엔드 (React, Vite, Tailwind)
-│  ├─ src/                      # 소스 코드
-│  ├─ public/                   # 정적 리소스
-│  ├─ package.json              # Node.js 패키지 설정
-│  └─ ...                       # 기타 설정 파일 등
-│
-├─ README.md                    # 프로젝트 설명서
-├─ LICENSE                      # 라이선스
-└─ (기타) .gitignore, CONTRIBUTING.md 등
-
-</details>
-</pre>
-<br>
 
 ---
 ## 📈 향후 개선 사항
