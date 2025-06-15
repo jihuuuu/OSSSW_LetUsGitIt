@@ -31,9 +31,14 @@ export default function ScrapbookPage() {
     getSelectedArticles().includes(a.id)
   );
 
+  type ScrapArticlesResponse = {
+    articles: Article[];
+    totalPages: number;
+  };
+
   const fetchScrapArticles = async () => {
     try {
-      const res = await api.get("/users/scraps", {
+      const res = await api.get<ScrapArticlesResponse>("/users/scraps", {
         params: {
           title: keyword,
           page,

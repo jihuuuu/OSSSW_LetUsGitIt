@@ -24,7 +24,7 @@ export default function TodayIssuePreview() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/clusters/today")
+    axios.get<Cluster[]>("http://localhost:8000/clusters/today")
       .then(res => setClusters(res.data.slice(0, 10))) // 상위 3개만 표시
       .catch(err => console.error(err));
   }, []);

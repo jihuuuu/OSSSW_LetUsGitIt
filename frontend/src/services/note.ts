@@ -9,7 +9,7 @@ export async function getNotesByPage(page: number, size: number): Promise<{ note
     params: { page, size },
   });
 
-  const result = res.data.result;
+  const result = (res.data as { result: any }).result;
 
   return {
     notes: result.notes.map((n: any) => ({
@@ -32,7 +32,7 @@ export async function getNotesByKeyword(
     params: { title, page, size },
   });
 
-  const result = res.data.result;
+  const result = (res.data as { result: any }).result;
 
   return {
     notes: result.notes.map((n: any) => ({
@@ -58,5 +58,17 @@ export async function updateNote(id: number, data: { title: string; content: str
 
 export async function getArticlesByNoteId(noteId: number): Promise<Article[]> {
   const res = await api.get(`/users/notes/${noteId}/articles`);
-  return res.data;
+  // Ensure the response is an array and map it to Article[]
+  const articles = Array.isArray(res.data)
+    ? res.data.map((a: any) => ({
+        id: Number(a.id),
+        title: a.title,
+        content: a.content,
+        createdAt: a.created_at,
+        link: a.link ?? "",
+        summary: a.summary ?? "",
+        published: a.published ?? false,
+      }))
+    : [];
+  return articles;
 }
