@@ -5,7 +5,9 @@ pymysql
 python-dotenv
 feedparser
 requests
-#sentence-transformers
+transformers==4.41.1     # ✅ 핵심 기능만 대체
+torch==2.2.2             # ✅ 모델 실행을 위한 최소 토치
+scikit-learn
 scikit-learn
 numpy
 passlib[bcrypt]

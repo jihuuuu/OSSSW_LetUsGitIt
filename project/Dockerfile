@@ -17,7 +17,6 @@ COPY requirements.txt .
 
 # 4) 파이썬 패키지 설치
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir sentence-transformers
 
 # 5) 앱 소스 전체 복사
 COPY . .
