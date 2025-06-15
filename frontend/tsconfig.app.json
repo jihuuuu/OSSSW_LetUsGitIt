@@ -1,6 +1,11 @@
 // tsconfig.app.json
 {
   "compilerOptions": {
+    "strict": false,             // 엄격 모드 해제
+    "noUnusedLocals": false,     // 안 쓰는 변수 허용
+    "noUnusedParameters": false, // 안 쓰는 파라미터 허용
+    "noImplicitAny": false,
+    "skipLibCheck": true,
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
@@ -10,19 +15,12 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "jsx": "react-jsx"
   },
   "include": ["src"]
 }

@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 export default function TrendLayout() {
   return (
     <div >
-      <div class="mb-5">
+      <div className="mb-5">
       <Header />
       </div>
 

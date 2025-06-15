@@ -16,10 +16,15 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await login(email, password); // ✅ 서비스 함수 호출
-      authLogin(res.access_token);             // 전역 context 상태 업데이트
-      alert("로그인 성공!");
-      navigate(from,{replace: true}); // 로그인 후 이동
+      type LoginResponse = { access_token: string };
+      const res = await login(email, password) as LoginResponse; // ✅ 서비스 함수 호출
+      if (res && typeof res.access_token === "string") {
+        authLogin(res.access_token);             // 전역 context 상태 업데이트
+        alert("로그인 성공!");
+        navigate(from, { replace: true }); // 로그인 후 이동
+      } else {
+        throw new Error("access_token이 응답에 없습니다.");
+      }
     } catch (err: any) {
       console.error("로그인 오류:", err);
       alert("로그인 실패! 이메일 또는 비밀번호를 확인하세요.");

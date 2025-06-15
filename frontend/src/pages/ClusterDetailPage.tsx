@@ -28,8 +28,6 @@ export default function ClusterDetailPage() {
 
   const [noteMode, setNoteMode] = useState(false);
   const [selectedArticles, setSelectedArticles] = useState<Set<number>>(new Set());
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [noteContent, setNoteContent] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
@@ -44,13 +42,13 @@ export default function ClusterDetailPage() {
 
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
+    axios.get<ClusterDetail>(`http://localhost:8000/clusters/today/${clusterId}/articles`).then((res) => {
       setCluster(res.data);
     });
 
   const fetchData = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/users/scraps", {
+      const res = await axios.get<{ articles: any[] }>("http://localhost:8000/users/scraps", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -82,7 +80,7 @@ export default function ClusterDetailPage() {
       const url = `http://localhost:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
       const method = isScrapped ? "put" : "post";
 
-      const res = await axios({
+      const res = await axios<{ isSuccess: boolean; message?: string }>({
         method,
         url,
         headers: {

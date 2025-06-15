@@ -14,10 +14,13 @@ export async function getScrappedArticles({
   articles: ScrappedArticle[];
   totalPages: number;
 }> {
-  const res = await api.get("/users/scraps", {
+  const res = await api.get<{ articles: ScrappedArticle[]; totalPages: number }>("/users/scraps", {
     params: { keyword, page, size },
   });
-  return res.data;
+  return {
+    articles: res.data.articles ?? [],
+    totalPages: res.data.totalPages ?? 0,
+  };
 }  
 
 export async function getScrappedArticlesByKeyword(keyword: string, page: number, size: number) {

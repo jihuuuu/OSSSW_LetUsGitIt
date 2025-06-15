@@ -71,7 +71,12 @@ export default function NotePage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await api.put(`/users/notes/${noteId}/delete`, {
+      interface DeleteNoteResponse {
+        isSuccess: boolean;
+        message?: string;
+      }
+
+      const res = await api.put<DeleteNoteResponse>(`/users/notes/${noteId}/delete`, {
          title: "",       // or 원래 값
   text: "",        // or 원래 값
   article_ids: [], // or 기존 값

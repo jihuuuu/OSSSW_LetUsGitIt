@@ -28,7 +28,10 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const res = await axios.post(
+        interface RefreshResponse {
+          access_token: string;
+        }
+        const res = await axios.post<RefreshResponse>(
           "http://localhost:8000/users/refresh",
           {},
           { withCredentials: true }
