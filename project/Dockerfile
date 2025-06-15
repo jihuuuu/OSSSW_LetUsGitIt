@@ -1,3 +1,5 @@
+ENV TRANSFORMERS_CACHE=/tmp
+ENV HF_HOME=/tmp
 # 1) 베이스 이미지: 가볍고 최신 파이썬
 FROM python:3.12
 
@@ -14,6 +16,7 @@ COPY requirements.txt .
 
 # 4) 파이썬 패키지 설치
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir sentence-transformers
 
 # 5) 앱 소스 전체 복사
 COPY . .

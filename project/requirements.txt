@@ -5,7 +5,7 @@ pymysql
 python-dotenv
 feedparser
 requests
-sentence-transformers
+#sentence-transformers
 scikit-learn
 numpy
 passlib[bcrypt]
