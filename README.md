@@ -135,39 +135,104 @@ npm run dev
 
 ## 📁 디렉토리 구조
 
-<details>
-<summary> 프로젝트 구조 </summary>
+### 1. 루트 *(OSSSW_LetUsGitIt/)*
+
+```
+OSSSW_LetUsGitIt/
+├─ README.md           # 프로젝트 설명서
+├─ LICENSE             # 라이선스
+├─ .gitignore          # 깃 무시 설정
+├─ frontend
+├─ project
+└─ CONTRIBUTING.md     # 기여 가이드 (옵션)
+```
+
+### 2. `project/`  *(백엔드/AI/DB)*
+
+```
+project/
+├─ api/               # FastAPI 앱, 라우터, 스키마
+│  ├─ create_app.py
+│  ├─ config.py
+│  ├─ routes/
+│  ├─ utils/
+│  └─ schemas/
+├─ collector/         # RSS 크롤러
+│  ├─ rss_list.py
+│  └─ rss_collector.py
+├─ clustering/        # AI 클러스터링/임베딩
+│  ├─ cache_redis.py
+│  ├─ embedder.py
+│  ├─ cluster.py
+│  ├─ keyword_extractor.py
+│  ├─ running_stage.py
+│  └─ pipeline_by_topic.py
+├─ database/          # DB 연결, ORM
+│  ├─ connection.py
+│  └─ deps.py
+├─ data/              # (옵션) 데이터, 원본기사 등
+├─ app.py             # FastAPI 앱 실행 진입점
+├─ .env               # 환경 변수
+├─ db_init.py         # DB 초기화
+├─ requirements.txt   # 패키지 명세
+└─ Dockerfile         # 컨테이너 빌드
+```
+
+---
+
+### 3. `frontend/`  *(React/Vite/Tailwind)*
+
+```
+frontend/
+├─ src/           # 프론트엔드 소스
+├─ public/        # 정적 리소스
+├─ package.json   # 패키지 설정
+└─ ...            # 기타 설정 파일
+```
+
+---
+
+> 💡 **프로젝트의 메인 코드는 `project/`(백엔드), `frontend/`(프론트엔드)에 분리되어 있고,
+> 공통 문서/설정은 루트(최상위)에 위치합니다.**
+>
+> 각 폴더/파일 이름 옆에 설명을 붙여 두면 Wiki/README에서 빠르게 전체 구조 파악이 가능합니다!
 
 <pre>
-project/
-├─ api/                   # api 목록 (필요시 확장)
-│   ├─ create_app.py      # FastAPI 앱 팩토리(환경 로드, 라우터 등록) 생성
-│   ├─ routes/
-│   │   ├─ news.py       
-│   │   ├─ cluster.py
-│   │   └─ user.py
-│   └─ schemas/
-│       ├─ news.py
-│       └─ user.py
-├─ collector/             # rss 기사 크롤링
-│   ├─ rss_list.py
-│   └─ rss_collector.py
-├─ clustering/            # 기사 클러스터링 (AI)
-│   ├─ embedder.py
-│   ├─ cluster.py
-│   └─ pipeline.py
-├─ database/
-│   ├─ connection.py
-│   ├─ mongo_models.py    # 선택 (필요시 확장)
-│   └─ sql_models.py
-├─ frontend/              # React / Streamlit
-├─ data/                  # 선택
-│   └─ raw/               # 선택 (RSS로 받은 기사 JSON)
-├─ app.py                 # FastAPI 실행 진입점
-├─ .env
-├─ db_init.py             # DB 초기 생성
-├─ requirements.txt       # 패키지 설치 및 의존성 주입
-└─ Dockerfile             # 선택 (필요시 확장)
+OSSSW_LetUsGitIt/
+├─ project/                     # 백엔드(FastAPI, AI, DB, 크롤러 등)
+│  ├─ api/                      # 백엔드 API 관련 파일
+│  │   ├─ create_app.py         # FastAPI 앱 생성 및 라우터 등록
+│  │   ├─ routes/               # 엔드포인트별 라우터
+│  │   └─ schemas/              # pydantic 스키마 정의
+│  ├─ collector/                # RSS 크롤러
+│  │   ├─ rss_list.py           # 크롤링 RSS 피드 목록
+│  │   └─ rss_collector.py      # RSS 파싱/DB 저장
+│  ├─ clustering/               # AI 기반 클러스터링/임베딩
+│  │   ├─ embedder.py           # 임베딩 로직
+│  │   ├─ cluster.py            # 군집화 로직
+│  │   └─ pipeline.py           # 클러스터링 전체 파이프라인
+│  ├─ database/                 # DB 연결 및 ORM
+│  │   ├─ connection.py         # DB 연결 설정
+│  │   ├─ mongo_models.py       # (선택) MongoDB 모델
+│  │   └─ sql_models.py         # SQLAlchemy 모델
+│  ├─ data/                     # (선택) 데이터 파일
+│  │   └─ raw/                  # (선택) 원본 기사 데이터 등
+│  ├─ app.py                    # FastAPI 앱 실행 진입점
+│  ├─ .env                      # 환경 변수 파일
+│  ├─ db_init.py                # DB 초기화 스크립트
+│  ├─ requirements.txt          # 패키지 의존성 명세
+│  └─ Dockerfile                # (선택) 백엔드 컨테이너 빌드 스크립트
+│
+├─ frontend/                    # 프론트엔드 (React, Vite, Tailwind)
+│  ├─ src/                      # 소스 코드
+│  ├─ public/                   # 정적 리소스
+│  ├─ package.json              # Node.js 패키지 설정
+│  └─ ...                       # 기타 설정 파일 등
+│
+├─ README.md                    # 프로젝트 설명서
+├─ LICENSE                      # 라이선스
+└─ (기타) .gitignore, CONTRIBUTING.md 등
+
 </details>
 </pre>
 <br>
