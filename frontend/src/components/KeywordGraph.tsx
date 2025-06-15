@@ -138,7 +138,7 @@ export function KeywordGraph({ nodes, edges }: Props) {
       labels.attr("x", (d) => d.x!).attr("y", (d) => d.y!);
     });
 
-    return () => simulation.stop();
+    return () => { simulation.stop(); };
 
     // ✅ 라인 끝 좌표를 조정하여 텍스트 외곽에서 연결되도록 함
     function adjustLinePosition(src: Node, tgt: Node) {

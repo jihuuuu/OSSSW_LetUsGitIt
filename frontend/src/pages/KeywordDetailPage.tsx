@@ -39,15 +39,9 @@ export default function KeywordDetailPage() {
   }, [keywordId, notePage, articlePage]);
 
   return (
-    <div className="min-h-screen bg-white px-10 py-8">
-      <header className="flex items-center justify-between mb-10">
-        <Logo />
-        <span className="text-sm font-medium text-blue-600 border border-blue-600 rounded-full px-2 py-6">
-          {keywordName}
-        </span>
-        <div className="px-2 py -1">
-                  <Header />
-                </div>
+    <div >
+      <header className="mb-10">
+                <Header />
       </header>
 
       <main className="flex gap-20">
@@ -82,7 +76,7 @@ export default function KeywordDetailPage() {
           {articles.length > 0 ? (
             <ul className="space-y-3 text-sm text-black">
               {articles.map((article) => (
-                <li key={article.article_id}>
+                <li key={article.id}>
                   <a
                     href={article.link}
                     target="_blank"
