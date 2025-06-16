@@ -201,23 +201,41 @@ project/
 
 ```
 frontend/
-├─ public/              # 정적 파일 (예: favicon, 이미지 등)
-├─ src/                 # 프론트엔드 소스
-│  ├─ App.tsx           # 루트 컴포넌트
-│  ├─ main.tsx          # 진입점
-│  ├─ index.css         # 전역 스타일
-│  ├─ vite-env.d.ts     # Vite 환경 타입 정의
-│  ├─ assets/           # 이미지, 폰트 등 정적 자산
-│  ├─ components/       # 재사용 가능한 UI 컴포넌트
-│  ├─ context/          # React context 모음
-│  ├─ hooks/            # 커스텀 훅
-│  ├─ lib/              # 라이브러리 및 유틸성 코드
-│  ├─ pages/            # 페이지 단위 컴포넌트
-│  ├─ routes/           # 라우팅 설정
-│  ├─ services/         # API 통신 등 외부 서비스 연동
-│  └─ types/            # 타입 정의 (TypeScript)
-├─ package.json         # 패키지 설정
-├─ ...                  # 기타 설정 파일
+├── public/                                 // 정적 파일(이미지, favicon 등) 폴더
+│   └── ...                                
+├── src/                                    // 소스 코드 루트
+│   ├── components/                         // 재사용 UI 컴포넌트 폴더
+│   │   ├── Header.tsx                      // 상단 헤더 컴포넌트
+│   │   ├── NoteAccordionList.tsx           // 노트 목록 아코디언 컴포넌트
+│   │   └── ui/                             // UI 라이브러리 컴포넌트
+│   │       └── accordion.tsx               // 아코디언 UI 컴포넌트
+│   ├── hooks/                              // 커스텀 훅 폴더
+│   │   └── useLogoutWatcher.ts             // 로그아웃 감시 훅
+│   ├── pages/                              // 라우트별 페이지 컴포넌트 폴더
+│   │   ├── ClusterDetailPage.tsx           // 클러스터 상세 페이지
+│   │   ├── DashboardPage.tsx               // 대시보드(메인) 페이지
+│   │   ├── HomePage.tsx                    // 홈(메인) 페이지
+│   │   ├── KeywordDetailPage.tsx           // 키워드 상세 페이지
+│   │   ├── Login.tsx                       // 로그인 페이지
+│   │   ├── NoteCreatePage.tsx              // 노트 생성 페이지
+│   │   ├── NoteEditPage.tsx                // 노트 편집 페이지
+│   │   ├── NotePage.tsx                    // 노트 전체 목록 페이지
+│   │   ├── ScrapbookPage.tsx               // 스크랩북(기사 모음) 페이지
+│   │   ├── SignupCompletePage.tsx          // 회원가입 완료 페이지
+│   │   ├── SignupPage.tsx                  // 회원가입 페이지
+│   │   └── TodayIssuePage.tsx              // 오늘의 이슈 페이지
+│   ├── routes/                             // 라우터 관련 파일 폴더
+│   │   ├── AppRouter.tsx                   // 전체 라우팅 설정
+│   │   └── TrendRoutes.tsx                 // 트렌드 관련 라우팅
+│   ├── services/                           // API 호출 등 서비스 함수 폴더
+│   │   └── note.ts                         // 노트 관련 API 함수
+│   ├── types/                              // 타입 정의 폴더
+│   │   ├── article.ts                      // 기사 타입 정의
+│   │   └── note.ts                         // 노트 타입 정의
+│   ├── App.tsx                             // 앱 루트 컴포넌트
+│   └── main.tsx                            // 앱 진입점(엔트리포인트)
+├── package.json                            // 프로젝트 의존성 및 스크립트
+└── tsconfig.json                           // 타입스크립트 설정
 ```
 
 ---
