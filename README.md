@@ -183,11 +183,15 @@ project/
 ├─ database/          # DB 연결, ORM
 │  ├─ connection.py
 │  └─ deps.py
-├─ data/              # (옵션) 데이터, 원본기사 등
+├─ data/              # 데이터, 원본기사 등
+├─ dummy/             # 테스트용/샘플데이터/로직
+├─ models/            # SQLAlchemy ORM 모델들
+├─ tasks/             # 지식맵 파이프라인, 트렌드 파이프라인
 ├─ app.py             # FastAPI 앱 실행 진입점
 ├─ .env               # 환경 변수
 ├─ db_init.py         # DB 초기화
 ├─ requirements.txt   # 패키지 명세
+├─ docker-compose.yml # 도커 컴포즈 설정   
 └─ Dockerfile         # 컨테이너 빌드
 ```
 
