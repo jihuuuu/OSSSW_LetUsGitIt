@@ -137,7 +137,7 @@ npm run dev
 
 ### 2. 뉴스 클러스터  
 
-![image](https://github.com/user-attachments/assets/0f6ef4d4-068e-4fa2-baff-addea2b736a6)
+![image](https://github.com/user-attachments/assets/a8c306e1-f436-46f9-b558-843d6e2339f8)
 - **오늘의 이슈**  
   - 매시 정각 백엔드 파이프라인(`hourly_clustering`)이 RSS 수집→임베딩→클러스터링→키워드 추출을 순차 실행하여 최신 클러스터를 생성합니다
 
