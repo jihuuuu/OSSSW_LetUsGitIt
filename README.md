@@ -201,10 +201,24 @@ project/
 
 ```
 frontend/
-├─ src/           # 프론트엔드 소스
-├─ public/        # 정적 리소스
-├─ package.json   # 패키지 설정
-└─ ...            # 기타 설정 파일
+├─ public/              # 정적 파일 (예: favicon, 이미지 등)
+├─ src/                 # 프론트엔드 소스
+│  ├─ App.tsx           # 루트 컴포넌트
+│  ├─ main.tsx          # 진입점
+│  ├─ index.css         # 전역 스타일
+│  ├─ vite-env.d.ts     # Vite 환경 타입 정의
+│  ├─ assets/           # 이미지, 폰트 등 정적 자산
+│  ├─ components/       # 재사용 가능한 UI 컴포넌트
+│  ├─ context/          # React context 모음
+│  ├─ hooks/            # 커스텀 훅
+│  ├─ lib/              # 라이브러리 및 유틸성 코드
+│  ├─ pages/            # 페이지 단위 컴포넌트
+│  ├─ routes/           # 라우팅 설정
+│  ├─ services/         # API 통신 등 외부 서비스 연동
+│  └─ types/            # 타입 정의 (TypeScript)
+├─ package.json         # 패키지 설정
+├─ ...                  # 기타 설정 파일
+
 ```
 
 ---
