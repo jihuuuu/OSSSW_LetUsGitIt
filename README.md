@@ -218,7 +218,6 @@ frontend/
 │  └─ types/            # 타입 정의 (TypeScript)
 ├─ package.json         # 패키지 설정
 ├─ ...                  # 기타 설정 파일
-
 ```
 
 ---
