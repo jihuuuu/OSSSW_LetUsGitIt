@@ -18,7 +18,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
-    fetch("http://localhost:8000/users/logout", {
+    fetch("http://3.39.180.27:8000/users/logout", {
       method: "POST",
       credentials: "include",
     });

@@ -20,7 +20,7 @@ export default function WeeklyIssuePage() {
   const [trendData, setTrendData] = useState<Record<string, any>[]>([]);
    const [animationKey, setAnimationKey] = useState(0); // ⭐ animation trigger
   useEffect(() => {
-    fetch('http://localhost:8000/trends/weekly')
+    fetch('http://3.39.180.27:8000/trends/weekly')
       .then(res => res.json())
       .then((data: ApiResponse) => {
         const kwList = data.trend_data.map((d: TrendItem) => ({

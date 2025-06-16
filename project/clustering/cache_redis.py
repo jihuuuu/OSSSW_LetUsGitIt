@@ -5,7 +5,7 @@ from clustering.embedder import EMBEDDING_DIM
 import os
 
 # 환경변수에서 호스트·포트 읽기 (없으면 로컬 기본값)
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_HOST = os.getenv("REDIS_HOST", "3.39.180.27")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB   = int(os.getenv("REDIS_DB", 0))
 

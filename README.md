@@ -71,16 +71,16 @@ SHOW TABLES;
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
-localhost:8000 에서 API 서버가 실행됩니다.
+3.39.180.27:8000 에서 API 서버가 실행됩니다.
 
-API 문서는 http://localhost:8000/docs (Swagger UI)에서 확인 가능합니다.
+API 문서는 http://3.39.180.27:8000/docs (Swagger UI)에서 확인 가능합니다.
 원하는 API 항목에서 Try it out → Execute 클릭
 
 ### 🎨 2. 프론트엔드 실행 (React)
 cd frontend
 npm install
 npm run dev
-localhost:5173 에서 웹 애플리케이션이 실행됩니다.
+3.39.180.27:5173 에서 웹 애플리케이션이 실행됩니다.
 
 백엔드와 연동이 필요한 경우 .env 파일에서 API URL을 설정해주세요.
 
