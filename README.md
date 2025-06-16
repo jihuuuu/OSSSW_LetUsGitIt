@@ -225,6 +225,28 @@ frontend/
 > 💡 **프로젝트의 메인 코드는 `project/`(백엔드), `frontend/`(프론트엔드)에 분리되어 있고,
 > 공통 문서/설정은 루트(최상위)에 위치합니다.**
 
+--- 
+
+## 🏗️ 시스템 아키텍처
+
+**Browser**, **Frontend**, **Backend**, **Redis**, **MySQL** 5개 컴포넌트 간의 주요 통신 흐름을 보여줍니다.
+
+- **Browser ↔ Frontend (5173)**
+  - React/Vite 개발 서버가 호스팅하는 UI
+  - 사용자의 인터랙션을 받아 백엔드 API 호출
+
+- **Frontend ↔ Backend (8000)**
+  - FastAPI(Uvicorn) 기반 REST API
+  - 클러스터링, 트렌드, 키워드 검색 등 주요 비즈니스 로직 제공
+
+- **Backend ↔ Redis (6379)**
+  - 임베딩 벡터, 지식맵, API 응답 캐싱
+  - `redis.asyncio` + `fastapi-cache2` 비동기 캐시 레이어
+
+- **Backend ↔ MySQL (3306)**
+  - SQLAlchemy ORM을 통한 데이터 읽기/쓰기
+  - 사용자, 기사, 클러스터, 키워드, 트렌드 등 영속화
+
 ---
 ## 📈 향후 개선 사항
 - 클러스터링 성능 향상
