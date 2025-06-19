@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://54.180.26.163:8000",
+  baseURL: "http://3.37.87.202:8000",
   withCredentials: true,
 });
 
@@ -32,7 +32,7 @@ api.interceptors.response.use(
           access_token: string;
         }
         const res = await axios.post<RefreshResponse>(
-          "http://54.180.26.163:8000/users/refresh",
+          "http://3.37.87.202:8000/users/refresh",
           {},
           { withCredentials: true }
         );
