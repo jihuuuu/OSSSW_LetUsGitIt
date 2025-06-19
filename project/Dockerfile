@@ -17,6 +17,8 @@ COPY requirements.txt .
 
 # 4) 파이썬 패키지 설치
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torch==2.2.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+RUN pip install --no-cache-dir transformers==4.41.1
 
 # 5) 앱 소스 전체 복사
 COPY . .

@@ -21,7 +21,7 @@ useEffect(() => {
 
   const loadNote = async () => {
 
-    const res = await fetch(`http://3.39.180.27:8000/users/notes/${noteId}`, {
+    const res = await fetch(`http://54.180.26.163:8000/users/notes/${noteId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -67,7 +67,7 @@ localStorage.removeItem("tempNoteText");
 
   
 const handleSave = async () => {
-    const res = await fetch(`http://3.39.180.27:8000/users/notes/${noteId}`, {
+    const res = await fetch(`http://54.180.26.163:8000/users/notes/${noteId}`, {
       method: "PUT",
       headers: { 
       "Content-Type": "application/json" ,

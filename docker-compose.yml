@@ -14,6 +14,7 @@ services:
     command: >
       python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
+      - mysql
       - redis
     networks:
       - app-network
@@ -35,6 +36,24 @@ services:
     networks:
       - app-network
 
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1569
+      MYSQL_DATABASE: news_app
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 1569
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    volumes:
+      - mysql_data:/var/lib/mysql
+
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mysql_data:

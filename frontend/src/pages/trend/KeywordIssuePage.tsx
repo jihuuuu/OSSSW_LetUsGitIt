@@ -13,7 +13,7 @@ export default function KeywordIssuePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://3.39.180.27:8000/trends/suggested_keywords")
+    fetch("http://54.180.26.163:8000/trends/suggested_keywords")
     .then((res) => {
       if (!res.ok) throw new Error("추천 키워드 요청 실패");
       return res.json();
@@ -60,7 +60,7 @@ export default function KeywordIssuePage() {
     setSelectedKeyword(kw);
 
     try {
-      const res = await fetch(`http://3.39.180.27:8000/trends/search?keyword=${encodeURIComponent(kw)}`);
+      const res = await fetch(`http://54.180.26.163:8000/trends/search?keyword=${encodeURIComponent(kw)}`);
       if (!res.ok) throw new Error("API 요청 실패");
       const data = await res.json();
 

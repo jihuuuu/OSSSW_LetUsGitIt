@@ -87,7 +87,7 @@ const handleAddToExistingNote = () => {
   useEffect(() => {
     const fetchClusters = async () => {
       try {
-        const res = await axios.get<Cluster[]>("http://3.39.180.27:8000/clusters/today")
+        const res = await axios.get<Cluster[]>("http://54.180.26.163:8000/clusters/today")
         console.log("▶️ /clusters/today response:", res.data);
         setClusters(res.data);
       } catch (err: any) {

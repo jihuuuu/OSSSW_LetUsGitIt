@@ -20,7 +20,7 @@ export default function WeeklyIssuePreview() {
   const navigate = useNavigate(); // ✅ 추가
 
   useEffect(() => {
-    fetch('http://3.39.180.27:8000/trends/weekly')
+    fetch('http://54.180.26.163:8000/trends/weekly')
       .then(res => res.json())
       .then((data: ApiResponse) => {
         const chartData = data.trend_data[0]?.daily_counts.map((_: any, i: number) => {
