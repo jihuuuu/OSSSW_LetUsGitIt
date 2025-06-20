@@ -26,7 +26,7 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("http://3.35.66.161:8000/users/signup", {
+      const response = await fetch("http://52.79.50.169:8000/users/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

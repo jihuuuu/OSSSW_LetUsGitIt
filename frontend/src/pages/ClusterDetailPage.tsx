@@ -42,13 +42,13 @@ export default function ClusterDetailPage() {
 
 
   useEffect(() => {
-    axios.get<ClusterDetail>(`http://3.35.66.161:8000/clusters/today/${clusterId}/articles`).then((res) => {
+    axios.get<ClusterDetail>(`http://52.79.50.169:8000/clusters/today/${clusterId}/articles`).then((res) => {
       setCluster(res.data);
     });
 
   const fetchData = async () => {
     try {
-      const res = await axios.get<{ articles: any[] }>("http://3.35.66.161:8000/users/scraps", {
+      const res = await axios.get<{ articles: any[] }>("http://52.79.50.169:8000/users/scraps", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -77,7 +77,7 @@ export default function ClusterDetailPage() {
     const isScrapped = favorites.has(articleId);
 
     try {
-      const url = `http://3.35.66.161:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
+      const url = `http://52.79.50.169:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
       const method = isScrapped ? "put" : "post";
 
       const res = await axios<{ isSuccess: boolean; message?: string }>({
