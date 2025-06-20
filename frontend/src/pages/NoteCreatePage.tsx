@@ -15,7 +15,7 @@ export default function NoteCreatePage() {
   const [articles, setArticles] = useState<Article[]>(location.state?.articles || []);
 
   const handleSave = async () => {
-    const res = await fetch("http://3.37.87.202:8000/users/notes", {
+    const res = await fetch("http://3.35.66.161:8000/users/notes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

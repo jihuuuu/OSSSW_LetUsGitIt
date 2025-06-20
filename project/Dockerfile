@@ -19,7 +19,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir torch==2.2.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 RUN pip install --no-cache-dir transformers==4.41.1
-
+RUN pip install --no-cache-dir sentence-transformers
+RUN pip install --no-cache-dir numpy==1.24.4 
 # 5) 앱 소스 전체 복사
 COPY . .
 
