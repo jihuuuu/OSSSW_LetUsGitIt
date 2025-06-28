@@ -4,6 +4,16 @@
 
 > Semantic Clustering + Trend Visualization + User Scrap-based Note System
 
+---
+## ✍️  팀 소개
+| 이름 | 역할 | 깃허브 |
+|------|------|--------|
+| 강성경 | 프론트/디자인/API명세/배포 | [@sunggyeong](https://github.com/sunggyeong) |
+| 남지후 | 백엔드/DB설계/AI/캐싱 | [@jihuuuu](https://github.com/jihuuuu) |
+| 이채연 | 백엔드/DB설계/캐싱/배포 | [@chaeyeonlee898](https://github.com/chaeyeonlee898) |
+| 조윤경 | 프론트/디자인/API명세/AI | [@yvngyeong](https://github.com/yvngyeong) |
+
+---
 
 ## ⚙️ 기술 스택
 
@@ -186,15 +196,6 @@ npm run dev
 ![image](https://github.com/user-attachments/assets/05366551-909c-4216-96e0-171a39e52d81)
 - **지식맵 조회**  
   - ‘지식맵’ 화면에서 노드(키워드)와 엣지(유사도)로 구성된 그래프를 확인하고, 개별 노드를 클릭하면 해당 키워드와 연관된 기사를 열람할 수 있습니다 
-
----
-## ✍️  팀 소개
-| 이름 | 역할 | 깃허브 |
-|------|------|--------|
-| 강성경 | 프론트/디자인/API명세/배포 | [@sunggyeong](https://github.com/sunggyeong) |
-| 남지후 | 백엔드/DB설계/AI/캐싱 | [@jihuuuu](https://github.com/jihuuuu) |
-| 이채연 | 백엔드/DB설계/캐싱/배포 | [@chaeyeonlee898](https://github.com/chaeyeonlee898) |
-| 조윤경 | 프론트/디자인/API명세/AI | [@yvngyeong](https://github.com/yvngyeong) |
 
 ---
 
