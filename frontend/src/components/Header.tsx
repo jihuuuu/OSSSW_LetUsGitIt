@@ -18,7 +18,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
-    fetch("http://52.79.50.169:8000/users/logout", {
+    fetch("http://${import.meta.env.VITE_API_URL}:8000/users/logout", {
       method: "POST",
       credentials: "include",
     });

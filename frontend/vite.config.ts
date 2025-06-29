@@ -15,5 +15,6 @@ export default defineConfig({
   server: {
   host: '0.0.0.0',
   port: 3000,  // nginx랑 충돌 안 나게 조심
+  
 }
 });

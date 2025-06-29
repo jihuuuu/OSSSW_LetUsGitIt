@@ -20,7 +20,7 @@ export const TodayKeywordPreview: React.FC = () => {
     async function fetchTodayClusters() {
       try {
         const response = await axios.get<ClusterOut[]>(
-          "http://52.79.50.169:8000/clusters/today"
+          "http://${import.meta.env.VITE_API_URL}:8000/clusters/today"
         );
         // API가 20개 중 상위 20개를 반환하므로, 상위 10개만 사용
         const topTen = response.data.slice(0, 10);

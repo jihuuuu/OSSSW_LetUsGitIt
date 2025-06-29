@@ -18,6 +18,7 @@ services:
       - redis
     networks:
       - app-network
+    restart: always
 
   frontend:
     build: ./frontend

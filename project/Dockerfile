@@ -1,5 +1,5 @@
 # 1) 베이스 이미지: 가볍고 최신 파이썬
-FROM python:3.12
+FROM python:3.10-slim
 
 ENV TRANSFORMERS_CACHE=/tmp
 ENV HF_HOME=/tmp
