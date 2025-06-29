@@ -42,13 +42,13 @@ export default function ClusterDetailPage() {
 
 
   useEffect(() => {
-    axios.get<ClusterDetail>(`http://${import.meta.env.VITE_API_URL}:8000/clusters/today/${clusterId}/articles`).then((res) => {
+    axios.get<ClusterDetail>(`${import.meta.env.VITE_API_URL}/clusters/today/${clusterId}/articles`).then((res) => {
       setCluster(res.data);
     });
 
   const fetchData = async () => {
     try {
-      const res = await axios.get<{ articles: any[] }>("http://${import.meta.env.VITE_API_URL}:8000/users/scraps", {
+      const res = await axios.get<{ articles: any[] }>("${import.meta.env.VITE_API_URL}/users/scraps", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -77,7 +77,7 @@ export default function ClusterDetailPage() {
     const isScrapped = favorites.has(articleId);
 
     try {
-      const url = `http://${import.meta.env.VITE_API_URL}:8000/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
+      const url = `${import.meta.env.VITE_API_URL}/users/articles/${articleId}/${isScrapped ? "unscrap" : "scrap"}`;
       const method = isScrapped ? "put" : "post";
 
       const res = await axios<{ isSuccess: boolean; message?: string }>({

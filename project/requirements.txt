@@ -5,8 +5,8 @@ pymysql
 python-dotenv
 feedparser
 requests
-#transformers==4.41.1     # ✅ 핵심 기능만 대체
-#torch==2.2.2             # ✅ 모델 실행을 위한 최소 토치
+#transformers==4.41.1    
+#torch==2.2.2             
 scikit-learn
 scikit-learn
 numpy

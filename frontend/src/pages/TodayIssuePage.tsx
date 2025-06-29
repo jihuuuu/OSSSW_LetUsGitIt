@@ -87,7 +87,7 @@ const handleAddToExistingNote = () => {
   useEffect(() => {
     const fetchClusters = async () => {
       try {
-        const res = await axios.get<Cluster[]>("http://${import.meta.env.VITE_API_URL}:8000/clusters/today")
+        const res = await axios.get<Cluster[]>("${import.meta.env.VITE_API_URL}/clusters/today")
         console.log("▶️ /clusters/today response:", res.data);
         setClusters(res.data);
       } catch (err: any) {

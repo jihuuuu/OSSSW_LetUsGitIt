@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://${import.meta.env.VITE_API_URL}:8000",
+  baseURL: "http://${import.meta.env.VITE_API_URL}/:8000",
   withCredentials: true,
 });
 
@@ -32,7 +32,7 @@ api.interceptors.response.use(
           access_token: string;
         }
         const res = await axios.post<RefreshResponse>(
-          "http://${import.meta.env.VITE_API_URL}:8000/users/refresh",
+          "${import.meta.env.VITE_API_URL}/users/refresh",
           {},
           { withCredentials: true }
         );

@@ -15,7 +15,7 @@ export default function NoteCreatePage() {
   const [articles, setArticles] = useState<Article[]>(location.state?.articles || []);
 
   const handleSave = async () => {
-    const res = await fetch("http://${import.meta.env.VITE_API_URL}:8000/users/notes", {
+    const res = await fetch("${import.meta.env.VITE_API_URL}/users/notes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
