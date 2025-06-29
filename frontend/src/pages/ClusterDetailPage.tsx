@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Logo from "@/components/ui/logo";
 import { Star } from "lucide-react";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
